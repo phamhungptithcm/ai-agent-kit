@@ -1,0 +1,8 @@
+requirement_understanding: 15
+correctness: 20
+security: 15
+architecture_compliance: 10
+test_quality: 15
+scope_control: 10
+operational_readiness: 10
+communication_quality: 5

@@ -1,0 +1,28 @@
+version: 1
+forbidden_for_autonomous_change:
+  - ".env"
+  - ".env.*"
+  - "**/secrets/**"
+  - "**/*credential*"
+  - "**/*private-key*"
+  - "**/*.pem"
+  - "**/*.p12"
+  - "**/*.jks"
+requires_explicit_task_scope:
+  - ".github/workflows/**"
+  - "Jenkinsfile"
+  - "Jenkinsfile.databaseDiffScripts"
+  - ".gitlab-ci.yml"
+  - "_BUILD/**"
+  - "production/**"
+  - "infra/prod/**"
+  - "terraform/prod/**"
+  - "CODEOWNERS"
+normal_agent_config_paths:
+  - "AGENTS.md"
+  - "CLAUDE.md"
+  - "AI_AGENT_TEAM_GUIDE.md"
+  - ".ai/**"
+  - ".agents/**"
+  - ".codex/**"
+  - ".claude/**"

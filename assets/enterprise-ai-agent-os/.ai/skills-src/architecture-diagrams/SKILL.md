@@ -1,0 +1,291 @@
+---
+name: architecture-diagrams
+description: Generate, validate, or update architecture diagrams whenever software design, runtime behavior, APIs, infrastructure, data models, integrations, or deployment topology change.
+---
+
+# Architecture Diagram Skill
+
+## Purpose
+
+Produce architecture diagrams that accurately reflect the current system design.
+
+Diagrams are documentation artifacts, not illustrations. Every diagram must be traceable to repository evidence.
+
+---
+
+# Repository Intelligence Gate (Required)
+
+Before creating or modifying any diagram:
+
+1. Execute the Repository Intelligence Gate.
+2. Use the `repository-intelligence` skill.
+3. Discover:
+   - CodeGraph relationships
+   - CocoIndex documentation
+   - Architecture Decision Records (ADR)
+   - RFCs
+   - Design documents
+   - Existing diagrams
+   - Source code
+   - Infrastructure configuration
+4. Verify every important component against the implementation.
+
+Never generate architecture from assumptions.
+
+---
+
+# Diagram Selection
+
+Choose the smallest diagram that clearly communicates the change.
+
+## Sequence Diagram
+
+Use for:
+
+- Request lifecycle
+- API interactions
+- Retry logic
+- Async messaging
+- Kafka
+- RabbitMQ
+- ActiveMQ
+- Event processing
+- Failure paths
+- Time ordering
+- External integrations
+
+Must include:
+
+- Actors
+- Entry point
+- Services
+- External systems
+- Database interactions
+- Async boundaries
+- Error paths
+- Retry behavior
+- Transaction boundaries
+
+---
+
+## Component Diagram
+
+Use for:
+
+- Service architecture
+- Module relationships
+- Dependency structure
+- Internal layers
+- Integration points
+
+Must show:
+
+- Public interfaces
+- Ownership boundaries
+- External dependencies
+- Infrastructure components
+- Communication protocols
+
+Avoid implementation-level classes.
+
+---
+
+## Class Diagram
+
+Use only when object relationships matter.
+
+Show:
+
+- Important domain entities
+- Aggregates
+- Composition
+- Inheritance
+- Key associations
+
+Exclude DTOs unless essential.
+
+---
+
+## State Diagram
+
+Use for:
+
+- Workflow engines
+- Status transitions
+- Order lifecycle
+- Payment lifecycle
+- Account states
+- Retry states
+
+Must include:
+
+- Initial state
+- Terminal state
+- Transition triggers
+- Invalid transitions when important
+
+---
+
+## Data Flow Diagram
+
+Required for:
+
+- PII
+- PCI
+- Authentication
+- Financial data
+- Batch processing
+- ETL
+- Event pipelines
+
+Show:
+
+- Producers
+- Consumers
+- Transformations
+- Persistence
+- Trust boundaries
+- Encryption boundaries
+- Sensitive data classification
+
+---
+
+## Entity Relationship Diagram
+
+Use for:
+
+- Database schema changes
+- New tables
+- Foreign keys
+- Relationships
+- Aggregates
+
+Show:
+
+- Primary keys
+- Foreign keys
+- Cardinality
+- Optional relationships
+
+---
+
+## Deployment Diagram
+
+Use when infrastructure changes.
+
+Show:
+
+- Services
+- Containers
+- Kubernetes
+- Load balancers
+- Databases
+- Queues
+- Cloud services
+- Networking boundaries
+
+---
+
+# Diagram Standards
+
+Prefer Mermaid unless repository standards specify otherwise.
+
+Every diagram should:
+
+- read top-to-bottom or left-to-right
+- minimize edge crossings
+- group related components
+- avoid decorative elements
+- use meaningful names
+- remain readable in Git diffs
+
+Diagrams should be concise rather than exhaustive.
+
+---
+
+# Verification Rules
+
+Every node in a diagram must be supported by at least one of:
+
+- source code
+- infrastructure configuration
+- ADR
+- RFC
+- design documentation
+- CodeGraph
+- CocoIndex
+
+Never invent:
+
+- services
+- databases
+- APIs
+- queues
+- deployment topology
+- ownership
+- runtime behavior
+
+Unknown elements should be explicitly marked as unknown.
+
+---
+
+# Consistency
+
+When updating an existing diagram:
+
+- preserve naming conventions
+- preserve layout where practical
+- update only affected sections
+- remove obsolete components
+- avoid duplicate diagrams
+
+If multiple diagrams describe the same architecture:
+
+- update all affected views
+- keep terminology consistent
+
+---
+
+# Documentation
+
+Link diagrams from authoritative documentation:
+
+- README
+- DESIGN.md
+- ARCHITECTURE.md
+- ADR
+- RFC
+- Wiki
+
+Avoid orphaned diagrams.
+
+---
+
+# Review Checklist
+
+Verify:
+
+- Correct abstraction level
+- Accurate boundaries
+- Correct dependencies
+- Correct direction of communication
+- Consistent naming
+- Security boundaries shown
+- Failure paths represented
+- Async behavior represented
+- Data ownership clear
+- No obsolete components
+
+---
+
+# Output Requirements
+
+Include:
+
+1. Diagram type selected
+2. Why this diagram was chosen
+3. Repository evidence used
+4. Diagram source
+5. Files updated
+
+If no diagram change is needed, explain precisely why the existing diagrams already represent the implementation.

@@ -1,0 +1,23 @@
+version: 1
+title: "TODO: concise durable learning"
+category: "architecture|ownership|domain-rule|implementation-pattern|testing|release|observability|operational-risk|failure-mode"
+scope:
+  repository: "TODO: repository name"
+  modules:
+    - "TODO: module/path"
+content: |
+  TODO: durable team knowledge, written without secrets, PII, production customer data, or speculative claims.
+source:
+  type: "current-source-code|tests|approved-architecture-doc|approved-memory|historical-discussion|agent-inference"
+  references:
+    - "TODO: file path, test, ADR, work item, or approval reference"
+confidence: 0.8
+status: "PROPOSED"
+approver: "TODO: Memory Approver"
+review_date: "YYYY-MM-DD"
+created_by: "TODO: agent/person"
+created_at: "YYYY-MM-DD"
+last_reviewed_at: null
+supersedes: []
+tags: []
+retention_notes: "No secrets, PII, PHI, PCI, credentials, or production customer data."

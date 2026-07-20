@@ -1,0 +1,11 @@
+title: "Jira Demo Deck"
+required_slides:
+  - "Title and change summary"
+  - "Problem/RCA or planned-change rationale"
+  - "Solution and impacted components"
+  - "Validation evidence"
+  - "Manual screenshot placeholders"
+  - "Deployment, rollback, and risks"
+notes:
+  - "Generated decks must include Jira key and change title."
+  - "Screenshots are placeholders unless explicitly attached by a human."

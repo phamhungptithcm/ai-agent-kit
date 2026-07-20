@@ -1,0 +1,35 @@
+version: 1
+low:
+  examples:
+    - "documentation"
+    - "test-only change"
+    - "localized copy change"
+    - "local developer tooling without production access"
+medium:
+  examples:
+    - "internal API"
+    - "business logic"
+    - "SQL query"
+    - "new dependency"
+    - "background job"
+    - "cache behavior"
+high:
+  examples:
+    - "authentication"
+    - "authorization"
+    - "payment"
+    - "financial processing"
+    - "PII"
+    - "public API compatibility"
+    - "schema migration"
+    - "IAM"
+    - "encryption"
+    - "existing-system change without approval evidence"
+critical:
+  examples:
+    - "production datafix"
+    - "production credential access"
+    - "destructive production operation"
+    - "regulated financial adjustment"
+    - "permanent deletion of regulated data"
+    - "disabling audit or security monitoring"

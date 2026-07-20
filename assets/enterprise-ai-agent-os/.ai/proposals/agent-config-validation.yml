@@ -1,0 +1,29 @@
+name: Agent Config Validation
+
+on:
+  pull_request:
+    paths:
+      - "AGENTS.md"
+      - "CLAUDE.md"
+      - "AI_AGENT_TEAM_GUIDE.md"
+      - ".ai/**"
+      - ".agents/**"
+      - ".codex/**"
+      - ".claude/**"
+      - ".github/workflows/agent-config-validation.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      # TODO(owner): pin actions to commit SHAs before enabling this workflow.
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python .ai/scripts/sync_agent_assets.py --check
+      - run: python .ai/scripts/validate_agent_config.py
+      - run: python .ai/scripts/test_agent_policies.py

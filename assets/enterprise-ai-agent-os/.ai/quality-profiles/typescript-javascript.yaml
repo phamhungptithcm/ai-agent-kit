@@ -1,0 +1,571 @@
+version: 1
+
+id: typescript-javascript
+
+name: TypeScript and JavaScript Quality Profile
+
+description: 
+  Mandatory engineering standards for TypeScript and JavaScript applications,
+  libraries, services, frontend bundles, build tooling, scripts, and tests.
+  Optimize for type safety, runtime correctness, maintainability, security,
+  dependency hygiene, performance, and production operability.
+
+detect:
+
+  files:
+    - "package.json"
+    - "package-lock.json"
+    - "npm-shrinkwrap.json"
+    - "yarn.lock"
+    - "pnpm-lock.yaml"
+    - "bun.lock"
+    - "bun.lockb"
+    - "tsconfig.json"
+    - "tsconfig.*.json"
+    - "jsconfig.json"
+    - "eslint.config.*"
+    - ".eslintrc*"
+    - "biome.json"
+    - "biome.jsonc"
+    - "vitest.config.*"
+    - "jest.config.*"
+    - "vite.config.*"
+    - "webpack.config.*"
+    - "next.config.*"
+    - "angular.json"
+    - "nx.json"
+    - "turbo.json"
+    - ".nvmrc"
+    - ".node-version"
+    - ".npmrc"
+
+  extensions:
+    - "*.ts"
+    - "*.tsx"
+    - "*.js"
+    - "*.jsx"
+    - "*.mts"
+    - "*.cts"
+    - "*.mjs"
+    - "*.cjs"
+
+  version_sources:
+    - "package.json engines"
+    - "package.json packageManager"
+    - ".nvmrc"
+    - ".node-version"
+    - "Volta configuration"
+    - "tsconfig target"
+    - "tsconfig module"
+    - "tsconfig moduleResolution"
+    - "CI Node.js setup"
+    - "Docker base image"
+    - "runtime deployment configuration"
+
+goals:
+  - "type safety"
+  - "runtime correctness"
+  - "predictable async behavior"
+  - "resource safety"
+  - "security"
+  - "maintainability"
+  - "dependency reproducibility"
+  - "frontend and backend performance"
+  - "production observability"
+
+preferred_commands:
+
+  install:
+    - "npm ci"
+    - "pnpm install --frozen-lockfile"
+    - "yarn install --immutable"
+    - "bun install --frozen-lockfile"
+
+  type_check:
+    - "tsc --noEmit"
+    - "framework-specific type checking"
+    - "project-reference build validation"
+
+  lint_format:
+    - "eslint"
+    - "biome check"
+    - "prettier --check"
+
+  test:
+    - "vitest"
+    - "jest"
+    - "node --test"
+    - "framework-specific test runner"
+
+  build:
+    - "npm run build"
+    - "framework production build"
+    - "package export validation"
+
+  security:
+    - "npm audit"
+    - "pnpm audit"
+    - "yarn npm audit"
+    - "software composition analysis"
+    - "secret scanning"
+
+  dependency_analysis:
+    - "npm outdated"
+    - "dependency graph inspection"
+    - "bundle analyzer"
+    - "unused dependency detection"
+
+  runtime:
+    - "integration tests"
+    - "memory leak tests"
+    - "load tests"
+    - "event-loop delay monitoring"
+
+required_review:
+
+  runtime_compatibility:
+    - "supported Node.js, browser, edge, serverless, or embedded runtime is explicit"
+    - "runtime version matches package.json, CI, container, and deployment configuration"
+    - "TypeScript target and module output match the deployment runtime"
+    - "moduleResolution matches the package and runtime model"
+    - "CommonJS and ESM interop is intentional"
+    - "browser compatibility matches the supported browser matrix"
+    - "polyfills are explicit and minimal"
+    - "runtime-specific APIs are not used outside supported environments"
+    - "Node.js built-in APIs are compatible with the minimum supported version"
+    - "edge runtimes do not depend on unsupported Node.js APIs"
+
+  package_management:
+    - "exact package manager and version are declared"
+    - "lockfile is committed and consistent with package.json"
+    - "CI uses immutable or frozen dependency installation"
+    - "multiple conflicting lockfiles are not present"
+    - "production dependencies and development dependencies are classified correctly"
+    - "peer dependencies are compatible"
+    - "optional dependencies have safe fallback behavior"
+    - "install scripts from dependencies are reviewed when security-sensitive"
+    - "dependency overrides or resolutions are documented"
+    - "package registry configuration does not expose credentials"
+
+  typescript_configuration:
+    - "strict mode is enabled unless explicitly justified"
+    - "noImplicitAny is enabled"
+    - "strictNullChecks is enabled"
+    - "noUncheckedIndexedAccess is considered"
+    - "exactOptionalPropertyTypes is considered"
+    - "useUnknownInCatchVariables is enabled"
+    - "noImplicitOverride is considered for class hierarchies"
+    - "noFallthroughCasesInSwitch is enabled"
+    - "noImplicitReturns is enabled or equivalent linting exists"
+    - "skipLibCheck is justified if enabled"
+    - "allowJs and checkJs usage are intentional"
+    - "declaration output is validated for published libraries"
+    - "incremental and project-reference settings are correct for monorepos"
+    - "compiler settings are consistent across applications and packages"
+
+  type_safety:
+    - "any is avoided in production code"
+    - "unknown is preferred for untrusted values"
+    - "type assertions are minimized and justified"
+    - "non-null assertions are minimized and justified"
+    - "public APIs have explicit stable types"
+    - "discriminated unions are preferred for state and result modeling"
+    - "exhaustive handling is enforced for closed unions"
+    - "branded or opaque types are considered for identifiers and domain values"
+    - "generic constraints are meaningful"
+    - "runtime data is not trusted solely because it has a TypeScript type"
+    - "unsafe third-party typings are isolated behind adapters"
+    - "public type changes are reviewed for backward compatibility"
+
+  runtime_validation:
+    - "external input is validated at runtime"
+    - "API responses, configuration, environment variables, events, and persisted JSON are validated"
+    - "validation schemas remain aligned with TypeScript types"
+    - "parse failures are explicit and actionable"
+    - "unknown fields have intentional behavior"
+    - "numeric range, string length, enum, date, and collection constraints are bounded"
+    - "JSON parsing errors are handled"
+    - "Date parsing and timezone semantics are explicit"
+    - "precision-sensitive numeric values do not use floating point without justification"
+    - "environment variables are validated during startup"
+
+  async_behavior:
+    - "all promises are awaited, returned, observed, or intentionally detached"
+    - "floating promises are rejected by linting or review"
+    - "promise rejection paths are handled"
+    - "Promise.all failure behavior is intentional"
+    - "Promise.allSettled is considered for independent work"
+    - "parallelism is bounded"
+    - "async operations support timeout where required"
+    - "AbortSignal or equivalent cancellation is propagated"
+    - "cancellation is not silently ignored"
+    - "detached background work has an owner and failure strategy"
+    - "async callbacks are not passed to APIs that ignore returned promises"
+    - "fire-and-forget operations emit errors and operational signals"
+    - "top-level async initialization fails fast when required"
+
+  event_loop:
+    - "large synchronous CPU work is not executed on latency-sensitive paths"
+    - "synchronous filesystem, crypto, compression, and process APIs are avoided in request paths"
+    - "large JSON parse or stringify operations are reviewed"
+    - "regular expression denial-of-service risk is reviewed"
+    - "long loops yield, batch, stream, or move to workers where appropriate"
+    - "worker threads or separate processes are considered for CPU-bound work"
+    - "event-loop delay and utilization are considered for backend services"
+    - "microtask starvation risk is reviewed"
+    - "recursive async scheduling is bounded"
+    - "frontend main-thread blocking is minimized"
+
+  concurrency:
+    - "shared mutable state is minimized"
+    - "concurrent mutations are coordinated"
+    - "duplicate execution and reentrancy are considered"
+    - "race conditions around caches, initialization, refresh, and shutdown are reviewed"
+    - "concurrency limits are explicit"
+    - "queue growth is bounded"
+    - "backpressure behavior is defined"
+    - "retries are bounded and idempotent"
+    - "distributed execution does not assume exactly-once behavior"
+    - "single-process in-memory locks are not treated as distributed locks"
+
+  resources:
+    - "database connections are released"
+    - "transaction clients are released or rolled back on every path"
+    - "HTTP clients and response bodies are consumed or closed where required"
+    - "streams are closed or destroyed on failure"
+    - "file handles are closed"
+    - "timers and intervals are cleared"
+    - "event listeners are removed"
+    - "subscriptions are unsubscribed"
+    - "observers and sockets are disposed"
+    - "child processes are terminated or managed"
+    - "AbortController instances do not accumulate"
+    - "caches have size, expiration, and eviction policy"
+    - "resource cleanup occurs in finally or equivalent lifecycle hooks"
+
+  errors:
+    - "errors are not silently swallowed"
+    - "caught errors preserve cause and context"
+    - "unknown caught values are normalized safely"
+    - "custom errors use stable machine-readable codes where useful"
+    - "expected business failures are distinct from programming failures"
+    - "operational and programmer errors are handled differently where appropriate"
+    - "error messages do not expose secrets or internals"
+    - "stack traces are preserved internally"
+    - "process-level unhandled rejection and uncaught exception behavior is defined"
+    - "service shutdown behavior after fatal errors is explicit"
+    - "frontend error boundaries exist for recoverable UI failures"
+
+  functions_and_state:
+    - "functions have focused responsibilities"
+    - "side effects are explicit"
+    - "mutable module-level state is avoided"
+    - "default parameters do not hide invalid caller behavior"
+    - "object mutation versus immutable updates is intentional"
+    - "closures do not retain large or sensitive objects unnecessarily"
+    - "callbacks do not capture stale state"
+    - "memoization has bounded memory behavior"
+    - "global state access is isolated"
+    - "configuration is not mutated after initialization"
+
+  data_structures:
+    - "Map and Set are used when semantically appropriate"
+    - "object keys from untrusted input do not enable prototype pollution"
+    - "property existence checks are safe"
+    - "array operations are reviewed for large datasets"
+    - "sorting behavior is deterministic"
+    - "sort comparators are correct and stable where required"
+    - "recursive traversal has bounded depth"
+    - "deep cloning is avoided unless necessary"
+    - "structuredClone limitations are understood"
+    - "serialization of BigInt, Date, Map, Set, and custom classes is intentional"
+
+  security:
+    - "untrusted input is never executed as code"
+    - "eval, Function constructor, dynamic require, and unsafe dynamic imports are prohibited without approval"
+    - "XSS risks are reviewed"
+    - "HTML, URL, CSS, and script contexts use appropriate escaping"
+    - "dangerouslySetInnerHTML or equivalent usage is isolated and sanitized"
+    - "SQL, command, template, LDAP, path, and header injection risks are reviewed"
+    - "shell execution avoids string concatenation"
+    - "path traversal is prevented"
+    - "redirect targets are validated"
+    - "authentication and authorization are enforced server-side"
+    - "object-level and tenant-level authorization are verified"
+    - "CSRF, CORS, CSP, cookies, and token storage are reviewed where applicable"
+    - "cryptographic operations use platform-approved libraries and algorithms"
+    - "tokens, passwords, keys, cookies, authorization headers, and PII are not logged"
+    - "secrets are not committed or embedded in bundles"
+    - "dependency confusion and typosquatting risks are considered"
+    - "prototype pollution risks are reviewed"
+    - "regular expression denial-of-service risks are reviewed"
+
+  frontend:
+    - "server-only code is not included in client bundles"
+    - "secrets are not exposed through public environment variables"
+    - "browser globals are not accessed during server rendering without guards"
+    - "hydration behavior is deterministic"
+    - "bundle size impact is reviewed"
+    - "tree shaking is preserved"
+    - "sideEffects package metadata is correct"
+    - "dynamic imports are used intentionally"
+    - "code splitting does not create excessive network waterfalls"
+    - "large dependencies are avoided or justified"
+    - "source maps do not expose sensitive source in production unintentionally"
+    - "DOM listeners and observers are cleaned up"
+    - "stale closure and effect dependency risks are reviewed"
+    - "loading, empty, error, and retry states are handled"
+
+  backend:
+    - "request-scoped state is not stored globally"
+    - "connection pools are bounded and observable"
+    - "HTTP agents and socket reuse are configured intentionally"
+    - "request body and response size limits are enforced"
+    - "timeouts exist for inbound and outbound operations"
+    - "graceful shutdown drains requests and workers"
+    - "health and readiness checks reflect dependency state appropriately"
+    - "background jobs have idempotency and retry strategy"
+    - "memory use is bounded for streams, uploads, downloads, queues, and caches"
+    - "cluster or multi-instance behavior is reviewed"
+    - "process-local caches do not assume single-instance deployment"
+
+  modules_and_packages:
+    - "package exports are explicit"
+    - "public and private modules are separated"
+    - "deep imports into dependencies are avoided"
+    - "circular dependencies are detected and avoided"
+    - "ESM and CommonJS entry points behave consistently where both are published"
+    - "types, import, require, browser, and default exports are aligned"
+    - "tree-shakable modules avoid unnecessary side effects"
+    - "published package files are allowlisted"
+    - "semantic versioning impact is reviewed"
+    - "public API surface is intentionally small"
+
+  dependencies:
+    - "new dependencies are justified"
+    - "native dependencies are reviewed for platform compatibility"
+    - "abandoned or unmaintained packages are avoided"
+    - "transitive dependency risk is considered"
+    - "duplicate major versions are reviewed"
+    - "package size and runtime cost are considered"
+    - "licenses are compatible"
+    - "known vulnerabilities are reviewed for exploitability"
+    - "security exceptions have an owner and expiration"
+    - "dependency updates preserve runtime and type compatibility"
+
+  performance:
+    - "algorithmic complexity is appropriate"
+    - "large collections are not repeatedly copied"
+    - "unnecessary object allocation is minimized on hot paths"
+    - "serialization and deserialization cost is considered"
+    - "network calls are batched or parallelized safely"
+    - "frontend bundle and chunk budgets are respected"
+    - "backend memory growth is bounded"
+    - "streaming is preferred over buffering large payloads"
+    - "caching has measurable benefit and safe invalidation"
+    - "performance optimizations are supported by evidence"
+
+  observability:
+    - "structured logging is used"
+    - "logs include operation, outcome, latency, and correlation context"
+    - "trace context propagates through async boundaries"
+    - "metrics avoid unbounded labels"
+    - "timeouts, retries, rejections, queue depth, pool usage, and event-loop delay are observable"
+    - "fatal process errors are captured before shutdown"
+    - "frontend runtime errors are reported with release and source-map context"
+    - "sensitive values are redacted"
+    - "business and technical failures are distinguishable"
+
+  testing:
+    - "unit tests cover meaningful logic and failure paths"
+    - "type-level behavior is tested for public libraries where appropriate"
+    - "integration tests cover external boundaries"
+    - "async rejection and timeout paths are tested"
+    - "cancellation and abort behavior are tested"
+    - "resource cleanup is tested"
+    - "concurrent and duplicate execution is tested where applicable"
+    - "browser and runtime compatibility is tested against supported versions"
+    - "security-sensitive validation and authorization paths are tested"
+    - "production build is validated"
+    - "tests do not rely on arbitrary sleep for synchronization"
+    - "fake timers are restored after use"
+    - "mocks do not hide incompatible production behavior"
+
+conditional_checks:
+
+  - condition: "TypeScript is used"
+    checks:
+      - "tsc --noEmit"
+      - "strict compiler settings review"
+      - "public type compatibility review"
+      - "runtime validation for external input"
+      - "declaration output validation for libraries"
+
+  - condition: "JavaScript is used without TypeScript"
+    checks:
+      - "checkJs or equivalent static analysis considered"
+      - "JSDoc types used for public contracts"
+      - "runtime validation strengthened"
+      - "implicit coercion and undefined behavior reviewed"
+
+  - condition: "Node.js backend or worker changes"
+    checks:
+      - "event-loop blocking review"
+      - "pool, socket, stream, timer, and listener cleanup"
+      - "graceful shutdown test"
+      - "timeout and abort propagation"
+      - "memory and event-loop metrics"
+
+  - condition: "React or Next.js changes"
+    checks:
+      - "hook dependency and stale closure review"
+      - "server and client component boundary review"
+      - "hydration compatibility"
+      - "effect cleanup"
+      - "bundle and rendering impact"
+      - "unsafe HTML review"
+
+  - condition: "Angular changes"
+    checks:
+      - "subscription cleanup"
+      - "change detection impact"
+      - "template type checking"
+      - "RxJS error and cancellation behavior"
+      - "provider scope and shared state review"
+
+  - condition: "Vue, Nuxt, or Svelte changes"
+    checks:
+      - "reactive lifecycle cleanup"
+      - "SSR and hydration behavior"
+      - "watcher or subscription cleanup"
+      - "client bundle impact"
+
+  - condition: "RxJS is used"
+    checks:
+      - "subscription ownership"
+      - "operator error behavior"
+      - "completion behavior"
+      - "shareReplay cache and leak risk"
+      - "switchMap, mergeMap, concatMap, and exhaustMap semantics"
+      - "bounded concurrency"
+
+  - condition: "published package or shared library changes"
+    checks:
+      - "exports map validation"
+      - "public type compatibility"
+      - "ESM and CommonJS compatibility"
+      - "tree-shaking validation"
+      - "semantic versioning assessment"
+      - "package contents inspection"
+
+  - condition: "frontend bundle changes"
+    checks:
+      - "bundle analysis"
+      - "tree-shaking verification"
+      - "code splitting review"
+      - "browser compatibility check"
+      - "source map and secret exposure review"
+
+  - condition: "security-sensitive or public-facing code changes"
+    checks:
+      - "dependency audit"
+      - "injection and XSS review"
+      - "authorization tests"
+      - "sensitive logging review"
+      - "abuse and denial-of-service review"
+
+  - condition: "timers, listeners, subscriptions, workers, streams, sockets, or caches change"
+    checks:
+      - "lifecycle ownership"
+      - "cleanup on success, failure, cancellation, and shutdown"
+      - "leak test"
+      - "bounded growth validation"
+
+reject_if:
+  - "type checking fails"
+  - "linting reports unresolved correctness or security errors"
+  - "unsupported runtime API is introduced"
+  - "package manager, lockfile, CI, and runtime versions conflict"
+  - "strict TypeScript safety is weakened without justification"
+  - "any is introduced at an external or public boundary without justification"
+  - "external data is trusted without runtime validation"
+  - "promise rejection can be unhandled"
+  - "floating promise exists without intentional ownership"
+  - "async operation has no timeout where indefinite waiting is possible"
+  - "cancellation or AbortSignal is dropped across a cancellable boundary"
+  - "unbounded concurrency or queue growth is introduced"
+  - "blocking synchronous work is added to a latency-sensitive event-loop path"
+  - "database client, stream, socket, timer, listener, subscription, worker, or process can leak"
+  - "retry is unbounded or non-idempotent"
+  - "eval, Function constructor, or unsafe dynamic code execution is introduced without approval"
+  - "untrusted HTML is rendered without sanitization"
+  - "injection vulnerability is possible"
+  - "authentication or authorization is enforced only in frontend code"
+  - "secret or sensitive data can be logged or included in a frontend bundle"
+  - "prototype pollution is possible"
+  - "production dependency vulnerability is ignored without documented assessment"
+  - "bundle budget is exceeded without approval"
+  - "tree shaking is broken for shared frontend code"
+  - "CommonJS and ESM behavior becomes incompatible unintentionally"
+  - "public package API or type contract breaks without versioning"
+  - "tests use arbitrary sleep as the primary synchronization mechanism"
+  - "fatal errors are swallowed and the process continues in an invalid state"
+
+preferred_patterns:
+  - "strict TypeScript"
+  - "unknown plus runtime validation at trust boundaries"
+  - "discriminated unions"
+  - "Result-style modeling for expected failures"
+  - "AbortController and AbortSignal propagation"
+  - "bounded concurrency"
+  - "structured resource cleanup"
+  - "streaming for large payloads"
+  - "immutable state where practical"
+  - "small explicit module boundaries"
+  - "ESM for new packages when ecosystem-compatible"
+  - "package exports map"
+  - "dependency injection at external boundaries"
+  - "schema-derived types where practical"
+  - "stable machine-readable error codes"
+  - "structured logging"
+  - "graceful shutdown"
+  - "frontend code splitting based on measurable value"
+  - "backend connection pooling with explicit limits"
+
+deliverables:
+  - "runtime and version compatibility summary"
+  - "TypeScript configuration and type-safety assessment"
+  - "async, timeout, cancellation, and retry analysis"
+  - "resource lifecycle and leak-risk review"
+  - "security and sensitive-data assessment"
+  - "dependency and lockfile impact"
+  - "frontend bundle or backend runtime performance impact"
+  - "public API and package compatibility assessment"
+  - "test evidence"
+  - "unresolved risks and required follow-up actions"
+
+review_output:
+
+  required_sections:
+    - "Change summary"
+    - "Runtime compatibility"
+    - "Type safety"
+    - "Async and resource lifecycle"
+    - "Security"
+    - "Dependency impact"
+    - "Performance impact"
+    - "Testing evidence"
+    - "Unresolved risks"
+
+  decision:
+    allowed_values:
+      - "APPROVE"
+      - "APPROVE_WITH_CONDITIONS"
+      - "REJECT"
+
+    requirements:
+      - "cite code, configuration, lockfile, build, or test evidence"
+      - "do not claim a command passed unless it was executed"
+      - "distinguish compile-time safety from runtime validation"
+      - "identify environment-specific behavior explicitly"
+      - "list unsupported assumptions and unresolved risks"

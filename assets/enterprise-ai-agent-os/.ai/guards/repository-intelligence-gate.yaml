@@ -1,0 +1,154 @@
+version: 1
+name: repository-intelligence-gate
+owner: "TODO(owner): assign platform or architecture owner"
+mode: fail-closed
+purpose: >
+  Require CodeGraph and CocoIndex evidence before brainstorming, planning,
+  impact analysis, review, QA analysis, documentation analysis, or implementation.
+
+verified_tools:
+  codegraph:
+    product: "CodeGraph"
+    package: "@colbymchenry/codegraph"
+    source: "https://github.com/colbymchenry/codegraph"
+    install_commands:
+      preferred: "npx @colbymchenry/codegraph"
+      manual_npm: "npm install -g @colbymchenry/codegraph"
+    executable: "codegraph"
+    mcp_command: "codegraph serve --mcp"
+    role: "structural graph, symbols, callers/callees, impact, blast radius"
+  cocoindex:
+    product: "CocoIndex Code"
+    package: "cocoindex-code[full]"
+    source: "https://github.com/cocoindex-io/cocoindex-code"
+    install_commands:
+      preferred: "uv tool install --upgrade \"cocoindex-code[full]\""
+      fallback: "pipx install \"cocoindex-code[full]\""
+    executable: "ccc"
+    mcp_command: "ccc mcp"
+    role: "semantic code and documentation retrieval, similar implementations, specs, runbooks"
+
+startup_requirements:
+  - check_codegraph_executable
+  - check_cocoindex_executable
+  - check_mcp_configuration
+  - check_codegraph_index_exists
+  - check_cocoindex_index_exists
+  - compare_index_metadata_to_current_git_commit
+  - compare_index_metadata_to_current_worktree_signature
+  - run_codegraph_health_query
+  - run_cocoindex_health_query
+
+required_scripts:
+  check: ".ai/scripts/check-repository-intelligence.py"
+  install: ".ai/scripts/install-repository-intelligence.py"
+  index: ".ai/scripts/index-repository.py"
+  refresh: ".ai/scripts/refresh-repository-index.py"
+  bootstrap_windows: ".ai/scripts/bootstrap-repository-intelligence.ps1"
+  bootstrap_posix: ".ai/scripts/bootstrap-repository-intelligence.sh"
+
+local_state:
+  path: ".ai/local/repository-intelligence-state.json"
+  gitignored: true
+  required_fields:
+    - repository_root
+    - git_branch
+    - git_commit
+    - worktree_signature
+    - indexed_at_unix
+    - codegraph.version
+    - cocoindex.version
+
+blocking_rules:
+  - condition: "CodeGraph missing, invalid, stale, or failing health check"
+    allowed_work: "tooling setup and troubleshooting only"
+    blocked_work:
+      - brainstorming
+      - planning
+      - impact analysis
+      - review
+      - QA analysis
+      - documentation analysis
+      - implementation
+  - condition: "CocoIndex missing, invalid, stale, or failing health check"
+    allowed_work: "tooling setup and troubleshooting only"
+    blocked_work:
+      - brainstorming
+      - planning
+      - impact analysis
+      - review
+      - QA analysis
+      - documentation analysis
+      - implementation
+  - condition: "index metadata does not match current commit or worktree signature"
+    allowed_work: "incremental refresh, then re-check"
+    blocked_work:
+      - protected application edits
+      - plan approval claims
+      - review conclusions
+
+retrieval_order:
+  - "Query CodeGraph for structure, symbols, callers/callees, dependencies, and impact."
+  - "Query CocoIndex for semantic matches, requirements, specs, docs, tests, runbooks, ADRs, and similar flows."
+  - "Open only the most relevant files and exact sections returned by indexes."
+  - "Verify critical facts against source code."
+  - "Expand search progressively only when evidence is insufficient."
+
+index_scope_include:
+  - "application and service source code"
+  - "low-code or model-driven app source and exported documentation where supported"
+  - "frontend and mobile application code"
+  - "SQL, migrations, database docs, and datafix procedures"
+  - "event schemas and API/integration contracts"
+  - "batch, scheduler, and background-job configuration"
+  - "infrastructure, container, and CI/CD files"
+  - "architecture documents, ADRs, business specifications, runbooks, tests, demo, and release docs"
+
+index_scope_exclude:
+  - ".git/**"
+  - ".codegraph/**"
+  - ".cocoindex_code/**"
+  - ".ai/local/**"
+  - ".ai/generated/**"
+  - ".codex_tmp/**"
+  - "**/node_modules/**"
+  - "**/target/**"
+  - "**/build/**"
+  - "**/dist/**"
+  - "**/coverage/**"
+  - "**/test-results/**"
+  - "**/surefire-reports/**"
+  - "**/logs/**"
+  - "**/*.log"
+  - "**/*.class"
+  - "**/*.jar"
+  - "**/*.war"
+  - "**/*.ear"
+  - "**/*.zip"
+  - "**/*.gz"
+  - "**/.env"
+  - "**/.env.*"
+  - "**/secrets/**"
+  - "**/*secret*"
+  - "**/*credential*"
+  - "**/*token*"
+  - "**/*.pem"
+  - "**/*.p12"
+  - "**/*.jks"
+  - "**/*private-key*"
+  - "**/*cvv*"
+  - "**/*pan*"
+  - "**/*production-data*"
+  - "**/*customer-data*"
+
+post_change_requirements:
+  - compare_actual_diff_to_approved_scope
+  - run_codegraph_impact_for_changed_symbols
+  - refresh_codegraph_index
+  - refresh_cocoindex_index
+  - re_run_repository_intelligence_gate
+  - stop_for_delta_approval_on_material_scope_expansion
+
+validation:
+  command: "python .ai/scripts/validate_agent_config.py"
+  expected: "agent configuration validation passed"

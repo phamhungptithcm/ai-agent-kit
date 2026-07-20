@@ -1,0 +1,407 @@
+---
+name: design-document
+description: Produce an evidence-based architecture design document or RFC for cross-module, high-risk, or system-level changes. Use before implementation when architecture, APIs, data models, security, infrastructure, deployment, or operational behavior require engineering review and approval.
+---
+
+# Design Document
+
+## Purpose
+
+Create a comprehensive engineering design document that supports architecture review, implementation planning, and long-term system maintenance.
+
+Design documents describe **why** a solution was chosen—not just **what** will be built.
+
+Never invent architecture, business rules, ownership, production topology, or runtime behavior.
+
+---
+
+# Repository Intelligence Gate (Required)
+
+Before drafting:
+
+1. Execute the Repository Intelligence Gate.
+2. Use the `repository-intelligence` skill.
+3. Collect evidence from:
+
+- CodeGraph
+- CocoIndex
+- ADRs
+- RFCs
+- DESIGN.md
+- ARCHITECTURE.md
+- Existing diagrams
+- Source code
+- Specifications
+- Recent implementation history
+- Operational runbooks
+
+Use:
+
+- CodeGraph to understand dependencies, execution flow, module ownership, callers, consumers, APIs, persistence, and runtime boundaries.
+- CocoIndex to discover documentation, historical design decisions, requirements, and architectural context.
+
+Base every section on repository evidence.
+
+---
+
+# When Required
+
+Use this skill when changes involve:
+
+- multiple modules
+- shared libraries
+- public APIs
+- database schema
+- messaging
+- infrastructure
+- deployment
+- authentication
+- authorization
+- distributed systems
+- major performance work
+- security-sensitive functionality
+- architecture changes
+
+---
+
+# Design Principles
+
+The document should:
+
+- explain the problem
+- evaluate alternatives
+- justify decisions
+- describe trade-offs
+- define implementation boundaries
+- document operational impact
+- support future maintenance
+
+---
+
+# Required Sections
+
+## 1. Executive Summary
+
+Brief overview of:
+
+- problem
+- proposed solution
+- expected outcome
+
+---
+
+## 2. Context
+
+Describe:
+
+- current business need
+- existing implementation
+- technical constraints
+
+Repository evidence required.
+
+---
+
+## 3. Goals
+
+Clearly define measurable objectives.
+
+---
+
+## 4. Non-Goals
+
+Explicitly identify items intentionally excluded.
+
+---
+
+## 5. Current State
+
+Describe:
+
+- architecture
+- modules
+- APIs
+- persistence
+- integrations
+- deployment
+- operational behavior
+
+Only include verified facts.
+
+---
+
+## 6. Problem Statement
+
+Describe:
+
+- current limitations
+- technical debt
+- production issues
+- architectural constraints
+
+Support with evidence.
+
+---
+
+## 7. Requirements
+
+Separate:
+
+### Functional
+
+### Non-Functional
+
+Including:
+
+- availability
+- latency
+- scalability
+- reliability
+- compliance
+
+---
+
+## 8. Options Considered
+
+For every reasonable option:
+
+- description
+- benefits
+- drawbacks
+- implementation complexity
+- operational impact
+- long-term maintenance
+
+Explain why alternatives were rejected.
+
+---
+
+## 9. Decision
+
+Document:
+
+- selected approach
+- rationale
+- decision criteria
+- expected benefits
+
+---
+
+## 10. Architecture
+
+Describe:
+
+- components
+- boundaries
+- interactions
+- responsibilities
+- deployment impact
+
+Reference updated diagrams where applicable.
+
+---
+
+## 11. Data Model
+
+Describe:
+
+- entities
+- schema
+- persistence
+- migrations
+- compatibility
+- data ownership
+
+---
+
+## 12. APIs and Contracts
+
+Document:
+
+- endpoints
+- events
+- schemas
+- request/response contracts
+- versioning
+- backward compatibility
+
+---
+
+## 13. Security and Privacy
+
+Review:
+
+- authentication
+- authorization
+- secrets
+- encryption
+- PII
+- PCI
+- audit
+- compliance
+
+---
+
+## 14. Performance and Scalability
+
+Evaluate:
+
+- latency
+- throughput
+- concurrency
+- caching
+- database impact
+- memory
+- resource utilization
+
+---
+
+## 15. Observability
+
+Describe:
+
+- logging
+- metrics
+- tracing
+- dashboards
+- alerts
+- operational diagnostics
+
+---
+
+## 16. Deployment Strategy
+
+Document:
+
+- rollout sequence
+- feature flags
+- migrations
+- configuration
+- deployment dependencies
+
+---
+
+## 17. Rollback Strategy
+
+Describe:
+
+- rollback conditions
+- rollback procedure
+- irreversible changes
+- operational considerations
+
+---
+
+## 18. Testing Strategy
+
+Include:
+
+- unit
+- integration
+- contract
+- regression
+- performance
+- security
+- acceptance testing
+
+---
+
+## 19. Risks
+
+Classify:
+
+- technical
+- operational
+- security
+- deployment
+- migration
+- business
+
+Assign severity and mitigation.
+
+---
+
+## 20. Open Questions
+
+Clearly identify unresolved topics.
+
+Unknown information should be marked:
+
+```
+TODO(owner): ...
+```
+
+Never invent missing details.
+
+---
+
+# Architecture Traceability
+
+Map the proposed design to:
+
+- impacted modules
+- services
+- APIs
+- databases
+- infrastructure
+- documentation
+- deployment artifacts
+
+Every major design decision should have repository evidence.
+
+---
+
+# Review Checklist
+
+Verify that the document includes:
+
+- repository evidence
+- design rationale
+- alternatives
+- compatibility analysis
+- deployment plan
+- rollback plan
+- testing strategy
+- operational impact
+- observability
+- risks
+- unresolved questions
+
+---
+
+# Deliverables
+
+Every design package should contain:
+
+1. Executive Summary
+2. Repository Evidence
+3. Context
+4. Current State
+5. Requirements
+6. Alternatives
+7. Decision
+8. Architecture
+9. Data Model
+10. APIs
+11. Security
+12. Performance
+13. Observability
+14. Deployment
+15. Rollback
+16. Testing
+17. Risks
+18. Open Questions
+
+Separate:
+
+- Verified Facts
+- Assumptions
+- Unknowns
+
+Unknown information must be expressed as:
+
+```
+TODO(owner): ...
+```
+
+Never present assumptions as repository facts.

@@ -1,0 +1,49 @@
+version: 1
+name: code-quality-profile-gate
+mode: fail-closed
+required_for:
+  - implementation
+  - bug-fix
+  - code-review
+  - pr-or-mr-handoff
+  - database-change
+  - api-change
+default_profile: ".ai/quality-profiles/universal.yaml"
+profile_directory: ".ai/quality-profiles"
+required_selection:
+  - "detect_languages_and_versions"
+  - "select_universal_profile"
+  - "select_language_profiles"
+  - "select_platform_or_domain_profiles"
+  - "select_cross_cutting_profiles"
+  - "prefer_repository_defined_commands"
+required_statuses:
+  - "PASSED"
+  - "FAILED"
+  - "NOT_APPLICABLE"
+  - "NOT_RUN"
+must_review:
+  - "clean_code"
+  - "language_version_best_practices"
+  - "platform_domain_best_practices"
+  - "api_compatibility"
+  - "performance"
+  - "database_connection_leaks"
+  - "transaction_boundaries"
+  - "thread_or_task_leaks"
+  - "deadlock_risk"
+  - "heap_memory_leaks"
+  - "resource_lifecycle"
+  - "security"
+  - "observability"
+  - "release_delivery_safety"
+missing_tooling:
+  behavior: "report_gap_and_recommend_team_approved_tooling"
+  autonomous_install_allowed: false
+evidence_required:
+  - "detected_language_version"
+  - "detected_platform_domain"
+  - "selected_profiles"
+  - "commands_or_manual_review"
+  - "result_status"
+  - "remaining_quality_risk"

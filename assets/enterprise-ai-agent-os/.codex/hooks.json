@@ -1,0 +1,46 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".ai/scripts/bootstrap-repository-intelligence.sh --hook",
+            "commandWindows": "powershell -NoProfile -ExecutionPolicy Bypass -File .ai\\scripts\\bootstrap-repository-intelligence.ps1 -Hook",
+            "timeout": 120,
+            "statusMessage": "Checking repository intelligence gate"
+          }
+        ]
+      }
+    ],
+    "SubagentStart": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".ai/scripts/bootstrap-repository-intelligence.sh --hook",
+            "commandWindows": "powershell -NoProfile -ExecutionPolicy Bypass -File .ai\\scripts\\bootstrap-repository-intelligence.ps1 -Hook",
+            "timeout": 120,
+            "statusMessage": "Checking repository intelligence gate"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .ai/scripts/validate_agent_config.py --quick",
+            "commandWindows": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$p='.ai\\scripts\\validate_agent_config.py'; if (Get-Command py -ErrorAction SilentlyContinue) { py -3 $p --quick } elseif (Get-Command python -ErrorAction SilentlyContinue) { python $p --quick } elseif (Get-Command uv -ErrorAction SilentlyContinue) { uv run --python 3.11 python $p --quick } else { exit 1 }\"",
+            "timeout": 60,
+            "statusMessage": "Validating agent configuration"
+          }
+        ]
+      }
+    ]
+  }
+}

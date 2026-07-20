@@ -1,0 +1,256 @@
+---
+name: demo-evidence-package
+description: Prepare a complete evidence package for UAT, customer demonstrations, operational handoff, release reviews, or executive presentations. Generate presentation artifacts, validation evidence, screenshot plans, and deployment documentation without fabricating results.
+---
+
+# Demo Evidence Package
+
+## Purpose
+
+Prepare a complete demonstration package based entirely on verified implementation evidence.
+
+The package should enable:
+
+- customer demonstrations
+- UAT
+- stakeholder reviews
+- release readiness meetings
+- operational handoff
+- executive updates
+
+Never fabricate screenshots, validation, or implementation evidence.
+
+---
+
+# Repository Intelligence Gate (Required)
+
+When the demo summarizes repository behavior:
+
+1. Execute the Repository Intelligence Gate.
+2. Use the `repository-intelligence` skill.
+3. Collect evidence from:
+
+- CodeGraph
+- CocoIndex
+- ADRs
+- RFCs
+- DESIGN.md
+- ARCHITECTURE.md
+- Existing diagrams
+- Test reports
+- Quality reports
+- CI results
+- Deployment documentation
+
+Use:
+
+- CodeGraph to identify impacted components, execution paths, APIs, data flows, and affected modules.
+- CocoIndex to locate documentation, specifications, acceptance criteria, architecture decisions, and operational guidance.
+
+Only include information supported by repository evidence.
+
+---
+
+# Demo Discovery
+
+Determine:
+
+- business objective
+- change scope
+- impacted modules
+- APIs
+- database changes
+- infrastructure changes
+- deployment impact
+- rollback impact
+- user-visible behavior
+- operational impact
+
+---
+
+# Validation Evidence
+
+Summarize verified evidence including:
+
+- executed tests
+- manual validation
+- CI results
+- regression testing
+- acceptance criteria
+- quality gate status
+
+Do not report tests or validations that were not actually performed.
+
+---
+
+# Presentation Package
+
+Generate a PPTX deck containing:
+
+1. Title
+2. Jira / Work Item
+3. Executive Summary
+4. Business Problem
+5. Root Cause or Change Rationale
+6. Solution Overview
+7. Architecture Impact
+8. Implementation Summary
+9. Validation Evidence
+10. User Workflow
+11. Screenshot Placeholders
+12. Deployment Strategy
+13. Rollback Strategy
+14. Risks
+15. Open Items
+16. Questions
+
+Slides should emphasize business value and implementation evidence rather than source code.
+
+---
+
+# Validation Workbook
+
+Generate an XLSX workbook containing worksheets for:
+
+- Executive Summary
+- Acceptance Criteria
+- Test Results
+- Validation Checklist
+- Manual Verification
+- Deployment Checklist
+- Rollback Checklist
+- Artifacts
+- Screenshot Placeholders
+
+Each worksheet should reference supporting repository evidence where applicable.
+
+---
+
+# Screenshot Plan
+
+Generate a Markdown table containing:
+
+- Screenshot ID
+- Screen Name
+- Purpose
+- Preconditions
+- User Action
+- Expected Result
+- Capture Instructions
+
+Screenshots are placeholders only.
+
+Never fabricate images.
+
+---
+
+# Demo Script
+
+Generate a presenter guide including:
+
+- introduction
+- demonstration flow
+- key talking points
+- expected customer questions
+- operational considerations
+- fallback discussion points
+
+Keep the script aligned with the implementation and repository evidence.
+
+---
+
+# Deployment Summary
+
+Summarize:
+
+- deployment sequence
+- feature flags
+- migrations
+- configuration changes
+- monitoring
+- rollback plan
+- post-deployment validation
+
+---
+
+# Operational Handoff
+
+Document:
+
+- operational impact
+- monitoring
+- alerts
+- dashboards
+- known limitations
+- support guidance
+- troubleshooting references
+
+---
+
+# Risks
+
+Document:
+
+- technical risks
+- deployment risks
+- operational risks
+- known limitations
+- assumptions
+- unresolved issues
+
+Clearly distinguish verified issues from assumptions.
+
+---
+
+# Rules
+
+Never:
+
+- fabricate screenshots
+- fabricate test results
+- fabricate validation
+- fabricate customer evidence
+- fabricate external links
+
+Use placeholders whenever evidence is unavailable.
+
+---
+
+# Output
+
+Report:
+
+- generated artifact names
+- output paths
+- generation status
+- validation status
+
+If artifact generation is blocked:
+
+- explain why
+- generate complete source outlines instead
+
+---
+
+# Deliverables
+
+The package should contain:
+
+1. Executive Summary
+2. PPTX Deck
+3. XLSX Validation Workbook
+4. Screenshot Plan
+5. Demo Script
+6. Deployment Summary
+7. Operational Handoff
+8. Risk Summary
+9. Remaining Assumptions
+10. Generation Status
+
+Separate:
+
+- Verified Facts
+- Assumptions
+- Placeholder Content
+
+Never present placeholders as completed evidence.

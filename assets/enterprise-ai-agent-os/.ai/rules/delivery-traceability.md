@@ -1,0 +1,57 @@
+# Delivery & Traceability Rules
+
+required_review:
+  - "Keep implementation, specifications, documentation, architecture diagrams, tests, validation artifacts, and work items synchronized."
+  - "Every completed work item should produce a copy-ready Jira completion package unless no work item exists."
+  - "Only update Jira through an approved, authenticated, authorized integration."
+  - "Verify the issue key exists and confirm the update completed successfully before claiming a Jira update."
+  - "If Jira integration, authentication, authorization, or permissions are unavailable, generate copy-ready Jira content and explicitly state that no Jira update was performed."
+  - "Generate MR/PR descriptions from the actual code diff and supporting evidence, not assumptions."
+  - "Review changed files, tests, documentation, specifications, diagrams, migration scripts, configuration, and validation output before preparing delivery artifacts."
+  - "Use repository evidence whenever available; never replace known facts with generic placeholders."
+  - "Do not claim code was built, tested, deployed, reviewed, approved, merged, or released without verifiable evidence."
+  - "Do not claim Jira, Azure DevOps, GitHub, GitLab, Confluence, ServiceNow, or other system updates without successful confirmation."
+  - "Do not claim screenshots, recordings, diagrams, PPTX, XLSX, PDFs, or documents were created unless they exist."
+  - "Do not fabricate benchmark results, coverage numbers, performance metrics, screenshots, approvals, sign-offs, or test evidence."
+  - "Demo-required features must include explicit screenshot placeholders describing exactly what a human should capture."
+  - "Document known limitations, assumptions, manual validation steps, and remaining risks."
+  - "Ensure implementation matches the approved specification; highlight any intentional deviations."
+  - "Ensure documentation reflects the delivered behavior, API changes, configuration, operational impacts, and migration steps."
+  - "Include rollback, deployment, feature flag, configuration, and operational considerations when applicable."
+  - "Include validation evidence such as executed tests, linting, static analysis, security scans, performance results, and manual verification where available."
+  - "Maintain traceability between requirements, implementation, tests, defects, documentation, and deployment artifacts."
+  - "Reference commit IDs, MR/PR numbers, issue IDs, and related work items when verifiable."
+  - "Mark unverified statements explicitly as assumptions instead of facts."
+
+traceability:
+  - "Every requirement should map to implementation and validation evidence."
+  - "Every defect fix should reference the root cause and validation."
+  - "Every breaking change should reference migration documentation."
+  - "Every deployment-impacting change should include rollback guidance."
+  - "Every security-sensitive change should include security review evidence."
+
+pull_request:
+  required_sections:
+    - "Business Summary"
+    - "Technical Summary"
+    - "Root Cause"
+    - "Solution"
+    - "Files Changed"
+    - "Database Changes"
+    - "API Changes"
+    - "Configuration Changes"
+    - "Security Considerations"
+    - "Performance Considerations"
+    - "Backward Compatibility"
+    - "Testing Performed"
+    - "Known Limitations"
+    - "Deployment Notes"
+    - "Rollback Strategy"
+    
+evidence:
+  - "Evidence must originate from repository contents, tool outputs, CI/CD results, or authenticated systems."
+  - "Inference is acceptable only when clearly labeled as an assumption."
+  - "Never infer successful execution from code alone."
+  - "Never infer successful deployment from a merged PR."
+  - "Never infer successful testing from test source code."
+  - "Prefer direct evidence over narrative descriptions."

@@ -1,0 +1,220 @@
+version: 1
+
+id: database
+
+name: Database Engineering Profile
+
+description: >
+  Mandatory standards for all SQL, ORM, schema, migration,
+  transaction, and persistence related changes.
+  Optimize for correctness, performance, scalability,
+  observability, and safe production deployment.
+
+applies_when:
+  - SQL
+  - ORM
+  - Repository
+  - JPA
+  - Hibernate
+  - JDBC
+  - Transaction
+  - Migration
+  - Flyway
+  - Liquibase
+  - Stored Procedure
+  - Database Trigger
+  - Datafix
+  - Batch Processing
+  - ETL
+  - Connection Pool
+  - Index
+  - Query Optimization
+
+goals:
+  - correctness
+  - consistency
+  - performance
+  - scalability
+  - backward compatibility
+  - production safety
+
+must_validate:
+
+  schema:
+    - backward compatible unless explicitly approved
+    - nullable before required migrations
+    - destructive changes require migration strategy
+    - primary keys unchanged unless documented
+    - foreign keys validated
+    - constraints validated
+    - default values reviewed
+    - naming conventions followed
+
+  migrations:
+    - idempotent where applicable
+    - reversible or rollback documented
+    - production-safe ordering
+    - lock impact evaluated
+    - large table strategy documented
+    - online migration preferred
+    - data migration separated from schema migration
+    - backfill resumable
+    - deployment sequencing documented
+
+  transactions:
+    - smallest possible transaction scope
+    - explicit transaction boundaries
+    - isolation level justified
+    - lock duration minimized
+    - retry strategy for transient failures
+    - deadlock risk evaluated
+    - optimistic locking preferred when appropriate
+    - no external API calls inside transactions
+
+  queries:
+    - bounded result set
+    - pagination required for collections
+    - explicit ORDER BY
+    - avoid SELECT *
+    - fetch only required columns
+    - index usage verified
+    - execution plan reviewed for critical queries
+    - full table scans justified
+    - avoid cartesian joins
+    - avoid unnecessary DISTINCT
+    - avoid correlated subqueries when joins perform better
+
+  orm:
+    - N+1 query detection
+    - lazy loading reviewed
+    - eager loading justified
+    - batch fetching enabled where appropriate
+    - bulk update/delete preferred
+    - repository.save() not inside large loops
+    - flush frequency minimized
+    - avoid unnecessary entity loading
+    - projections used for read-only operations
+
+  indexing:
+    - new queries evaluated for indexes
+    - duplicate indexes avoided
+    - covering indexes considered
+    - composite index column order validated
+    - index maintenance cost evaluated
+    - unused indexes not introduced
+
+  connections:
+    - connections always closed
+    - cursors closed
+    - statements closed
+    - streaming resources released
+    - connection leaks prevented
+    - pool exhaustion evaluated
+    - timeout configuration validated
+
+  concurrency:
+    - race conditions evaluated
+    - lost update prevention
+    - duplicate insert prevention
+    - idempotency verified
+    - concurrent execution tested
+    - distributed locking justified if used
+
+  batch_processing:
+    - configurable batch size
+    - chunk processing
+    - checkpoint support
+    - retry strategy
+    - resumable execution
+    - memory usage bounded
+    - partial failure handling
+
+  performance:
+    - complexity evaluated
+    - expected row count documented
+    - large dataset behavior reviewed
+    - memory consumption evaluated
+    - network round trips minimized
+    - bulk operations preferred
+
+  security:
+    - parameterized queries only
+    - SQL injection impossible
+    - least privilege access
+    - secrets not stored
+    - encryption requirements satisfied
+    - PII classification reviewed
+    - audit requirements satisfied
+
+  observability:
+    - slow query logging
+    - execution metrics
+    - error logging
+    - migration logging
+    - batch progress metrics
+    - transaction failure metrics
+
+  testing:
+    - migration tested
+    - rollback tested
+    - query correctness tested
+    - concurrency tested
+    - large dataset tested
+    - performance regression evaluated
+    - production-like dataset considered
+
+required_review:
+
+  correctness:
+    - schema integrity
+    - referential integrity
+    - transaction safety
+    - data consistency
+
+  scalability:
+    - index review
+    - execution plan review
+    - connection pool review
+    - lock contention review
+
+  deployment:
+    - rollback strategy
+    - compensation strategy
+    - production rollout plan
+    - zero-downtime compatibility
+
+reject_if:
+  - unbounded SELECT
+  - SELECT *
+  - missing ORDER BY on pageable queries
+  - repository.save inside large loops
+  - N+1 queries detected
+  - SQL built using string concatenation
+  - transaction wraps external API calls
+  - migration is not backward compatible
+  - rollback missing
+  - full table scan without justification
+  - missing parameterized queries
+  - connection leak possible
+  - missing pagination for collections
+
+preferred_patterns:
+  - keyset pagination over offset for large datasets
+  - batch insert/update/delete
+  - optimistic locking
+  - projection queries
+  - bulk persistence
+  - online schema migration
+  - resumable backfill
+  - idempotent datafix
+  - retry with exponential backoff
+  - read/write separation where applicable
+
+deliverables:
+  - migration plan
+  - rollback plan
+  - execution plan summary
+  - index impact summary
+  - transaction analysis
+  - performance risks
+  - production rollout notes

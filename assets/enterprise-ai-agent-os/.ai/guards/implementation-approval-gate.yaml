@@ -1,0 +1,33 @@
+version: 1
+default: "fail-closed"
+protected_changes:
+  - "existing application code"
+  - "database scripts, schema, or data migrations"
+  - "runtime configuration"
+  - "infrastructure"
+  - "public contracts"
+  - "behavior-changing tests"
+approval_evidence_required:
+  - "plan_identifier_or_version"
+  - "approval_status"
+  - "approver"
+  - "approval_timestamp_or_task_reference"
+  - "approved_scope"
+  - "constraints"
+detect:
+  outside_approved_scope: true
+  material_plan_deviation: true
+  new_dependencies: true
+  schema_or_contract_changes: true
+  additional_modules: true
+  higher_risk_paths: true
+bypass:
+  allowed: true
+  restricted_to: "emergency procedures with named human authorization and audit evidence"
+  agent_self_authorization_allowed: false
+evidence_sources:
+  - "tracked approval record"
+  - "PR/MR metadata"
+  - "repository-approved work-item metadata"
+not_sufficient:
+  - "free-form agent statement that approval occurred"

@@ -1,0 +1,894 @@
+version: 1
+
+id: universal
+
+name: Universal Code Quality Profile
+
+description: 
+  Baseline engineering policy for all repositories, languages, frameworks,
+  applications, libraries, infrastructure, scripts, data changes, and generated
+  artifacts. This profile defines mandatory AI-agent behavior, evidence
+  requirements, safety boundaries, review standards, and fallback checks.
+  Language-specific and domain-specific profiles extend this profile and may
+  introduce stricter requirements but must not weaken its mandatory controls.
+
+applies_to:
+  - "all programming languages"
+  - "all frameworks and runtimes"
+  - "frontend, backend, mobile, desktop, CLI, batch, integration, and embedded applications"
+  - "libraries, SDKs, shared modules, APIs, events, schemas, and serialized contracts"
+  - "database, migration, datafix, ETL, and persistence changes"
+  - "infrastructure-as-code, containers, Kubernetes, CI/CD, and configuration changes"
+  - "tests, scripts, automation, build tooling, and developer tooling"
+  - "AI-generated, AI-modified, and human-authored changes"
+
+inheritance:
+  behavior: "merge_and_enforce_strictest"
+
+  rules:
+    - "this profile is always active"
+    - "matching language and domain profiles are applied in addition to this profile"
+    - "more specific rules override only implementation guidance, never mandatory safety controls"
+    - "when profiles conflict, the safer or stricter requirement applies"
+    - "reject_if rules from every active profile are cumulative"
+    - "a specialized profile cannot downgrade a REQUIRED check to OPTIONAL"
+    - "repository-defined policy takes precedence when it is stricter"
+    - "deviations require explicit justification, evidence, owner, and approval"
+
+priority_order:
+  - "explicit user instruction"
+  - "repository-local engineering policy"
+  - "security and safety policy"
+  - "domain-specific quality profile"
+  - "language-specific quality profile"
+  - "universal quality profile"
+  - "tool defaults and ecosystem conventions"
+
+goals:
+  - "correctness"
+  - "security"
+  - "clean code"
+  - "maintainability"
+  - "backward compatibility"
+  - "reliability"
+  - "resource safety"
+  - "bounded performance behavior"
+  - "testability"
+  - "observability"
+  - "safe deployment and rollback"
+  - "small reviewable changes"
+  - "evidence-based engineering decisions"
+
+agent_operating_principles:
+  - "understand before modifying"
+  - "inspect repository conventions before generating code"
+  - "prefer the smallest change that fully solves the requested problem"
+  - "preserve existing behavior unless change is explicitly required"
+  - "do not invent requirements, APIs, schemas, dependencies, files, or test results"
+  - "do not claim commands, tests, builds, scans, or validations passed unless executed"
+  - "distinguish verified facts, code-derived findings, assumptions, and recommendations"
+  - "ask for clarification only when ambiguity materially prevents a safe implementation"
+  - "otherwise use conservative assumptions and document them"
+  - "do not modify unrelated code"
+  - "do not hide unresolved risks"
+  - "do not optimize without evidence when optimization increases complexity"
+  - "prefer repository-native tools and patterns over introducing new ones"
+  - "preserve human ownership of destructive, privileged, and production actions"
+
+repository_discovery:
+
+  required:
+    - "identify repository root"
+    - "inspect repository instructions and agent guidance"
+    - "identify languages, runtimes, frameworks, build systems, and package managers"
+    - "identify application architecture and module boundaries"
+    - "identify formatter, linter, type checker, static analysis, test, security, and build tools"
+    - "identify CI/CD workflows and required quality gates"
+    - "identify supported runtime and deployment environments"
+    - "identify relevant language and domain profiles"
+    - "identify changed files and their dependency impact"
+    - "identify generated files and their source definitions"
+    - "identify ownership-sensitive or high-risk areas"
+
+  instruction_files:
+    - "AGENTS.md"
+    - "CLAUDE.md"
+    - "CODEX.md"
+    - "CONTRIBUTING.md"
+    - "README.md"
+    - "DEVELOPMENT.md"
+    - "STYLEGUIDE.md"
+    - "SECURITY.md"
+    - "ARCHITECTURE.md"
+    - "DESIGN.md"
+    - ".editorconfig"
+    - ".github/instructions/**"
+    - ".github/copilot-instructions.md"
+    - "docs/**"
+
+  source_hierarchy:
+    - "repository-local instructions"
+    - "build and package configuration"
+    - "CI/CD configuration"
+    - "container and deployment configuration"
+    - "source code and tests"
+    - "generated documentation"
+    - "external ecosystem conventions"
+
+language_and_version_detection:
+
+  required:
+    - "detect every language materially affected by the change"
+    - "detect framework and runtime versions"
+    - "detect compiler, interpreter, package manager, and build tool versions"
+    - "detect target deployment runtime"
+    - "compare local, CI, container, and production version sources"
+    - "identify version conflicts"
+    - "identify deprecated or unsupported runtime usage"
+    - "avoid APIs unavailable in the minimum supported version"
+
+  sources:
+    - "language runtime configuration"
+    - "package manifests"
+    - "dependency lockfiles"
+    - "build files"
+    - "compiler and toolchain configuration"
+    - "CI setup files"
+    - "container build and runtime images"
+    - "deployment manifests"
+    - "version manager files"
+    - "source syntax and imported APIs"
+    - "repository documentation"
+
+  conflict_behavior:
+    - "prefer explicit runtime and build configuration over source inference"
+    - "report conflicting version sources"
+    - "do not silently select the newest version"
+    - "use the minimum supported version when checking API compatibility"
+    - "reject incompatible build and runtime targets"
+
+profile_selection:
+
+  mandatory_profiles:
+    - "universal"
+
+  activate_when_matched:
+    - "language-specific profile"
+    - "database profile"
+    - "API profile"
+    - "concurrency profile"
+    - "memory and resource lifecycle profile"
+    - "frontend UI profile"
+    - "infrastructure profile"
+    - "security profile"
+    - "testing profile"
+    - "repository-specific profile"
+
+  multi_profile_behavior:
+    - "activate all relevant profiles"
+    - "deduplicate equivalent checks"
+    - "apply every distinct reject condition"
+    - "use the strictest status for the final decision"
+    - "report which profiles were activated"
+    - "report when an expected specialized profile was unavailable"
+
+change_classification:
+
+  required_dimensions:
+    - "language and framework"
+    - "application layer"
+    - "public versus internal behavior"
+    - "stateful versus stateless"
+    - "synchronous versus asynchronous"
+    - "runtime versus build-time"
+    - "production versus development-only"
+    - "security sensitivity"
+    - "data sensitivity"
+    - "operational criticality"
+    - "backward compatibility impact"
+    - "deployment risk"
+    - "blast radius"
+
+  change_types:
+    - "bug fix"
+    - "feature"
+    - "refactor"
+    - "performance change"
+    - "security change"
+    - "dependency upgrade"
+    - "configuration change"
+    - "API or schema change"
+    - "database or data change"
+    - "infrastructure change"
+    - "test-only change"
+    - "documentation change"
+    - "generated artifact change"
+
+risk_levels:
+
+  LOW:
+    criteria:
+      - "localized behavior"
+      - "no public contract change"
+      - "no persistent data change"
+      - "no security boundary change"
+      - "no concurrency or lifecycle change"
+      - "easy rollback"
+
+  MEDIUM:
+    criteria:
+      - "multiple modules affected"
+      - "internal contract change"
+      - "dependency or configuration change"
+      - "moderate performance or operational impact"
+      - "requires integration testing"
+
+  HIGH:
+    criteria:
+      - "public API, event, or serialization change"
+      - "database schema, migration, or datafix"
+      - "authentication or authorization change"
+      - "concurrency, transaction, or resource lifecycle change"
+      - "production infrastructure change"
+      - "significant dependency or runtime upgrade"
+      - "large-scale performance impact"
+      - "stateful rollback complexity"
+
+  CRITICAL:
+    criteria:
+      - "potential data loss or corruption"
+      - "privilege escalation or secret exposure"
+      - "broad production outage risk"
+      - "destructive infrastructure operation"
+      - "irreversible migration"
+      - "financial, legal, safety, or regulated-data impact"
+      - "cross-tenant data exposure"
+      - "unbounded resource exhaustion on public paths"
+
+scope_control:
+
+  required:
+    - "change only files required by the task"
+    - "separate functional changes from broad refactors"
+    - "preserve existing formatting outside touched areas"
+    - "avoid renaming or moving unrelated code"
+    - "avoid dependency additions when existing capabilities are sufficient"
+    - "avoid generated-file edits when a source definition exists"
+    - "document unavoidable collateral changes"
+    - "keep patches reviewable"
+    - "retain compatibility shims when required for staged migration"
+
+  reject_if:
+    - "unrelated refactor is mixed into the requested change"
+    - "generated code is manually modified without updating its source"
+    - "large formatting churn obscures functional behavior"
+    - "dependency is added without clear need"
+    - "scope expands materially without justification"
+
+required_review:
+
+  intent_and_correctness:
+    - "requested behavior is clearly identified"
+    - "implementation matches the requested behavior"
+    - "existing behavior is preserved unless intentionally changed"
+    - "edge cases and failure paths are considered"
+    - "invariants remain valid"
+    - "state transitions are correct"
+    - "partial success behavior is explicit"
+    - "duplicate execution behavior is considered"
+    - "assumptions are documented"
+    - "code and documentation do not contradict each other"
+
+  clean_code:
+    - "change is small and cohesive"
+    - "names express intent"
+    - "control flow is simple"
+    - "functions and methods have focused responsibilities"
+    - "abstraction level is consistent"
+    - "duplication is removed only when the abstraction is stable and useful"
+    - "comments explain why, constraints, or non-obvious behavior"
+    - "comments do not restate obvious code"
+    - "dead code and commented-out code are removed"
+    - "magic values are named or configured where appropriate"
+    - "complexity introduced by the change is justified"
+    - "language and framework idioms are followed"
+
+  architecture:
+    - "module and layer boundaries are respected"
+    - "dependency direction remains valid"
+    - "business logic is separated from transport, persistence, and framework concerns"
+    - "new abstractions have clear ownership"
+    - "shared code is introduced only when multiple stable consumers exist"
+    - "cyclic dependencies are prohibited"
+    - "cross-cutting behavior uses established repository patterns"
+    - "domain concepts are modeled consistently"
+    - "implementation does not bypass existing architecture controls"
+
+  error_handling:
+    - "errors are handled at the appropriate boundary"
+    - "errors are not silently swallowed"
+    - "root causes are preserved"
+    - "expected and unexpected failures remain distinguishable"
+    - "retryable and non-retryable failures remain distinguishable"
+    - "partial failures are surfaced"
+    - "cleanup errors are considered"
+    - "error messages are actionable"
+    - "internal details and sensitive values are not exposed"
+    - "fatal failures leave the process or operation in a known state"
+    - "fallback behavior does not return misleading success"
+
+  input_validation:
+    - "all external input is treated as untrusted"
+    - "validation occurs at trust boundaries"
+    - "type, format, range, length, collection size, and nesting depth are bounded"
+    - "unknown and malformed input is handled safely"
+    - "business validation is separate from structural validation"
+    - "validation is enforced server-side"
+    - "validation behavior matches published contracts"
+    - "large or adversarial inputs cannot cause uncontrolled resource use"
+
+  security:
+    - "authentication is enforced at trusted boundaries"
+    - "authorization is enforced for every protected operation"
+    - "object-level and tenant-level access are verified"
+    - "least privilege is preserved"
+    - "injection risks are reviewed"
+    - "unsafe deserialization is prevented"
+    - "path traversal, SSRF, redirect, and command execution risks are reviewed"
+    - "cryptography uses approved libraries and algorithms"
+    - "secrets are not committed, logged, serialized, or exposed"
+    - "PII and regulated data are minimized and protected"
+    - "security-sensitive defaults fail closed"
+    - "dependency and supply-chain risk is reviewed"
+    - "audit requirements are preserved"
+
+  compatibility:
+    - "public and internal consumers are identified"
+    - "source compatibility is reviewed"
+    - "binary compatibility is reviewed where applicable"
+    - "request, response, event, and serialization compatibility is reviewed"
+    - "database and persisted-data compatibility is reviewed"
+    - "configuration compatibility is reviewed"
+    - "behavior changes are treated as contract changes"
+    - "breaking changes require explicit migration, versioning, or deprecation plans"
+    - "deployment ordering is documented when mixed versions may coexist"
+    - "rollback compatibility is reviewed"
+
+  API_and_serialization:
+    - "request and response shapes are explicit"
+    - "required, optional, null, absent, and default semantics are intentional"
+    - "field type and meaning remain stable"
+    - "enum evolution is consumer-safe"
+    - "date, time, timezone, locale, and numeric precision are explicit"
+    - "unknown fields are handled intentionally"
+    - "error shapes and status behavior remain compatible"
+    - "collection results are bounded"
+    - "pagination ordering is deterministic"
+    - "serialization does not expose internal or sensitive fields"
+
+  data_and_persistence:
+    - "connection, session, cursor, statement, and transaction ownership is explicit"
+    - "resources close on every path"
+    - "transaction boundaries align with business operations"
+    - "transaction duration is bounded"
+    - "rollback behavior is explicit"
+    - "external calls inside transactions are avoided"
+    - "query results are bounded"
+    - "N+1 and excessive round trips are avoided"
+    - "batch and bulk operations are used for large writes"
+    - "data consistency and uniqueness are enforced durably"
+    - "concurrent update behavior is defined"
+    - "schema and data changes have safe rollout and rollback plans"
+
+  concurrency:
+    - "shared mutable state is minimized"
+    - "race conditions are considered"
+    - "lock ownership and ordering are clear"
+    - "deadlock, starvation, and livelock risks are reviewed"
+    - "task, thread, goroutine, worker, and executor lifecycle is bounded"
+    - "queues and concurrency levels are bounded"
+    - "timeouts and cancellation propagate"
+    - "interrupt or cancellation signals are respected"
+    - "blocking work is not placed on event-loop or latency-sensitive execution paths"
+    - "retries are bounded and idempotent"
+    - "duplicate and out-of-order execution is safe where applicable"
+
+  resource_lifecycle:
+    - "every affected resource has a clear owner"
+    - "cleanup runs on success, failure, timeout, cancellation, and shutdown"
+    - "files, streams, sockets, connections, listeners, subscriptions, timers, and native resources are released"
+    - "global and static references do not retain short-lived data"
+    - "long-lived processes reach stable resource usage"
+    - "resources are not created per request when intended to be shared"
+    - "shutdown order is safe"
+    - "cleanup is deterministic where supported"
+    - "garbage collection is not used as the primary resource cleanup strategy"
+
+  memory:
+    - "heap retention and object lifetime are reviewed"
+    - "collections, caches, queues, buffers, and registries are bounded"
+    - "listeners, timers, closures, and task registries do not leak"
+    - "large allocations inside loops are reviewed"
+    - "large datasets are streamed, paginated, or chunked"
+    - "copying and intermediate materialization are minimized where material"
+    - "native, direct, off-heap, stack, GPU, and container memory are considered where applicable"
+    - "memory pressure and out-of-memory behavior are defined"
+    - "performance-sensitive memory claims have measurement evidence"
+
+  performance:
+    - "algorithmic complexity is appropriate"
+    - "hot loops and repeated work are reviewed"
+    - "database, filesystem, network, and serialization round trips are minimized"
+    - "blocking and synchronous work is appropriate for the execution model"
+    - "large payloads are streamed where practical"
+    - "batching and parallelism are bounded"
+    - "cache use has safe invalidation and measurable value"
+    - "latency, throughput, memory, and cost trade-offs are considered"
+    - "optimization does not reduce correctness or maintainability without evidence"
+    - "performance claims require benchmark, profile, query plan, load test, or production telemetry"
+
+  resilience:
+    - "timeouts are defined for external and potentially indefinite operations"
+    - "retries are bounded"
+    - "retry uses backoff and jitter where appropriate"
+    - "retry is limited to safe or idempotent behavior"
+    - "circuit breaker and bulkhead behavior are considered for remote dependencies"
+    - "partial dependency failure degrades safely"
+    - "load shedding and backpressure are considered"
+    - "recovery does not overload dependencies"
+    - "fallback behavior is observable"
+    - "failure behavior is deterministic enough to operate"
+
+  configuration:
+    - "required configuration is validated at startup"
+    - "defaults are safe"
+    - "environment-specific values are isolated"
+    - "configuration units are explicit"
+    - "timeouts, limits, retries, pool sizes, and capacities are configurable"
+    - "secrets use approved secret management"
+    - "configuration precedence is understood"
+    - "configuration changes remain compatible where required"
+    - "production configuration cannot be selected accidentally"
+
+  dependencies:
+    - "new dependency is necessary"
+    - "version is compatible with runtime and framework"
+    - "dependency is maintained"
+    - "license is acceptable"
+    - "security vulnerabilities are reviewed"
+    - "transitive dependencies are considered"
+    - "version is pinned according to repository policy"
+    - "dependency does not duplicate existing capability unnecessarily"
+    - "startup, runtime, bundle, image, and memory impact are considered"
+    - "removal and upgrade strategy are reasonable"
+
+  observability:
+    - "structured logs include operation, outcome, and relevant context"
+    - "PII, secrets, credentials, and sensitive payloads are not logged"
+    - "errors are logged once at the correct boundary"
+    - "correlation and trace context propagate"
+    - "metrics cover throughput, latency, errors, and saturation"
+    - "metric dimensions are bounded"
+    - "resource pools, queues, retries, timeouts, and rejected work are observable where relevant"
+    - "health and readiness reflect actual service state"
+    - "audit events capture required actor and action information"
+    - "alerts are actionable"
+    - "operational behavior changes include runbook impact"
+
+  deployment_and_rollback:
+    - "deployment order is documented when relevant"
+    - "mixed-version compatibility is considered"
+    - "feature flags have ownership and removal plans"
+    - "schema and application rollout are safely sequenced"
+    - "rollback, roll-forward, or compensation strategy exists"
+    - "rollback limitations are explicit"
+    - "high-risk changes include post-deployment verification"
+    - "operational monitoring exists before rollout"
+    - "destructive or irreversible actions require explicit human approval"
+    - "production mutation is never performed autonomously"
+
+  documentation:
+    - "public behavior changes are documented"
+    - "configuration changes are documented"
+    - "operational behavior changes update runbooks"
+    - "architecture decisions are recorded when material"
+    - "examples match implementation"
+    - "deprecated behavior includes migration guidance"
+    - "documentation changes are included in the same change where practical"
+    - "comments and documents avoid unsupported claims"
+
+  testing:
+    - "tests cover changed behavior"
+    - "success paths are tested"
+    - "failure paths are tested"
+    - "boundary and invalid-input behavior are tested"
+    - "regression tests reproduce the fixed defect where practical"
+    - "integration boundaries are tested"
+    - "security-sensitive authorization and validation paths are tested"
+    - "concurrency and idempotency are tested when relevant"
+    - "resource cleanup is tested when relevant"
+    - "timeouts, cancellation, retries, and rollback are tested when relevant"
+    - "tests are deterministic"
+    - "tests do not depend primarily on arbitrary sleeps"
+    - "mocks do not hide materially different production behavior"
+    - "production build or packaging is validated"
+
+tool_selection:
+
+  rules:
+    - "prefer repository-defined commands"
+    - "prefer wrapper scripts over globally installed tools"
+    - "prefer lockfile-respecting installation commands"
+    - "prefer targeted checks during iteration"
+    - "run broader validation before final approval when feasible"
+    - "do not install new tools or dependencies unless needed and approved"
+    - "do not replace established repository tooling with personal preferences"
+    - "record commands exactly as executed"
+    - "record command scope"
+    - "record failures and skipped checks"
+
+  discovery_sources:
+    - "package scripts"
+    - "Makefile"
+    - "Taskfile"
+    - "justfile"
+    - "build files"
+    - "CI workflows"
+    - "repository documentation"
+    - "pre-commit configuration"
+    - "quality-gate configuration"
+
+preferred_checks:
+
+  format:
+    - "repository-defined formatter"
+    - "format check without broad unrelated rewrites"
+
+  compile_or_type_check:
+    - "repository-defined compiler or type checker"
+    - "minimum supported runtime compatibility"
+
+  lint:
+    - "repository-defined linter"
+    - "static correctness analysis"
+    - "architecture checks where configured"
+
+  test:
+    - "targeted tests for changed behavior"
+    - "affected module tests"
+    - "integration tests"
+    - "full test suite when risk and execution cost justify it"
+
+  security:
+    - "dependency vulnerability scan"
+    - "secret scan"
+    - "static application security analysis"
+    - "container or infrastructure scan when applicable"
+
+  compatibility:
+    - "contract diff"
+    - "schema diff"
+    - "generated client or consumer validation"
+    - "binary or source compatibility checks where applicable"
+
+  performance:
+    - "benchmark"
+    - "profile"
+    - "query plan"
+    - "load or soak test"
+    - "bundle or artifact size comparison"
+
+validation_strategy:
+
+  order:
+    - "repository and profile discovery"
+    - "syntax and formatting"
+    - "compile or type check"
+    - "targeted static analysis"
+    - "targeted tests"
+    - "integration or contract tests"
+    - "security checks"
+    - "performance or profiling checks when required"
+    - "full build or broader suite when feasible"
+    - "final diff review"
+
+  targeted_first:
+    - "run the smallest meaningful check during implementation"
+    - "expand validation based on risk and affected scope"
+    - "do not treat a narrow test as evidence for unrelated behavior"
+
+  failure_behavior:
+    - "investigate failures caused by the change"
+    - "distinguish pre-existing failures from introduced failures"
+    - "do not suppress or weaken checks to make validation pass"
+    - "document checks that could not run"
+    - "document environmental limitations"
+    - "do not report FAILED checks as PASSED"
+
+evidence_policy:
+
+  evidence_types:
+    - "source code"
+    - "configuration"
+    - "diff"
+    - "compiler output"
+    - "type-check output"
+    - "lint output"
+    - "test output"
+    - "security scan output"
+    - "contract or schema diff"
+    - "query plan"
+    - "benchmark"
+    - "profile"
+    - "runtime metrics"
+    - "logs"
+    - "deployment preview"
+    - "manual inspection"
+
+  requirements:
+    - "every approval claim must be supported by evidence"
+    - "command evidence includes the exact command and result"
+    - "manual review evidence identifies files and relevant behavior"
+    - "inferred risks are labeled as inferred"
+    - "unverified runtime behavior is not presented as verified"
+    - "test success does not prove absence of all defects"
+    - "static analysis success does not replace runtime validation"
+    - "type safety does not replace runtime input validation"
+    - "code inspection does not replace required migration, load, race, or security testing"
+
+status_values:
+  PASSED:
+    definition: "check was executed or manually verified and met the requirement"
+    requires_evidence: true
+
+  FAILED:
+    definition: "check was executed or reviewed and did not meet the requirement"
+    requires_evidence: true
+
+  NOT_APPLICABLE:
+    definition: "check does not apply to the change"
+    requires_reason: true
+
+  NOT_RUN:
+    definition: "check applies but was not executed"
+    requires_reason: true
+
+  BLOCKED:
+    definition: "check could not be completed because of a missing dependency, environment, permission, credential, service, or artifact"
+    requires_reason: true
+
+  PARTIAL:
+    definition: "check was executed for only part of the affected scope"
+    requires_scope_and_reason: true
+
+severity_levels:
+
+  INFO:
+    meaning: "non-blocking observation or improvement opportunity"
+
+  LOW:
+    meaning: "minor maintainability or consistency issue with low operational risk"
+
+  MEDIUM:
+    meaning: "meaningful correctness, compatibility, performance, or operational risk"
+
+  HIGH:
+    meaning: "probable production defect, security weakness, data inconsistency, outage, or serious compatibility issue"
+
+  CRITICAL:
+    meaning: "likely severe security exposure, data loss, cross-tenant access, broad outage, or irreversible production harm"
+
+finding_requirements:
+  - "title"
+  - "severity"
+  - "category"
+  - "affected location"
+  - "evidence"
+  - "impact"
+  - "recommended remediation"
+  - "verification method"
+  - "status"
+
+decision_values:
+  - "APPROVE"
+  - "APPROVE_WITH_CONDITIONS"
+  - "REJECT"
+  - "INCOMPLETE"
+
+decision_rules:
+
+  APPROVE:
+    requires:
+      - "no unresolved CRITICAL, HIGH, or blocking MEDIUM findings"
+      - "all mandatory applicable checks are PASSED or justified NOT_APPLICABLE"
+      - "validation evidence is sufficient for change risk"
+      - "rollback or recovery behavior is acceptable"
+
+  APPROVE_WITH_CONDITIONS:
+    allowed_when:
+      - "remaining findings are non-critical and explicitly accepted"
+      - "NOT_RUN or PARTIAL checks have bounded understood risk"
+      - "conditions have owner, action, and completion criteria"
+    prohibited_when:
+      - "CRITICAL finding exists"
+      - "known exploitable security issue exists"
+      - "data corruption risk is unresolved"
+      - "destructive operation lacks recovery plan"
+
+  REJECT:
+    required_when:
+      - "any reject_if condition is met"
+      - "CRITICAL finding exists"
+      - "HIGH correctness or security issue is unresolved"
+      - "mandatory safety control is missing"
+      - "change behavior cannot be determined safely"
+      - "evidence contradicts the implementation claim"
+
+  INCOMPLETE:
+    used_when:
+      - "material review scope remains unavailable"
+      - "required artifacts are missing"
+      - "environmental blockers prevent a reliable decision"
+      - "change is only partially implemented"
+
+reject_if:
+  - "language, runtime, framework, or build version is materially incompatible"
+  - "required repository instructions are ignored"
+  - "build or compilation fails because of the change"
+  - "required type checking fails"
+  - "required tests fail because of the change"
+  - "unresolved correctness or security findings remain"
+  - "change introduces a known exploitable vulnerability"
+  - "secret, credential, private key, token, or sensitive value is committed or exposed"
+  - "authentication or authorization can be bypassed"
+  - "cross-tenant or object-level data access is not enforced"
+  - "untrusted input can cause injection, code execution, unsafe deserialization, traversal, or SSRF"
+  - "public or serialized contract breaks without an approved migration or versioning strategy"
+  - "persistent data can be corrupted, lost, duplicated, or silently overwritten"
+  - "transaction behavior is undefined"
+  - "resource ownership or cleanup is ambiguous"
+  - "connection, stream, file, socket, cursor, listener, timer, task, thread, goroutine, worker, or native resource can leak"
+  - "cache, collection, queue, buffer, concurrency, retry, or memory growth is unbounded"
+  - "race condition, deadlock, starvation, or cancellation defect remains unresolved"
+  - "potentially indefinite operation lacks timeout or cancellation"
+  - "retry is unbounded or unsafe for non-idempotent behavior"
+  - "large result set or payload is unbounded"
+  - "performance or memory regression is material and unaddressed"
+  - "destructive or irreversible change lacks rollback, recovery, or compensation"
+  - "production mutation is attempted autonomously"
+  - "test, scan, build, benchmark, profile, or review result is falsely claimed"
+  - "change includes unrelated modifications that prevent reliable review"
+
+safe_execution_boundaries:
+
+  may_execute_without_additional_approval:
+    - "read source and configuration"
+    - "inspect version control status and diff"
+    - "run local formatting checks"
+    - "run local compilation and type checks"
+    - "run local tests"
+    - "run local static analysis"
+    - "run read-only dependency and security scans"
+    - "generate non-production plans, previews, diffs, or rendered manifests"
+    - "create local temporary artifacts required for validation"
+
+  requires_explicit_approval:
+    - "install or upgrade dependencies when not already requested"
+    - "modify shared schemas or generated contracts"
+    - "run expensive or broad load tests against shared environments"
+    - "access restricted production data"
+    - "rotate secrets or certificates"
+    - "publish packages, images, or releases"
+    - "push branches, merge changes, or modify remote repositories"
+    - "modify shared cloud or cluster resources"
+
+  prohibited_autonomous_actions:
+    - "production deployment"
+    - "production infrastructure apply or destroy"
+    - "production database migration or datafix execution"
+    - "production state mutation or resource import"
+    - "secret creation, rotation, disclosure, or revocation"
+    - "privileged access changes"
+    - "destructive deletion of user, customer, financial, or production data"
+    - "bypassing tests, approvals, policy gates, or security controls"
+    - "force push or destructive version-control operations"
+    - "claiming human approval that was not given"
+
+fallback_behavior:
+
+  when_no_language_profile_matches:
+    - "apply this universal profile"
+    - "detect the language and runtime manually"
+    - "inspect repository-defined commands"
+    - "use standard ecosystem tooling only when repository tooling is absent"
+    - "explain which specialized checks are unavailable"
+    - "mark unsupported checks as NOT_RUN or BLOCKED"
+    - "do not lower correctness, security, compatibility, or lifecycle standards"
+
+  when_no_tools_are_configured:
+    - "perform manual source and configuration review"
+    - "identify standard recommended tools without automatically introducing them"
+    - "run compiler or interpreter-native validation where available"
+    - "report missing quality gates as risk"
+    - "do not claim equivalent coverage without evidence"
+
+  when_repository_is_incomplete:
+    - "review available files"
+    - "state missing context"
+    - "avoid assumptions about unavailable modules"
+    - "return INCOMPLETE when missing information prevents a reliable decision"
+
+required_deliverables:
+  - "change summary"
+  - "activated profiles"
+  - "language, framework, runtime, and build versions"
+  - "affected modules and blast radius"
+  - "risk classification"
+  - "compatibility assessment"
+  - "security and data-protection assessment"
+  - "error and failure behavior"
+  - "concurrency and resource-lifecycle assessment"
+  - "database and transaction assessment when applicable"
+  - "performance and memory assessment"
+  - "observability and operational impact"
+  - "deployment and rollback considerations"
+  - "commands and checks executed"
+  - "validation results with statuses"
+  - "findings ordered by severity"
+  - "assumptions and limitations"
+  - "unresolved risks"
+  - "final decision"
+
+review_output:
+
+  required_sections:
+    - "Change summary"
+    - "Repository and profile detection"
+    - "Scope and risk"
+    - "Correctness"
+    - "Architecture and maintainability"
+    - "Security and data protection"
+    - "Compatibility"
+    - "Errors and resilience"
+    - "Concurrency and resource lifecycle"
+    - "Data and transactions"
+    - "Performance and memory"
+    - "Observability and operations"
+    - "Testing and validation evidence"
+    - "Findings"
+    - "Unresolved risks"
+    - "Decision"
+
+  check_result_format:
+    required_fields:
+      - "check"
+      - "status"
+      - "evidence"
+      - "notes"
+
+  finding_format:
+    required_fields:
+      - "severity"
+      - "category"
+      - "location"
+      - "finding"
+      - "impact"
+      - "evidence"
+      - "recommendation"
+
+  decision:
+    allowed_values:
+      - "APPROVE"
+      - "APPROVE_WITH_CONDITIONS"
+      - "REJECT"
+      - "INCOMPLETE"
+
+    requirements:
+      - "cite source, configuration, diff, command, test, scan, or runtime evidence"
+      - "do not claim a check passed unless it was executed or manually verified"
+      - "distinguish verified behavior from inferred behavior"
+      - "identify every applicable NOT_RUN, BLOCKED, or PARTIAL check"
+      - "identify every breaking, destructive, security-sensitive, or stateful change"
+      - "state whether production execution requires explicit human approval"
+      - "list conditions with owners and completion criteria"
+      - "prefer rejection over approval when critical safety evidence is missing"

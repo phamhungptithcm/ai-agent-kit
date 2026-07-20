@@ -1,0 +1,47 @@
+version: 1
+name: memory-governance
+default_retrieval: "approved-only"
+approval_required: true
+allowed_status_for_default_retrieval:
+  - "APPROVED"
+blocked_status:
+  - "PROPOSED"
+  - "REJECTED"
+  - "STALE"
+  - "SUPERSEDED"
+confidence:
+  preferred_minimum: 0.8
+  below_minimum_requires_source_reverification: true
+retrieval:
+  default_max_entries: 5
+  absolute_max_entries: 10
+  scoring_factors:
+    - "source_priority"
+    - "scope_match"
+    - "confidence"
+    - "recency"
+    - "stale_review_status"
+source_priority:
+  - "current_source_code"
+  - "tests"
+  - "approved_architecture_docs"
+  - "approved_memory"
+  - "historical_discussion"
+  - "agent_inference"
+prohibited_content:
+  - "secrets"
+  - "credentials"
+  - "tokens"
+  - "private_keys"
+  - "pii"
+  - "phi"
+  - "pci"
+  - "production_customer_data"
+  - "unapproved_sensitive_logs"
+review:
+  stale_review_required: true
+  cadence: "quarterly"
+roles:
+  memory_approver: "Approves, rejects, supersedes, or marks memory stale."
+  module_context_owner: "Verifies module-scoped memory against current ownership and source."
+  skill_maintainer: "Keeps skills and prompts aligned with approved memory policy."

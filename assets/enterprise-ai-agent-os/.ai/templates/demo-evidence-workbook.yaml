@@ -1,0 +1,10 @@
+title: "Jira Demo Evidence Workbook"
+required_worksheets:
+  - "Summary"
+  - "Acceptance Criteria"
+  - "Validation"
+  - "Artifacts"
+  - "Screenshot Placeholders"
+notes:
+  - "Generated workbooks must include Jira key and change title."
+  - "Validation entries must distinguish passed, partial, blocked, and not run."

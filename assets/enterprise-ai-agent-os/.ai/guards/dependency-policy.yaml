@@ -1,0 +1,11 @@
+version: 1
+default_policy: "no new dependencies without rationale, license review, security review, and human review"
+allowed_for_agent_setup:
+  - "Python 3 standard library"
+requires_approval:
+  - "package manager install commands"
+  - "new build plugins"
+  - "new runtime libraries"
+  - "download-and-execute pipelines"
+  - "MCP server installation"
+  - "CI action installation"

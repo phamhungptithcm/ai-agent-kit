@@ -1,0 +1,28 @@
+---
+name: architecture-review
+description: Review architectural fit, boundaries, contracts, dependencies, scalability, and long-term maintainability. Use for design reviews, cross-module changes, platform decisions, and high-risk existing-system changes.
+---
+
+# Architecture Review
+
+Use this skill to review whether a proposed design or diff fits the current system.
+
+## Required Inputs
+
+1. Repository intelligence brief from CodeGraph and CocoIndex.
+2. Current architecture docs, ADRs, diagrams, module ownership, and relevant source paths.
+3. Proposed change, design document, impact plan, or diff.
+
+## Review Checklist
+
+- Module boundaries and ownership remain clear.
+- Public contracts, events, schemas, APIs, and data flows are compatible or migration-safe.
+- Dependencies point in the expected direction and do not create cycles.
+- Runtime behavior, failure modes, retries, timeouts, and rollback are explicit.
+- Security, privacy, data integrity, scalability, observability, and operability are covered.
+- The change is the smallest safe architectural move for the business outcome.
+- Documentation, ADR, or diagram updates are identified.
+
+## Output
+
+Lead with blocking architectural findings by severity. Include location or artifact, risk, evidence, recommended correction, and whether the design is ready for implementation approval.

@@ -1,0 +1,307 @@
+version: 1
+
+id: frontend-html-css
+
+name: Frontend UI Engineering Profile
+
+description: >
+  Mandatory standards for HTML, CSS, SCSS, Tailwind,
+  responsive layouts, UI components, and frontend rendering.
+  Optimize for accessibility, usability, performance,
+  maintainability, and design consistency.
+
+detect:
+
+  files:
+    - "*.html"
+    - "*.css"
+    - "*.scss"
+    - "*.sass"
+    - "*.less"
+    - "tailwind.config.*"
+    - "postcss.config.*"
+    - "vite.config.*"
+    - "webpack.config.*"
+    - "next.config.*"
+    - "nuxt.config.*"
+    - "astro.config.*"
+
+  frameworks:
+    - React
+    - Angular
+    - Vue
+    - Next.js
+    - Nuxt
+    - Svelte
+    - Astro
+
+goals:
+  - accessibility
+  - responsiveness
+  - usability
+  - maintainability
+  - performance
+  - consistency
+  - browser compatibility
+
+preferred_checks:
+
+  accessibility:
+    - axe
+    - Lighthouse Accessibility
+    - Playwright Accessibility
+    - Storybook Accessibility
+
+  visual:
+    - Playwright
+    - Storybook
+    - Visual Regression
+    - Screenshot Diff
+
+  lint:
+    - ESLint
+    - Stylelint
+    - HTML Validator
+
+  performance:
+    - Lighthouse
+    - Web Vitals
+    - Bundle Analyzer
+
+must_validate:
+
+  html:
+
+    - semantic HTML used
+    - heading hierarchy correct
+    - landmark elements present
+    - labels associated correctly
+    - unique ids
+    - valid DOM structure
+    - unnecessary wrappers avoided
+    - forms accessible
+    - buttons used instead of clickable divs
+    - links used only for navigation
+
+  accessibility:
+
+    - WCAG AA compliance
+    - keyboard navigation
+    - logical tab order
+    - visible focus indicators
+    - sufficient color contrast
+    - ARIA only when necessary
+    - screen reader compatibility
+    - descriptive button text
+    - descriptive links
+    - images have alt text
+    - decorative images ignored
+    - dialogs accessible
+    - escape closes dialogs
+    - focus trapping
+    - reduced-motion support
+
+  responsive:
+
+    - mobile-first layout
+    - works on all supported breakpoints
+    - no horizontal scrolling
+    - text never clipped
+    - overflow handled
+    - touch targets >=44px
+    - responsive typography
+    - responsive spacing
+    - responsive images
+    - landscape behavior reviewed
+
+  css:
+
+    - design system followed
+    - design tokens used
+    - CSS specificity minimized
+    - avoid !important
+    - avoid deep selectors
+    - avoid duplicated rules
+    - reusable utility classes preferred
+    - logical CSS properties preferred
+    - consistent spacing scale
+    - consistent typography scale
+    - dark mode compatibility
+    - high contrast compatibility
+
+  layout:
+
+    - CLS minimized
+    - stable layout
+    - flex/grid used appropriately
+    - sticky positioning reviewed
+    - z-index documented
+    - modal layering correct
+    - scrolling behavior correct
+    - print layout considered if applicable
+
+  performance:
+
+    - unused CSS removed
+    - critical CSS minimized
+    - render blocking resources minimized
+    - images optimized
+    - responsive image sizes
+    - lazy loading where appropriate
+    - font loading optimized
+    - font-display configured
+    - icon strategy optimized
+    - animation GPU-friendly
+    - expensive paint/layout avoided
+
+  runtime:
+
+    - hydration safe
+    - no hydration mismatch
+    - client/server rendering consistent
+    - browser compatibility verified
+    - JS disabled degradation acceptable
+    - loading states handled
+    - error states handled
+    - empty states handled
+
+  assets:
+
+    - image compression
+    - SVG optimized
+    - font subsets used
+    - asset cache strategy reviewed
+    - CDN compatibility
+    - cache busting enabled
+
+  bundle:
+
+    - bundle size reviewed
+    - code splitting evaluated
+    - tree shaking effective
+    - lazy loading appropriate
+    - asset budget respected
+
+  animations:
+
+    - smooth at 60fps
+    - avoid layout thrashing
+    - transform/opacity preferred
+    - reduced motion respected
+
+  security:
+
+    - no inline unsafe HTML
+    - XSS risks reviewed
+    - CSP compatibility
+    - external resources trusted
+    - user content sanitized
+
+  testing:
+
+    - responsive testing
+    - accessibility testing
+    - keyboard testing
+    - cross-browser testing
+    - visual regression testing
+    - dark mode testing
+    - RTL testing if applicable
+    - print testing if applicable
+
+required_review:
+
+  accessibility:
+    - WCAG compliance
+    - keyboard support
+    - screen reader support
+
+  responsive:
+    - breakpoints
+    - overflow
+    - mobile usability
+
+  maintainability:
+    - design system
+    - reusable components
+    - CSS architecture
+
+  performance:
+    - Core Web Vitals
+    - rendering performance
+    - bundle impact
+
+conditional_checks:
+
+  - condition: Tailwind
+    checks:
+      - utility consistency
+      - duplicate utilities
+      - purge configuration
+      - arbitrary values justified
+
+  - condition: React or Next.js
+    checks:
+      - hydration review
+      - client/server boundaries
+      - Suspense loading states
+      - image optimization
+
+  - condition: Angular
+    checks:
+      - OnPush compatibility
+      - ViewEncapsulation review
+      - template performance
+
+  - condition: animations exist
+    checks:
+      - prefers-reduced-motion
+      - animation performance
+      - accessibility impact
+
+reject_if:
+
+  - inaccessible keyboard navigation
+  - missing form labels
+  - missing alt text
+  - insufficient contrast
+  - clickable div instead of button
+  - broken responsive layout
+  - horizontal scrolling
+  - text clipping
+  - layout shift introduced
+  - excessive CSS specificity
+  - !important without justification
+  - duplicated CSS
+  - hydration mismatch
+  - bundle exceeds budget
+  - render blocking regression
+  - unoptimized large images
+  - focus lost after interaction
+  - inaccessible modal
+  - unsafe HTML rendering
+
+preferred_patterns:
+
+  - semantic HTML
+  - CSS Grid
+  - Flexbox
+  - design tokens
+  - utility-first CSS
+  - BEM or component-scoped CSS
+  - responsive images
+  - lazy loading
+  - CSS variables
+  - container queries
+  - prefers-reduced-motion
+  - prefers-color-scheme
+
+deliverables:
+
+  - accessibility report
+  - responsive review
+  - CSS quality review
+  - performance impact
+  - Core Web Vitals assessment
+  - browser compatibility summary
+  - bundle impact summary
+  - visual regression summary

@@ -1,0 +1,60 @@
+version: 1
+id: python
+name: Python Quality Profile
+
+description: >
+  Standards for Python applications, services, scripts, data jobs, CLIs,
+  libraries, tests, and automation. Optimize for readability, typing,
+  dependency safety, async correctness, resource lifecycle, security,
+  performance, and reliable packaging.
+
+detect:
+  files:
+    - "pyproject.toml"
+    - "requirements.txt"
+    - "setup.py"
+    - "setup.cfg"
+    - "tox.ini"
+    - "poetry.lock"
+    - "uv.lock"
+    - ".python-version"
+    - "*.py"
+  version_sources:
+    - "requires-python"
+    - ".python-version"
+    - "tox.ini"
+    - "CI setup-python version"
+    - "Dockerfile base image"
+
+preferred_commands:
+  format_lint:
+    - "ruff format"
+    - "ruff check"
+    - "black --check"
+  type_check:
+    - "mypy"
+    - "pyright"
+  test:
+    - "pytest"
+  security:
+    - "bandit"
+    - "pip-audit"
+
+required_review:
+  - "Python version syntax and stdlib compatibility"
+  - "clear module boundaries and readable clean code"
+  - "typing, runtime validation, and public API compatibility"
+  - "async blocking calls, cancellation, timeout, and async task leak risk"
+  - "SQLAlchemy/Django session, transaction, cursor, and connection lifecycle"
+  - "file/socket/stream/context manager cleanup"
+  - "mutable defaults, global caches, cyclic references, and memory retention"
+  - "large dataframe/list/dict allocation and streaming behavior"
+  - "dependency vulnerability and unsafe deserialization"
+  - "logging without PII/secrets"
+  - "packaging, import path, and environment compatibility"
+
+reject_if:
+  - "secret, credential, token, or regulated data is logged or committed"
+  - "unbounded query, file, stream, or collection load is introduced without justification"
+  - "async task, database session, cursor, file, socket, or stream can leak"
+  - "unsafe deserialization or dynamic execution is introduced without explicit approval"

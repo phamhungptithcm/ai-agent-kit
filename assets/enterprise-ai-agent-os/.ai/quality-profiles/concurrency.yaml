@@ -1,0 +1,220 @@
+version: 1
+
+id: concurrency
+
+name: Concurrency Engineering Profile
+
+description: >
+  Mandatory standards for concurrent, asynchronous, parallel,
+  distributed, scheduled, and background execution.
+  Optimize for correctness, determinism, scalability,
+  fault tolerance, and resource safety.
+
+applies_when:
+  - Thread
+  - ThreadPool
+  - Executor
+  - ExecutorService
+  - CompletableFuture
+  - Virtual Thread
+  - Coroutine
+  - Goroutine
+  - Promise
+  - Future
+  - Async
+  - Scheduler
+  - Queue
+  - Kafka Consumer
+  - RabbitMQ
+  - ActiveMQ
+  - Background Job
+  - Batch Processing
+  - Event Processing
+  - Lock
+  - Semaphore
+  - Mutex
+  - Distributed Lock
+  - Parallel Stream
+
+goals:
+  - correctness
+  - determinism
+  - scalability
+  - fault tolerance
+  - resource safety
+  - observability
+
+must_validate:
+
+  lifecycle:
+    - task/thread/goroutine lifecycle and leak risk reviewed
+    - task lifecycle defined
+    - thread lifecycle controlled
+    - graceful shutdown supported
+    - executor properly terminated
+    - no thread leaks
+    - no orphaned tasks
+
+  synchronization:
+    - race conditions evaluated
+    - shared mutable state minimized
+    - immutable objects preferred
+    - lock scope minimized
+    - lock ownership clear
+    - atomic operations preferred
+    - memory visibility guaranteed
+
+  locking:
+    - deadlock risk evaluated
+    - lock ordering consistent
+    - nested locks justified
+    - lock contention minimized
+    - lock timeout considered
+    - distributed locks justified
+
+  async:
+    - blocking calls removed from async/event-loop threads
+    - blocking I/O isolated
+    - async chain handles exceptions
+    - completion always handled
+    - futures never ignored
+    - async context propagation verified
+
+  cancellation:
+    - cancellation supported
+    - interruption respected
+    - timeout configured
+    - cleanup guaranteed
+    - resource release verified
+
+  retries:
+    - retry policy documented
+    - exponential backoff preferred
+    - retry limit configured
+    - retryable errors identified
+    - duplicate execution prevented
+
+  idempotency:
+    - operations idempotent
+    - duplicate messages tolerated
+    - duplicate jobs tolerated
+    - replay safety verified
+
+  queues:
+    - queue bounded or justified
+    - backpressure strategy defined
+    - overflow behavior documented
+    - consumer lag evaluated
+    - poison message handling defined
+
+  executors:
+    - thread pool sized appropriately
+    - queue capacity reviewed
+    - rejection policy defined
+    - starvation evaluated
+    - CPU vs I/O workload considered
+    - virtual threads evaluated where appropriate
+
+  scheduling:
+    - overlapping executions prevented
+    - distributed scheduling considered
+    - clock assumptions documented
+    - missed executions handled
+
+  distributed:
+    - exactly-once assumptions avoided
+    - at-least-once delivery handled
+    - ordering assumptions documented
+    - eventual consistency considered
+
+  resilience:
+    - partial failures handled
+    - circuit breaker considered
+    - fallback strategy defined
+    - recovery behavior documented
+
+  performance:
+    - unnecessary synchronization removed
+    - contention hotspots evaluated
+    - lock-free structures considered
+    - batching considered
+    - context switching minimized
+
+  observability:
+    - task metrics
+    - queue depth metrics
+    - execution latency
+    - retry metrics
+    - timeout metrics
+    - dead-letter metrics
+    - worker utilization
+    - thread pool metrics
+
+  testing:
+    - race detector executed where supported
+    - stress testing completed
+    - concurrent execution tested
+    - retry behavior tested
+    - timeout behavior tested
+    - cancellation tested
+    - failover tested
+
+required_review:
+
+  correctness:
+    - race conditions
+    - deadlocks
+    - memory visibility
+    - shared state
+
+  scalability:
+    - pool sizing
+    - queue growth
+    - contention analysis
+    - throughput bottlenecks
+
+  resiliency:
+    - retries
+    - timeouts
+    - cancellation
+    - idempotency
+
+reject_if:
+  - shared mutable state without synchronization
+  - blocking call inside event loop
+  - blocking call inside async callback
+  - future ignored
+  - thread created manually without justification
+  - executor never shutdown
+  - infinite retry
+  - unbounded queue without justification
+  - busy waiting
+  - sleep-based synchronization
+  - lock acquired without release guarantee
+  - nested locking without documented ordering
+  - async exception silently ignored
+  - cancellation ignored
+  - scheduled job not idempotent
+
+preferred_patterns:
+  - immutable objects
+  - message passing over shared state
+  - structured concurrency
+  - virtual threads for blocking workloads
+  - bounded queues
+  - bulkhead isolation
+  - circuit breaker
+  - exponential backoff with jitter
+  - optimistic concurrency
+  - compare-and-set operations
+  - lock-free collections
+  - cooperative cancellation
+
+deliverables:
+  - concurrency model summary
+  - synchronization analysis
+  - retry strategy
+  - timeout strategy
+  - thread pool sizing rationale
+  - failure mode analysis
+  - observability plan

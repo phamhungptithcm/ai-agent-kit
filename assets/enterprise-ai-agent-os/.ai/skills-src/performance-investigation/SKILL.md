@@ -1,0 +1,22 @@
+---
+name: performance-investigation
+description: Investigate latency, throughput, CPU, memory, database, network, rendering, startup, or resource bottlenecks using evidence before recommending changes.
+---
+
+# Performance Investigation
+
+Use this skill for performance regressions, slow endpoints, slow builds, slow UI, resource saturation, memory growth, or capacity concerns.
+
+## Required Work
+
+1. Run the Repository Intelligence Gate and reuse the shared brief.
+2. Identify the measured symptom, baseline, affected users/systems, and target behavior.
+3. Trace the hot path using CodeGraph and verify against source.
+4. Review relevant metrics, logs, traces, profiles, query plans, test results, or benchmark evidence when available.
+5. Separate measured facts from hypotheses.
+6. Identify likely bottlenecks across algorithmic complexity, I/O, database, network, locks, queues, rendering, allocation, caching, and configuration.
+7. Propose the smallest measurable improvement and validation plan.
+
+## Output
+
+Report baseline, suspected bottleneck, evidence, proposed fix options, expected impact, risk, validation commands, rollout/rollback, and observability gaps. Do not claim a performance improvement without measurement or a clear validation plan.

@@ -1,0 +1,20 @@
+version: 1
+id: memory
+name: Memory and Resource Lifecycle Profile
+applies_when:
+  - "large data, caches, streams, listeners, timers, file handles, sockets, buffers, images, or long-lived processes change"
+required_review:
+  - "resource cleanup and ownership lifecycle"
+  - "heap retention and object lifetime"
+  - "unbounded cache/map/list growth"
+  - "listener/subscription/timer cleanup"
+  - "stream/file/socket close behavior"
+  - "large allocation in loops"
+  - "buffer copying and backpressure"
+  - "static/global references"
+  - "profiling plan for performance-sensitive changes"
+conditional_checks:
+  - "heap snapshot"
+  - "pprof"
+  - "JVM heap/thread dump"
+  - "browser performance/memory profile"

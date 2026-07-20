@@ -1,0 +1,602 @@
+version: 1
+
+id: go
+
+name: Go Engineering Quality Profile
+
+description: 
+  Mandatory engineering standards for Go services, libraries, CLI tools,
+  workers, batch jobs, infrastructure utilities, and shared packages.
+  Optimize for correctness, explicit ownership, concurrency safety,
+  bounded resource usage, maintainability, security, and production operability.
+
+detect:
+
+  files:
+    - "go.mod"
+    - "go.sum"
+    - "go.work"
+    - "go.work.sum"
+    - "*.go"
+    - ".golangci.yml"
+    - ".golangci.yaml"
+    - ".golangci.toml"
+    - ".golangci.json"
+    - "staticcheck.conf"
+    - "tools.go"
+    - "Dockerfile"
+    - "Makefile"
+    - "Taskfile.yml"
+    - "Taskfile.yaml"
+
+  version_sources:
+    - "go.mod go directive"
+    - "go.mod toolchain directive"
+    - "go.work go directive"
+    - "CI setup-go version"
+    - "Docker build image"
+    - "Docker runtime image"
+    - "Makefile or task runner configuration"
+    - "deployment runtime documentation"
+
+goals:
+  - "correctness"
+  - "idiomatic Go"
+  - "concurrency safety"
+  - "explicit resource ownership"
+  - "bounded memory and goroutine usage"
+  - "backward-compatible APIs"
+  - "secure defaults"
+  - "production observability"
+  - "reproducible builds"
+
+preferred_commands:
+
+  dependencies:
+    - "go mod download"
+    - "go mod tidy"
+    - "go mod verify"
+
+  format:
+    - "gofmt -w"
+    - "gofmt -d"
+    - "goimports"
+
+  build:
+    - "go build ./..."
+    - "go build -trimpath ./..."
+    - "go install ./..."
+
+  test:
+    - "go test ./..."
+    - "go test -count=1 ./..."
+    - "go test -shuffle=on ./..."
+
+  static_analysis:
+    - "go vet ./..."
+    - "staticcheck ./..."
+    - "golangci-lint run"
+
+  security:
+    - "govulncheck ./..."
+    - "gosec ./..."
+    - "go mod verify"
+
+  concurrency:
+    - "go test -race ./..."
+
+  coverage:
+    - "go test -cover ./..."
+    - "go test -coverprofile=coverage.out ./..."
+
+  performance:
+    - "go test -bench=. -benchmem ./..."
+    - "go test -run=^$ -bench=. -cpuprofile=cpu.out -memprofile=mem.out"
+    - "pprof"
+
+required_review:
+
+  toolchain_and_build:
+    - "Go version is explicit and consistent across go.mod, CI, containers, and deployment"
+    - "toolchain directive is intentional"
+    - "minimum supported Go version is documented"
+    - "build tags are valid and tested"
+    - "platform-specific files compile for supported GOOS and GOARCH targets"
+    - "CGO usage is intentional and documented"
+    - "cross-compilation requirements are validated"
+    - "debug-only or development-only code is excluded from production builds"
+    - "build metadata and version injection are reproducible"
+    - "binary size impact is reviewed for production artifacts"
+
+  modules_and_dependencies:
+    - "go.mod and go.sum are synchronized"
+    - "go mod tidy produces no unexpected changes"
+    - "dependency additions are justified"
+    - "direct and indirect dependencies are reviewed"
+    - "replace directives are documented and not accidentally committed"
+    - "local replace directives are prohibited in production branches"
+    - "retracted or deprecated module versions are avoided"
+    - "module major versions match import paths"
+    - "dependency licenses are acceptable"
+    - "known vulnerabilities are reviewed"
+    - "dependency updates preserve runtime and API compatibility"
+    - "internal packages are not imported outside their allowed boundary"
+
+  package_design:
+    - "packages have focused responsibilities"
+    - "package names are concise and meaningful"
+    - "package names do not repeat import-path context unnecessarily"
+    - "import cycles are prohibited"
+    - "public API surface is intentionally small"
+    - "exported declarations have useful documentation"
+    - "interfaces are defined by consumers when practical"
+    - "interfaces remain small and behavior-focused"
+    - "concrete types are preferred when abstraction is unnecessary"
+    - "utility or common packages do not become unbounded dependency hubs"
+    - "internal implementation details are not exported"
+    - "package initialization has no surprising side effects"
+
+  API_compatibility:
+    - "exported function, method, interface, struct, constant, and variable changes are reviewed for compatibility"
+    - "removing or renaming exported declarations is treated as breaking"
+    - "adding methods to public interfaces is treated as breaking"
+    - "changing parameter or return types is treated as breaking"
+    - "changing error identity or matching behavior is treated as a compatibility change"
+    - "exported struct field changes are reviewed for serialization and construction compatibility"
+    - "zero-value behavior remains valid or is clearly documented"
+    - "public API behavior changes require release notes or migration guidance"
+    - "semantic import versioning is followed"
+
+  context:
+    - "context.Context is accepted as the first parameter"
+    - "contexts are not stored in structs unless framework constraints require it"
+    - "context cancellation propagates across calls"
+    - "timeouts and deadlines are preserved"
+    - "derived contexts are cancelled to release resources"
+    - "context values contain only request-scoped metadata"
+    - "context values do not carry optional function parameters"
+    - "context keys use private typed values"
+    - "background contexts are not introduced where caller context exists"
+    - "cancellation errors remain distinguishable"
+    - "long-running operations periodically observe cancellation"
+
+  concurrency:
+    - "goroutine ownership and termination conditions are explicit"
+    - "every goroutine has a bounded lifecycle"
+    - "goroutine leaks are prevented"
+    - "shared mutable state is minimized"
+    - "data races are prevented"
+    - "mutex-protected invariants are documented where non-obvious"
+    - "mutex lock duration is minimized"
+    - "lock ordering is consistent"
+    - "copying values containing mutexes is prohibited"
+    - "sync.Once usage does not hide retry or initialization failure behavior"
+    - "atomic operations are used only when invariants remain correct"
+    - "WaitGroup Add occurs before goroutine start"
+    - "WaitGroup counters cannot become negative"
+    - "errgroup is preferred for coordinated goroutine failure and cancellation"
+    - "parallelism is bounded"
+    - "concurrent access to maps is synchronized"
+    - "single-process locks are not treated as distributed locks"
+
+  channels:
+    - "channel ownership is explicit"
+    - "only the sending owner closes a channel"
+    - "channels are not closed by receivers without ownership"
+    - "send operations cannot block indefinitely"
+    - "receive operations cannot block indefinitely"
+    - "nil channel behavior is intentional"
+    - "closed channel behavior is handled correctly"
+    - "send-on-closed-channel risk is eliminated"
+    - "channel capacity is justified"
+    - "unbounded queue behavior is not emulated with uncontrolled slices"
+    - "select statements include cancellation where appropriate"
+    - "default cases do not create busy loops"
+    - "channel use is preferred only when communication or ownership transfer is needed"
+    - "mutexes are preferred over channels for simple shared-state protection"
+
+  cancellation_and_shutdown:
+    - "graceful shutdown is implemented for long-running processes"
+    - "shutdown stops accepting new work"
+    - "in-flight work receives bounded drain time"
+    - "background workers observe shutdown cancellation"
+    - "HTTP servers call Shutdown with a deadline"
+    - "consumers stop polling before resource teardown"
+    - "database, message, network, and telemetry clients close in safe order"
+    - "shutdown is idempotent"
+    - "shutdown errors are logged and surfaced appropriately"
+    - "signal handling does not leak goroutines"
+
+  errors:
+    - "errors are checked"
+    - "errors are not silently discarded"
+    - "errors are wrapped with %w when callers need identity preservation"
+    - "errors.Is and errors.As compatibility is preserved"
+    - "sentinel errors remain stable when part of a public contract"
+    - "typed errors expose only necessary information"
+    - "error text is not used for programmatic control flow"
+    - "error messages provide useful operation context"
+    - "error messages do not duplicate nested context excessively"
+    - "errors do not expose credentials, secrets, or regulated data"
+    - "partial success and partial failure behavior is explicit"
+    - "cleanup errors are not silently lost"
+    - "panic is not used for expected runtime failures"
+    - "panic recovery exists only at controlled process or request boundaries"
+    - "recovered panics retain stack traces and operational context"
+
+  defer_and_cleanup:
+    - "defer is used for clear ownership-based cleanup"
+    - "defer inside large or long-running loops is avoided"
+    - "deferred cleanup occurs at the correct scope"
+    - "cleanup runs on every return path"
+    - "cleanup order is intentional"
+    - "close and flush errors are handled when they affect correctness"
+    - "resources are not used after deferred closure"
+    - "deferred arguments do not capture stale or unintended values"
+
+  database:
+    - "sql.DB is treated as a concurrency-safe pool, not a single connection"
+    - "sql.DB instances are long-lived and reused"
+    - "connection pool limits are configured intentionally"
+    - "SetMaxOpenConns is reviewed"
+    - "SetMaxIdleConns is reviewed"
+    - "SetConnMaxLifetime is reviewed"
+    - "SetConnMaxIdleTime is reviewed"
+    - "queries receive context"
+    - "rows.Close is guaranteed"
+    - "rows.Err is checked after iteration"
+    - "Row.Scan errors are handled"
+    - "prepared statement lifecycle is correct"
+    - "transactions use explicit commit or rollback behavior"
+    - "deferred rollback is safe after commit"
+    - "transaction context and timeout are bounded"
+    - "external network calls are avoided inside transactions"
+    - "connection acquisition wait time is observable"
+    - "result sets are bounded"
+    - "N+1 query patterns are avoided"
+    - "database errors are mapped without destroying identity needed for retry or conflict handling"
+
+  HTTP_clients:
+    - "http.Client is reused"
+    - "a timeout is configured or request context guarantees a deadline"
+    - "default transport behavior is reviewed"
+    - "response bodies are closed"
+    - "response bodies are drained when connection reuse matters"
+    - "non-success status codes are handled explicitly"
+    - "redirect behavior is intentional"
+    - "retry behavior is bounded and idempotent"
+    - "transport-level and application-level errors remain distinguishable"
+    - "request and response body sizes are bounded"
+    - "sensitive headers and payloads are not logged"
+    - "TLS configuration uses secure defaults"
+
+  HTTP_servers:
+    - "ReadHeaderTimeout is configured"
+    - "ReadTimeout is reviewed"
+    - "WriteTimeout is reviewed"
+    - "IdleTimeout is reviewed"
+    - "MaxHeaderBytes is reviewed"
+    - "request body size is bounded"
+    - "request context cancellation is propagated"
+    - "handlers do not spawn unowned goroutines"
+    - "panic recovery is centralized"
+    - "authentication and authorization are enforced before protected work"
+    - "status codes and response bodies are written consistently"
+    - "headers are not modified after response commitment"
+    - "streaming and flush behavior is safe"
+    - "server shutdown is graceful"
+
+  I/O_and_streams:
+    - "io.Reader and io.Writer flows avoid unnecessary full buffering"
+    - "large payloads are streamed"
+    - "io.Copy limits are applied to untrusted input"
+    - "file and network handles are closed"
+    - "partial reads and writes are handled correctly"
+    - "short writes are not ignored"
+    - "scanner token size limitations are reviewed"
+    - "buffer sizes are justified"
+    - "compression and decompression bombs are considered"
+    - "temporary files are removed"
+    - "path handling is platform-safe"
+
+  memory:
+    - "large allocations are justified"
+    - "slice capacity is bounded"
+    - "sub-slices do not unintentionally retain large backing arrays"
+    - "maps do not grow without eviction or lifecycle bounds"
+    - "buffers are reused only when ownership is clear"
+    - "sync.Pool is used only with measured benefit"
+    - "objects are not retained by long-lived closures unnecessarily"
+    - "byte slices are not converted repeatedly to strings or vice versa on hot paths"
+    - "preallocation is used when size is predictable and meaningful"
+    - "large values are not copied unnecessarily"
+    - "pointer usage is justified by semantics, mutability, or measurable cost"
+    - "memory growth is observable for long-lived processes"
+
+  loops_and_collections:
+    - "loop variable capture is safe for the supported Go version"
+    - "addresses of reused loop variables are not retained incorrectly"
+    - "maps are not assumed to have stable iteration order"
+    - "sorting is explicit where deterministic output is required"
+    - "collection growth is bounded"
+    - "nested loops are reviewed for algorithmic complexity"
+    - "map key types are appropriate and comparable"
+    - "nil and empty slices have intentional serialization behavior"
+    - "mutation during iteration is safe and intentional"
+
+  interfaces_and_nil:
+    - "typed nil values are not returned as non-nil interfaces unintentionally"
+    - "nil receivers are handled only when intentionally supported"
+    - "nil and empty collection semantics are explicit"
+    - "interface assertions use checked forms"
+    - "type switches handle expected implementations"
+    - "reflection is avoided unless justified"
+    - "interface values do not obscure resource ownership"
+    - "optional dependencies are represented explicitly"
+
+  serialization:
+    - "JSON field names and compatibility are reviewed"
+    - "omitempty behavior is intentional"
+    - "unknown field handling is explicit"
+    - "required field validation exists outside encoding/json"
+    - "custom MarshalJSON and UnmarshalJSON methods are symmetric"
+    - "time and duration formats are explicit"
+    - "numeric precision is preserved"
+    - "large input size and nesting depth are bounded"
+    - "serialized public fields do not expose sensitive data"
+    - "protobuf, Avro, or event schema changes preserve consumer compatibility"
+
+  security:
+    - "untrusted input is validated"
+    - "SQL queries are parameterized"
+    - "shell commands do not concatenate untrusted input"
+    - "path traversal is prevented"
+    - "archive extraction prevents zip-slip behavior"
+    - "SSRF risks are reviewed"
+    - "redirect targets are validated"
+    - "TLS certificate verification is not disabled"
+    - "cryptographic randomness uses crypto/rand"
+    - "passwords use approved password hashing"
+    - "comparison of sensitive values uses constant-time functions where appropriate"
+    - "secrets are not embedded in source or binaries"
+    - "PII, tokens, credentials, and authorization headers are not logged"
+    - "temporary files use secure permissions"
+    - "file permissions follow least privilege"
+    - "authentication and authorization are enforced server-side"
+    - "tenant and object-level authorization are verified"
+    - "dependency vulnerabilities are assessed"
+
+  performance:
+    - "hot paths are identified before optimization"
+    - "performance claims are supported by benchmarks or profiles"
+    - "allocations per operation are reviewed for hot paths"
+    - "reflection and interface conversion overhead are considered"
+    - "lock contention is measured where relevant"
+    - "goroutine count remains bounded"
+    - "network calls are batched or parallelized safely"
+    - "serialization cost is considered"
+    - "caching includes expiration, capacity, and invalidation strategy"
+    - "pprof evidence is provided for significant optimizations"
+    - "benchmark results include benchmem where allocation impact matters"
+
+  observability:
+    - "structured logging is used"
+    - "logs include operation, outcome, latency, and correlation context"
+    - "request and trace context propagates through goroutines"
+    - "metrics avoid unbounded cardinality"
+    - "goroutine count is observable"
+    - "memory and GC behavior are observable"
+    - "database pool usage is observable"
+    - "queue depth and worker utilization are observable"
+    - "timeouts, retries, cancellations, and failures are observable"
+    - "pprof exposure is protected"
+    - "health and readiness endpoints reflect process state appropriately"
+    - "sensitive values are redacted"
+
+  testing:
+    - "tests cover success, failure, and boundary behavior"
+    - "table-driven tests are used where they improve coverage and clarity"
+    - "subtests are isolated"
+    - "parallel tests do not share unsafe mutable state"
+    - "race-sensitive code is tested with the race detector"
+    - "timeouts and cancellation are tested"
+    - "goroutine termination is verified"
+    - "channel closure and blocking behavior are tested"
+    - "database transaction and cleanup paths are tested"
+    - "HTTP handlers and clients are tested with controlled servers"
+    - "tests do not rely primarily on arbitrary sleeps"
+    - "time-dependent logic uses injectable clocks or deterministic control"
+    - "tests restore environment variables, globals, and temporary resources"
+    - "fuzz tests are considered for parsers, decoders, and trust boundaries"
+    - "benchmarks avoid compiler elimination and unrealistic setup cost"
+
+conditional_checks:
+
+  - condition: "concurrency-sensitive code changes"
+    checks:
+      - "go test -race ./..."
+      - "goroutine lifecycle analysis"
+      - "channel blocking analysis"
+      - "mutex and lock-order analysis"
+      - "bounded concurrency validation"
+      - "stress or repeated execution tests"
+
+  - condition: "database/sql code changes"
+    checks:
+      - "rows.Close verification"
+      - "rows.Err verification"
+      - "transaction rollback and commit tests"
+      - "connection pool sizing review"
+      - "query timeout propagation"
+      - "pool exhaustion behavior"
+
+  - condition: "HTTP server changes"
+    checks:
+      - "server timeout review"
+      - "request size limit"
+      - "graceful shutdown test"
+      - "panic recovery behavior"
+      - "authentication and authorization tests"
+      - "slow-client resilience"
+
+  - condition: "HTTP client or external integration changes"
+    checks:
+      - "client reuse"
+      - "request timeout"
+      - "response body cleanup"
+      - "retry and idempotency behavior"
+      - "connection reuse"
+      - "dependency failure tests"
+
+  - condition: "hot path or performance-sensitive code changes"
+    checks:
+      - "benchmarks"
+      - "go test -benchmem"
+      - "CPU profile"
+      - "heap or allocation profile"
+      - "contention profile when locks are involved"
+      - "before-and-after evidence"
+
+  - condition: "parser, decoder, file upload, archive, or untrusted binary input changes"
+    checks:
+      - "fuzz tests"
+      - "size and depth limits"
+      - "malformed input behavior"
+      - "memory exhaustion risk"
+      - "path traversal review"
+      - "panic resistance"
+
+  - condition: "public package or shared library changes"
+    checks:
+      - "exported API compatibility"
+      - "sentinel and typed error compatibility"
+      - "zero-value behavior"
+      - "documentation"
+      - "semantic versioning impact"
+
+  - condition: "CLI application changes"
+    checks:
+      - "exit code compatibility"
+      - "stdout and stderr separation"
+      - "signal and cancellation behavior"
+      - "configuration precedence"
+      - "secret redaction"
+      - "non-interactive execution support"
+
+  - condition: "background worker, scheduler, or message consumer changes"
+    checks:
+      - "idempotency"
+      - "bounded retries"
+      - "backpressure"
+      - "graceful shutdown"
+      - "duplicate and out-of-order handling"
+      - "dead-letter behavior"
+      - "worker concurrency sizing"
+
+reject_if:
+  - "go build ./... fails"
+  - "go test ./... fails"
+  - "go vet or static analysis reports unresolved correctness issues"
+  - "Go versions conflict across go.mod, CI, containers, or deployment"
+  - "go.mod and go.sum are inconsistent"
+  - "local replace directive is committed without explicit approval"
+  - "public API is broken without versioning or migration plan"
+  - "error identity required by callers is destroyed"
+  - "error is silently discarded without justification"
+  - "panic is used for expected operational failure"
+  - "goroutine has no clear termination path"
+  - "goroutine can block indefinitely on send or receive"
+  - "goroutine captures resources beyond their valid lifecycle"
+  - "concurrency is unbounded"
+  - "channel can be closed by multiple owners"
+  - "send-on-closed-channel risk exists"
+  - "busy loop is introduced"
+  - "data race is possible"
+  - "mutex is copied"
+  - "lock ordering can deadlock"
+  - "context cancellation or deadline is dropped"
+  - "derived context cancel function is not called"
+  - "defer is introduced inside a large loop causing resource retention"
+  - "rows.Close or rows.Err handling is missing"
+  - "transaction can exit without commit or rollback"
+  - "sql.DB is created per request or per operation"
+  - "HTTP response body can leak"
+  - "HTTP client has no bounded timeout or deadline"
+  - "server lacks required slow-client timeouts"
+  - "untrusted input can cause unbounded memory allocation"
+  - "sub-slice retains a disproportionately large backing array"
+  - "cache, map, queue, or goroutine count can grow without bound"
+  - "typed nil is returned unintentionally through an interface"
+  - "map iteration order is relied on"
+  - "unsafe, reflection, or CGO is introduced without justification"
+  - "TLS verification is disabled"
+  - "crypto/math-rand is used for security-sensitive randomness"
+  - "injection, SSRF, path traversal, or archive traversal is possible"
+  - "secret or regulated data can be logged"
+  - "tests use arbitrary sleep as the primary concurrency synchronization method"
+  - "performance improvement is claimed without benchmark or profiling evidence"
+
+preferred_patterns:
+  - "small cohesive packages"
+  - "consumer-defined interfaces"
+  - "concrete types by default"
+  - "valid zero values"
+  - "context propagation"
+  - "errgroup for coordinated concurrent work"
+  - "bounded worker pools"
+  - "channels for communication and ownership transfer"
+  - "mutexes for simple shared-state protection"
+  - "explicit resource ownership"
+  - "deferred cleanup at bounded scope"
+  - "errors.Is and errors.As compatible wrapping"
+  - "streaming over full buffering"
+  - "long-lived shared HTTP and database clients"
+  - "functional options for stable extensible constructors"
+  - "table-driven tests"
+  - "fuzzing for untrusted parsers"
+  - "benchmarks and pprof for measured optimization"
+  - "graceful shutdown"
+  - "structured logging and context-aware tracing"
+
+deliverables:
+  - "Go toolchain and runtime compatibility summary"
+  - "module and dependency impact"
+  - "package and public API compatibility assessment"
+  - "context, concurrency, and goroutine lifecycle analysis"
+  - "channel, mutex, and deadlock analysis"
+  - "resource ownership and cleanup review"
+  - "database or network client lifecycle review"
+  - "memory and allocation impact"
+  - "security assessment"
+  - "observability impact"
+  - "test, race detector, benchmark, and profiling evidence"
+  - "unresolved risks and required follow-up actions"
+
+review_output:
+
+  required_sections:
+    - "Change summary"
+    - "Toolchain and dependencies"
+    - "API and package design"
+    - "Context and concurrency"
+    - "Resource lifecycle"
+    - "Error handling"
+    - "Security"
+    - "Performance and memory"
+    - "Observability"
+    - "Testing evidence"
+    - "Unresolved risks"
+
+  decision:
+    allowed_values:
+      - "APPROVE"
+      - "APPROVE_WITH_CONDITIONS"
+      - "REJECT"
+
+    requirements:
+      - "cite code, configuration, build, test, race, benchmark, or profile evidence"
+      - "do not claim a command passed unless it was executed"
+      - "distinguish verified findings from inferred risks"
+      - "identify every goroutine and resource owner affected by the change"
+      - "state whether race detection was required and whether it was executed"
+      - "do not claim a performance improvement without before-and-after evidence"

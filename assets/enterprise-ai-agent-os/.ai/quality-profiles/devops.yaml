@@ -1,0 +1,124 @@
+version: 1
+id: devops
+name: DevOps Delivery Quality Profile
+
+description: 
+  Standards for CI/CD, release automation, deployment workflows,
+  artifact handling, observability handoff, and operational delivery.
+  Optimize for reproducibility, secure supply chain, gated releases,
+  rollback, auditability, and developer ergonomics.
+
+applies_when:
+  - "CI/CD workflows, build scripts, release jobs, deployment jobs, or pipeline permissions change"
+  - "artifacts, containers, package publishing, provenance, signing, or dependency installation changes"
+  - "environment variables, GitHub Actions, GitLab CI, Jenkins, CircleCI, Buildkite, Azure DevOps, or release automation changes"
+  - "monitoring, alerting, runbooks, rollback, or incident handoff changes"
+
+detect:
+  files:
+    - ".github/workflows/**"
+    - ".gitlab-ci.yml"
+    - "Jenkinsfile"
+    - ".circleci/**"
+    - "buildkite/**"
+    - "azure-pipelines.yml"
+    - "Dockerfile"
+    - "package.json"
+    - "Makefile"
+    - "Taskfile.yml"
+  tools:
+    - "GitHub Actions"
+    - "GitLab CI"
+    - "Jenkins"
+    - "CircleCI"
+    - "Buildkite"
+    - "Azure DevOps"
+    - "Docker"
+    - "npm"
+    - "Maven"
+    - "Gradle"
+    - "uv"
+
+preferred_checks:
+  - "pipeline syntax validation where available"
+  - "local build/test command parity check"
+  - "dry-run for publishing or deployment when supported"
+  - "secret/permission review"
+  - "artifact integrity and provenance review"
+  - "rollback rehearsal or documented rollback command"
+
+required_review:
+  ci_cd:
+    - "CI/CD trigger scope reviewed"
+    - "jobs are deterministic and reproducible"
+    - "caches are safe and do not hide dependency or test failures"
+    - "parallel jobs and dependency ordering reviewed"
+    - "timeout, retry, and cancellation behavior reviewed"
+
+  security:
+    - "secrets sourced from approved secret stores"
+    - "logs do not expose tokens, credentials, or sensitive values"
+    - "pipeline permissions follow least privilege"
+    - "third-party actions/images/plugins are pinned or justified"
+    - "supply chain risk, provenance, signing, and artifact integrity reviewed"
+  secrets:
+    - "OIDC workload identity preferred"
+    - "short-lived credentials"
+    - "secret rotation"
+    - "secret expiration"
+    - "secret scanning"
+    - "least privilege"
+  release:
+    - "release gates and environment approvals reviewed"
+    - "versioning and changelog behavior reviewed"
+    - "deployment strategy is explicit"
+    - "rollback and roll-forward plans documented"
+    - "manual approval boundaries are clear"
+  performance:
+    - "pipeline duration"
+    - "cache hit ratio"
+    - "parallelization"
+    - "incremental build"
+    - "incremental testing"
+  operations:
+    - "observability handoff reviewed"
+    - "deployment notifications and audit trail reviewed"
+    - "runbooks updated for changed release behavior"
+    - "failure mode and recovery path documented"
+  observability:
+    - "logs"
+    - "metrics"
+    - "distributed tracing"
+    - "deployment markers"
+    - "dashboards"
+    - "alerts"
+    - "SLO verification"
+  cost:
+    - "runner utilization"
+    - "artifact retention cost"
+    - "cache storage"
+    - "build minutes"
+  compliance:
+    - "audit trail"
+    - "change history"
+    - "deployment approval"
+    - "artifact traceability"
+  incident:
+    - "rollback command documented"
+    - "runbook"
+    - "playbook"
+    - "on-call notification"
+    - "post-deployment validation"
+
+reject_if:
+  - "pipeline executes untrusted code with write credentials"
+  - "third-party GitHub Action is not pinned to immutable commit SHA"
+  - "container runs as root without justification"
+  - "deployment rebuilds artifact instead of promoting tested artifact"
+  - "artifact is unsigned when signing policy exists"
+  - "SBOM generation required but missing"
+  - "production deployment bypasses required quality gates"
+  - "deployment lacks post-deployment verification"
+  - "rollback procedure is untested"
+  - "pipeline exposes secrets in logs"
+  - "OIDC available but long-lived cloud credentials are used without justification"

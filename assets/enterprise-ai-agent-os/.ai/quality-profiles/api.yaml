@@ -1,0 +1,310 @@
+version: 1
+
+id: api
+
+name: API Contract Quality Profile
+
+description: 
+  Mandatory engineering standards for public APIs, internal service APIs,
+  GraphQL schemas, event contracts, and serialized payloads.
+  Optimize for compatibility, security, predictable behavior,
+  operability, and safe consumer evolution.
+
+applies_when:
+  - "REST endpoint, controller, route, RPC, GraphQL schema, event contract, webhook, message schema, OpenAPI definition, or serialized payload changes"
+  - "request parameters, headers, status codes, error models, pagination, authentication, authorization, or API behavior changes"
+  - "fields are added, removed, renamed, reordered, retyped, made required, or given new semantics"
+  - "Kafka, ActiveMQ, RabbitMQ, SNS, SQS, or other message payload contracts change"
+
+goals:
+  - "backward and forward compatibility"
+  - "secure and least-privilege access"
+  - "predictable consumer behavior"
+  - "bounded resource usage"
+  - "clear failure semantics"
+  - "safe versioning and deprecation"
+  - "production observability"
+  - "consumer-independent evolution"
+
+preferred_checks:
+  - "OpenAPI, GraphQL, protobuf, Avro, or JSON Schema diff"
+  - "breaking-change detection"
+  - "consumer-driven contract tests"
+  - "provider contract verification"
+  - "schema registry compatibility validation"
+  - "integration tests against representative consumers"
+  - "generated client compatibility check"
+  - "security and authorization tests"
+  - "load, rate-limit, and abuse-path tests"
+  - "documentation and example payload validation"
+
+required_review:
+
+  contract:
+    - "request and response schemas are explicit"
+    - "field names, types, formats, nullability, defaults, and constraints are documented"
+    - "required and optional fields are intentional"
+    - "unknown fields are handled predictably"
+    - "enum evolution is consumer-safe"
+    - "numeric precision, date/time, timezone, locale, and encoding behavior are explicit"
+    - "content type and serialization behavior are defined"
+    - "semantic behavior is documented, not only payload shape"
+    - "examples match the actual implementation"
+
+  compatibility:
+    - "existing consumers remain compatible"
+    - "breaking changes require an approved versioning or migration plan"
+    - "adding required request fields is prohibited without a new version"
+    - "removing or renaming fields is prohibited without deprecation"
+    - "changing field type, meaning, format, or nullability is treated as breaking"
+    - "changing default behavior is treated as a contract change"
+    - "status code and error behavior remain compatible"
+    - "event consumers tolerate additive fields"
+    - "event producers do not reuse fields with new semantics"
+    - "consumer rollout order is documented when compatibility cannot be preserved"
+
+  validation:
+    - "all external input is validated at the boundary"
+    - "validation failures are deterministic and actionable"
+    - "field length, range, pattern, format, collection size, and nesting depth are bounded"
+    - "unknown or unsupported values are handled explicitly"
+    - "malformed payloads fail safely"
+    - "validation is consistent across API documentation and implementation"
+    - "server-side validation is authoritative"
+    - "business validation is separated from syntactic validation"
+
+  security:
+    - "authentication requirements are explicit"
+    - "authorization is enforced server-side for every protected operation"
+    - "object-level authorization is verified"
+    - "tenant boundaries are enforced"
+    - "least-privilege access is applied"
+    - "sensitive fields are not exposed unnecessarily"
+    - "PII, secrets, tokens, credentials, and regulated data are not logged"
+    - "mass-assignment and over-posting risks are prevented"
+    - "injection risks are mitigated"
+    - "CORS, CSRF, replay, webhook signature, and origin risks are reviewed where applicable"
+    - "security-sensitive responses do not leak internal implementation details"
+
+  behavior:
+    - "HTTP method semantics are correct"
+    - "safe and idempotent operations behave accordingly"
+    - "idempotency keys are supported for retriable side-effecting operations where needed"
+    - "duplicate requests have defined behavior"
+    - "partial success behavior is explicit"
+    - "resource state transitions are valid and documented"
+    - "concurrent updates have a defined conflict strategy"
+    - "optimistic concurrency controls are considered"
+    - "retry behavior does not create duplicate side effects"
+
+  errors:
+    - "error shape is stable and machine-readable"
+    - "errors include a stable code separate from human-readable text"
+    - "HTTP or protocol status codes are semantically correct"
+    - "validation, authentication, authorization, conflict, throttling, and server errors are distinguishable"
+    - "internal exceptions and stack traces are not exposed"
+    - "correlation or trace identifiers are returned where appropriate"
+    - "retryability is explicit when relevant"
+    - "error changes are reviewed for consumer compatibility"
+
+  resilience:
+    - "client and server timeouts are defined"
+    - "retryable and non-retryable failures are distinguished"
+    - "retry guidance is documented"
+    - "Retry-After is returned for applicable throttling or temporary failures"
+    - "retries use bounded exponential backoff with jitter"
+    - "circuit breaker and bulkhead behavior are considered for downstream dependencies"
+    - "downstream failure behavior is explicit"
+    - "fallbacks do not return misleading success responses"
+
+  rate_limiting:
+    - "rate-limit scope is explicit: user, account, tenant, token, IP, or operation"
+    - "burst and sustained limits are defined"
+    - "rate-limit responses are compatible and documented"
+    - "limits cannot be trivially bypassed"
+    - "expensive operations have stricter protection"
+    - "abuse and denial-of-service paths are reviewed"
+    - "rate-limit metrics and alerts exist"
+
+  pagination:
+    - "collection responses are bounded"
+    - "pagination is required for potentially large result sets"
+    - "maximum page size is enforced server-side"
+    - "ordering is deterministic"
+    - "sorting fields are allowlisted"
+    - "filter fields and operators are allowlisted"
+    - "cursor or keyset pagination is preferred for large or frequently changing datasets"
+    - "offset pagination limitations are documented where used"
+    - "pagination tokens are opaque and tamper-resistant"
+    - "total-count queries are optional when expensive"
+
+  versioning:
+    - "versioning strategy is consistent"
+    - "version identifiers are not introduced without need"
+    - "deprecation includes replacement guidance"
+    - "deprecation includes an owner and removal criteria"
+    - "sunset dates are communicated where applicable"
+    - "old and new versions can coexist during migration"
+    - "event schema compatibility mode is defined"
+    - "versioning does not replace additive backward-compatible evolution"
+
+  events:
+    - "event name and business meaning are stable"
+    - "event schema has an explicit version or compatibility policy"
+    - "event identifier is globally unique"
+    - "event timestamp and timezone semantics are explicit"
+    - "producer, source, correlation, causation, and trace identifiers are included where applicable"
+    - "partition key and ordering expectations are documented"
+    - "delivery semantics are explicit"
+    - "consumers are idempotent"
+    - "duplicate and out-of-order delivery are tolerated where required"
+    - "schema registry compatibility is validated"
+    - "poison-message and dead-letter behavior are defined"
+    - "PII and retention requirements are reviewed"
+
+  observability:
+    - "request count, latency, error rate, and saturation metrics exist"
+    - "metrics include endpoint or operation dimensions without unbounded cardinality"
+    - "distributed tracing propagates across service boundaries"
+    - "correlation identifiers are preserved"
+    - "structured logs include operation, outcome, latency, and relevant identifiers"
+    - "sensitive values are redacted"
+    - "audit events capture actor, action, target, result, and timestamp where required"
+    - "rate-limit, authorization failure, validation failure, and dependency failure metrics exist"
+    - "service-level objectives are considered for critical APIs"
+
+  documentation:
+    - "API definition is the source of truth where applicable"
+    - "request, response, error, authentication, pagination, and retry behavior are documented"
+    - "examples include success and representative failure cases"
+    - "deprecated fields and operations are clearly marked"
+    - "consumer migration notes are included for behavior changes"
+    - "documentation is updated in the same change as implementation"
+
+  testing:
+    - "happy-path behavior is tested"
+    - "validation boundaries are tested"
+    - "authentication and authorization failures are tested"
+    - "object-level and tenant isolation are tested"
+    - "error contracts are tested"
+    - "idempotency and duplicate request behavior are tested"
+    - "pagination, sorting, and filtering are tested"
+    - "timeout, retry, throttling, and dependency failure behavior are tested"
+    - "backward compatibility is tested against existing contracts"
+    - "event duplicate, replay, ordering, and schema evolution behavior are tested"
+
+conditional_checks:
+  - condition: "OpenAPI, GraphQL, protobuf, Avro, or JSON Schema exists"
+    checks:
+      - "schema linting"
+      - "breaking-change diff"
+      - "generated client compilation"
+      - "documentation rendering validation"
+
+  - condition: "API has external or independently deployed consumers"
+    checks:
+      - "consumer-driven contract tests"
+      - "consumer inventory review"
+      - "migration and rollout sequencing"
+      - "deprecation communication plan"
+
+  - condition: "operation creates financial, legal, account, or other non-repeatable side effects"
+    checks:
+      - "idempotency key support"
+      - "duplicate request protection"
+      - "audit trail"
+      - "reconciliation or compensation strategy"
+
+  - condition: "event or message contract changes"
+    checks:
+      - "schema registry compatibility"
+      - "old consumer compatibility"
+      - "replay and duplicate delivery tests"
+      - "partitioning and ordering review"
+      - "dead-letter handling"
+
+  - condition: "API returns large or user-controlled result sets"
+    checks:
+      - "server-enforced page size"
+      - "query cost limits"
+      - "keyset pagination evaluation"
+      - "filter and sort allowlist"
+      - "load test"
+
+  - condition: "GraphQL changes"
+    checks:
+      - "query depth limit"
+      - "query complexity or cost limit"
+      - "N+1 detection and DataLoader review"
+      - "field-level authorization"
+      - "schema deprecation review"
+
+reject_if:
+  - "breaking contract change without approved versioning or migration plan"
+  - "required request field added to an existing contract"
+  - "field removed, renamed, retyped, or repurposed without deprecation"
+  - "unbounded collection response"
+  - "client-controlled page size without a server maximum"
+  - "missing deterministic ordering for pagination"
+  - "authentication or authorization enforced only by the client"
+  - "missing object-level or tenant-level authorization"
+  - "sensitive data exposed in payloads, logs, metrics, or error messages"
+  - "raw internal exception or stack trace returned"
+  - "side-effecting retriable operation has no duplicate protection"
+  - "retry policy is unbounded"
+  - "error response is inconsistent or not machine-readable"
+  - "event consumer assumes exactly-once delivery without supporting guarantees"
+  - "event schema change breaks existing consumers"
+  - "documentation and implementation disagree"
+  - "API success response hides a failed or partially completed operation"
+
+preferred_patterns:
+  - "additive contract evolution"
+  - "consumer-driven contract testing"
+  - "OpenAPI-first or schema-first design"
+  - "stable machine-readable error codes"
+  - "RFC 9457 Problem Details for HTTP APIs"
+  - "cursor or keyset pagination"
+  - "idempotency keys for side-effecting operations"
+  - "optimistic concurrency using ETag, version, or revision fields"
+  - "bounded retries with exponential backoff and jitter"
+  - "outbox pattern for transactional event publication"
+  - "schema registry enforcement for event contracts"
+  - "at-least-once delivery with idempotent consumers"
+  - "explicit deprecation and consumer migration windows"
+
+deliverables:
+  - "contract change summary"
+  - "compatibility assessment"
+  - "affected consumer analysis"
+  - "security and authorization analysis"
+  - "request, response, and error examples"
+  - "versioning or deprecation plan when applicable"
+  - "retry, timeout, rate-limit, and idempotency behavior"
+  - "observability and audit impact"
+  - "test evidence"
+  - "deployment and consumer rollout sequence"
+
+review_output:
+  required_sections:
+    - "Change summary"
+    - "Contract compatibility"
+    - "Security impact"
+    - "Failure and retry semantics"
+    - "Performance and boundedness"
+    - "Consumer impact"
+    - "Testing evidence"
+    - "Deployment and rollback considerations"
+
+  decision:
+    allowed_values:
+      - "APPROVE"
+      - "APPROVE_WITH_CONDITIONS"
+      - "REJECT"
+
+    requirements:
+      - "identify every breaking or behavior-changing contract modification"
+      - "cite code, schema, test, or documentation evidence"
+      - "do not approve based on assumptions"
+      - "list unresolved consumer risks explicitly"
+

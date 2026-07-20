@@ -1,0 +1,18 @@
+version: 1
+do_not_expose:
+  - "passwords"
+  - "tokens"
+  - "API keys"
+  - "private keys"
+  - "session cookies"
+  - "card data"
+  - "full sensitive identifiers"
+  - "protected PII"
+  - "production data samples"
+logging:
+  mask_sensitive_values: true
+  preserve_correlation_ids: true
+  avoid_raw_payloads_by_default: true
+production_access:
+  requires_explicit_authorization: true
+  autonomous_access_allowed: false
