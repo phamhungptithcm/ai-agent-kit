@@ -2,7 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/@hunpeolabs/ai-agent-kit.svg)](https://www.npmjs.com/package/@hunpeolabs/ai-agent-kit)
 [![npm downloads](https://img.shields.io/npm/dm/@hunpeolabs/ai-agent-kit.svg)](https://www.npmjs.com/package/@hunpeolabs/ai-agent-kit)
-[![CI](https://github.com/hunpeolabs/ai-agent-kit/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/hunpeolabs/ai-agent-kit/actions/workflows/npm-publish.yml)
+[![CI](https://github.com/phamhungptithcm/ai-agent-kit/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/phamhungptithcm/ai-agent-kit/actions/workflows/npm-publish.yml)
 
 Bootstrap a repository-scoped AI agent operating system for Claude Code and OpenAI Codex, with an adapter strategy for other AI coding agents.
 
@@ -222,11 +222,11 @@ npm run build
 
 ## Publishing
 
-The GitHub Actions workflow in `.github/workflows/npm-publish.yml` validates pull requests and main-branch pushes, then publishes to npm when a `v*.*.*` tag is pushed or when the workflow is manually dispatched with `publish=true`.
+The GitHub Actions workflow in `.github/workflows/npm-publish.yml` validates pull requests and main-branch pushes, then publishes to npm when a matching `v*.*.*` tag points to a commit on `main`. It can also publish from `main` when manually dispatched with `publish=true`.
 
-The publish job reads `NPM_TOKEN` from GitHub Actions secrets first, with repository variables as a fallback. Prefer a GitHub secret for real npm tokens.
+For the first publish, add a granular npm access token as the GitHub Actions secret `NPM_TOKEN`. Never store npm tokens in repository variables.
 
-Before a public launch, choose the final repository URL and license. This package currently keeps `UNLICENSED` intentionally so the owner can make that legal decision explicitly.
+After the package exists on npm, configure npm Trusted Publishing with GitHub owner `phamhungptithcm`, repository `ai-agent-kit`, and workflow `npm-publish.yml`. The workflow already grants the required OIDC permission, so `NPM_TOKEN` can then be removed.
 
 ## Learn More
 

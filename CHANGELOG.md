@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## 0.1.0 - Unreleased
+## 0.1.0 - 2026-07-20
 
 - Initial `@hunpeolabs/ai-agent-kit` package identity.
 - Added local-only bootstrap CLI for Claude Code and Codex repository setup.

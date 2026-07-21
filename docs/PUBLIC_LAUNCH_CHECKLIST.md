@@ -5,9 +5,10 @@ Use this before promoting the package on npm, GitHub, LinkedIn, or internal engi
 ## Required
 
 - Confirm the npm scope `@hunpeolabs` is owned by the publishing account or organization.
-- Configure `NPM_TOKEN` as a GitHub Actions secret. Repository variables are supported as a fallback, but secrets are safer for real npm tokens.
+- For the first publish, configure a granular npm access token as the GitHub Actions secret `NPM_TOKEN`; never store npm tokens in repository variables.
+- After the first publish, configure npm Trusted Publishing for `phamhungptithcm/ai-agent-kit` and workflow `npm-publish.yml`, then remove the long-lived `NPM_TOKEN` secret.
 - Confirm the GitHub repository URL in `package.json` is correct.
-- Choose and apply a license before public promotion.
+- Confirm the MIT license is appropriate before public promotion.
 - Run `npm run check` and `npm run release:dry-run`.
 - Run `npx --yes . bootstrap --dry-run` from a clean fixture repository.
 - Review the packed file list from `npm pack --dry-run`.
