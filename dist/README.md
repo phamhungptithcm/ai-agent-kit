@@ -146,8 +146,10 @@ Team members can ask for a role instead of remembering every skill name:
 Run inside the target Git repository. This is the recommended fast path for team rollout:
 
 ```bash
-npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap
+npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap --preset governed
 ```
+
+`governed` is the default and preserves the complete quality, approval, repository-intelligence, output, and memory contract. `full` is currently an explicit alias for the same contract. A reduced preset is intentionally not shipped until it can pass the same safety and quality regression suite.
 
 After bootstrap, open `.ai/PROMPTS.md` in the target repository or print copy-ready prompts:
 
@@ -179,6 +181,27 @@ npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap --claude-only
 npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap --codex-only
 ```
 
+## Inspect And Maintain An Installation
+
+Read installation and operational readiness separately:
+
+```bash
+npx --yes @hunpeolabs/ai-agent-kit@latest status
+npx --yes @hunpeolabs/ai-agent-kit@latest doctor
+npx --yes @hunpeolabs/ai-agent-kit@latest diff
+```
+
+`CORE_READY` means the governed policy contract is installed. Governed implementation remains `BLOCKED` until CodeGraph and CocoIndex both report `READY`.
+
+Lifecycle changes are preview-only in this release:
+
+```bash
+npx --yes @hunpeolabs/ai-agent-kit@latest update --dry-run
+npx --yes @hunpeolabs/ai-agent-kit@latest uninstall --dry-run
+```
+
+These commands use installation ownership metadata and do not modify files. Applying update or uninstall is intentionally withheld until transactional removal and managed-section restoration have dedicated release-level validation.
+
 ## What Gets Installed
 
 - `.ai/`: shared policy, workflows, skills source, guards, scripts, prompts, templates, and evals.
@@ -192,6 +215,8 @@ The bundled scaffold lives under `assets/enterprise-ai-agent-os/`.
 ## Safety Model
 
 The bootstrap command detects the current Git repository, safely merges managed sections, installs or refreshes AI-agent config, checks CodeGraph and CocoIndex status, validates the setup, prints the local diff, and stops. It skips tool installation and index refresh by default to keep adoption fast; use `--install-tools`, `--refresh-indexes`, or `--deep` when the team wants full repository-intelligence setup in the same command.
+
+`status`, `doctor`, and `diff` are read-only. `update` and `uninstall` require `--dry-run`; they cannot apply repository changes in this release.
 
 It does not:
 

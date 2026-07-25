@@ -5,8 +5,9 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { bootstrap } from "../src/bootstrap.mjs";
-import { main, parseBootstrapArgs } from "../src/cli.mjs";
+import { main, parseBootstrapArgs, parseTargetArgs } from "../src/cli.mjs";
 import { assertAllowedCommand } from "../src/runner.mjs";
+import { getPackageVersion } from "../src/version.mjs";
 
 function run(command, args, cwd) {
   const result = spawnSync(command, args, { cwd, encoding: "utf8" });
@@ -54,6 +55,10 @@ function createMockRunner() {
 
 function status(root) {
   return run("git", ["status", "--porcelain=v1", "--untracked-files=all"], root);
+}
+
+function snapshotFiles(root, relPaths) {
+  return Object.fromEntries(relPaths.map((relPath) => [relPath, fs.readFileSync(path.join(root, relPath), "utf8")]));
 }
 
 async function runBootstrap(root, extra = {}) {
@@ -130,6 +135,10 @@ test("bootstrap creates local AI-agent files without staging, branch, commit, pu
   );
   assert.ok(fs.existsSync(path.join(root, ".ai-agent-kit", "output", "merge-request-description.md")));
   assert.ok(fs.existsSync(path.join(root, ".ai-agent-kit", "output", "jira-update.md")));
+  const installation = JSON.parse(fs.readFileSync(path.join(root, ".ai-agent-kit", "installation.json"), "utf8"));
+  assert.equal(installation.preset, "governed");
+  assert.ok(installation.managedFiles.some((entry) => entry.path === ".ai/core/quality-gates.md"));
+  assert.ok(installation.managedFiles.some((entry) => entry.path === "AGENTS.md" && entry.mode === "managed-section"));
   assert.match(logs, /No files were staged/);
   assert.match(logs, /No branch was created/);
   assert.match(logs, /No merge request was created/);
@@ -187,6 +196,7 @@ test("dry run modifies nothing and performs no installs or indexing", async () =
   const before = status(root);
   const { runner, logs } = await runBootstrap(root, { options: { dryRun: true, installTools: false } });
   assert.equal(status(root), before);
+  assert.equal(fs.existsSync(path.join(root, ".ai-agent-kit")), false);
   assert.match(logs, /DRY RUN/);
   assert.equal(runner.calls.some((call) => call.command === "codegraph" || call.command === "ccc" || call.command === "npm" || call.command === "uv"), false);
 });
@@ -200,6 +210,7 @@ test("forbidden bootstrap options fail before any work", () => {
 
 test("bootstrap defaults to fast policy-only mode unless deep setup is requested", () => {
   const defaults = parseBootstrapArgs([]);
+  assert.equal(defaults.preset, "governed");
   assert.equal(defaults.installTools, false);
   assert.equal(defaults.refreshIndexes, false);
 
@@ -210,6 +221,101 @@ test("bootstrap defaults to fast policy-only mode unless deep setup is requested
   const refreshOnly = parseBootstrapArgs(["--refresh-indexes"]);
   assert.equal(refreshOnly.installTools, false);
   assert.equal(refreshOnly.refreshIndexes, true);
+});
+
+test("governed and full presets preserve the same quality contract", async () => {
+  const governedRoot = makeRepo("governed-contract");
+  const fullRoot = makeRepo("full-contract");
+  await runBootstrap(governedRoot, { options: { preset: "governed" } });
+  await runBootstrap(fullRoot, { options: { preset: "full" } });
+  const contractFiles = [
+    ".ai/core/required-workflow.md",
+    ".ai/core/risk-model.md",
+    ".ai/core/quality-gates.md",
+    ".ai/core/output-contract.md",
+    ".ai/core/memory-policy.md",
+    ".ai/guards/repository-intelligence-gate.yaml",
+    ".ai/guards/implementation-approval-gate.yaml",
+    ".ai/guards/code-quality-profile-gate.yaml",
+    ".ai/guards/memory-governance.yaml",
+    ".ai/quality-profiles/universal.yaml",
+    ".ai/quality-profiles/typescript-javascript.yaml",
+    ".ai/quality-profiles/web-app.yaml"
+  ];
+
+  assert.deepEqual(snapshotFiles(fullRoot, contractFiles), snapshotFiles(governedRoot, contractFiles));
+});
+
+test("minimal preset is not exposed until its quality contract is validated", () => {
+  assert.throws(
+    () => parseBootstrapArgs(["--preset", "minimal"]),
+    /Unsupported preset: minimal/
+  );
+  assert.equal(parseBootstrapArgs(["--preset", "full"]).preset, "full");
+});
+
+test("single-adapter bootstrap does not generate the excluded adapter skills", async () => {
+  const codexRoot = makeRepo("codex-only");
+  await runBootstrap(codexRoot, { options: { codexOnly: true } });
+  assert.equal(fs.existsSync(path.join(codexRoot, ".claude")), false);
+  assert.ok(fs.existsSync(path.join(codexRoot, ".agents", "skills", "start-task", "SKILL.md")));
+
+  const claudeRoot = makeRepo("claude-only");
+  await runBootstrap(claudeRoot, { options: { claudeOnly: true } });
+  assert.equal(fs.existsSync(path.join(claudeRoot, ".codex")), false);
+  assert.equal(fs.existsSync(path.join(claudeRoot, ".agents")), false);
+  assert.ok(fs.existsSync(path.join(claudeRoot, ".claude", "skills", "start-task", "SKILL.md")));
+});
+
+test("status, doctor, and diff are read-only", async () => {
+  const root = makeRepo("inspection");
+  await runBootstrap(root);
+  const before = status(root);
+  const runner = createMockRunner();
+  const logs = [];
+  const io = { log: (message = "") => logs.push(String(message)) };
+  const deps = { runner, packageVersion: "0.2.0-test" };
+
+  await main(["status", "--target", root], io, deps);
+  await main(["doctor", "--target", root], io, deps);
+  await main(["diff", "--target", root], io, deps);
+
+  assert.equal(status(root), before);
+  assert.match(logs.join("\n"), /Core policy: CORE_READY/);
+  assert.match(logs.join("\n"), /Repository Intelligence: READY/);
+  assert.match(logs.join("\n"), /Governed implementation: READY/);
+  assert.match(logs.join("\n"), /No files were modified/);
+});
+
+test("update and uninstall lifecycle commands require dry-run and modify nothing", async () => {
+  const root = makeRepo("lifecycle-preview");
+  await runBootstrap(root);
+  const before = status(root);
+  const runner = createMockRunner();
+  const logs = [];
+  const io = { log: (message = "") => logs.push(String(message)) };
+  const deps = { runner, packageVersion: "0.2.0-test" };
+
+  await assert.rejects(() => main(["update", "--target", root], io, deps), /preview-only/);
+  await assert.rejects(() => main(["uninstall", "--target", root], io, deps), /preview-only/);
+  await main(["update", "--dry-run", "--target", root], io, deps);
+  await main(["uninstall", "--dry-run", "--target", root], io, deps);
+
+  assert.equal(status(root), before);
+  assert.match(logs.join("\n"), /Update: DRY RUN/);
+  assert.match(logs.join("\n"), /Uninstall: DRY RUN/);
+  assert.match(logs.join("\n"), /managed-section: AGENTS\.md/);
+});
+
+test("CLI version comes from package.json", async () => {
+  const logs = [];
+  await main(["--version"], { log: (message = "") => logs.push(String(message)) });
+  assert.equal(logs.join("\n"), getPackageVersion());
+});
+
+test("target argument parser rejects state-changing lifecycle execution", () => {
+  assert.throws(() => parseTargetArgs([], { requireDryRun: true }), /preview-only/);
+  assert.equal(parseTargetArgs(["--dry-run", "--target", "/tmp/example"], { requireDryRun: true }).target, "/tmp/example");
 });
 
 test("prompt commands print the catalog and named prompts", async () => {

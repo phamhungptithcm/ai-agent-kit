@@ -26,11 +26,13 @@ export function mergeManagedSection(existing, section) {
   return `${existing.slice(0, begin)}${section.trimEnd()}${existing.slice(afterEnd)}`;
 }
 
-export function createTransaction(root, transactionId, packageVersion, initialStatus, detection, gitInfo) {
+export function createTransaction(root, transactionId, packageVersion, initialStatus, detection, gitInfo, options = {}) {
   const txRoot = path.join(root, ".ai-agent-kit", "transactions", transactionId);
   const backupRoot = path.join(root, ".ai-agent-kit", "backups", transactionId);
-  fs.mkdirSync(txRoot, { recursive: true });
-  fs.mkdirSync(backupRoot, { recursive: true });
+  if (options.createDirectories !== false) {
+    fs.mkdirSync(txRoot, { recursive: true });
+    fs.mkdirSync(backupRoot, { recursive: true });
+  }
   const state = {
     transactionId,
     packageVersion,

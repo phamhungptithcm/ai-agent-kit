@@ -11,11 +11,13 @@ Use this before promoting the package on npm, GitHub, LinkedIn, or internal engi
 - Confirm the MIT license is appropriate before public promotion.
 - Run `npm run check` and `npm run release:dry-run`.
 - Run `npx --yes . bootstrap --dry-run` from a clean fixture repository.
+- Run `status`, `doctor`, `diff`, `update --dry-run`, and `uninstall --dry-run` against a bootstrapped fixture.
+- Confirm `governed` and `full` preserve the same core quality contract.
 - Review the packed file list from `npm pack --dry-run`.
 
 ## Trust Polish
 
-- Add screenshots or a short terminal GIF showing dry-run, bootstrap summary, and generated files.
+- Add screenshots or a short terminal GIF showing dry-run, bootstrap summary, doctor status, and generated files.
 - Pin a GitHub release with the same version as npm.
 - Add three issue labels: `bug`, `enhancement`, and `good first issue`.
 - Add one example repository or short demo branch that shows the generated files after bootstrap.
