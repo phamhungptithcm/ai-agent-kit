@@ -4,9 +4,14 @@ import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
+import { loadScaffoldFiles } from "../src/assets.mjs";
 import { bootstrap } from "../src/bootstrap.mjs";
-import { main, parseBootstrapArgs, parseTargetArgs } from "../src/cli.mjs";
+import { main, parseBootstrapArgs, parseTargetArgs, parseToolArgs } from "../src/cli.mjs";
+import { parseContractManifest } from "../src/contract.mjs";
+import { detectProfile } from "../src/detect.mjs";
+import { verifyOwnership } from "../src/ownership.mjs";
 import { assertAllowedCommand } from "../src/runner.mjs";
+import { installMissingTools, TOOL_SPECS } from "../src/tools.mjs";
 import { getPackageVersion } from "../src/version.mjs";
 
 function run(command, args, cwd) {
@@ -44,7 +49,7 @@ function createMockRunner() {
         return { code: 0, stdout: "CodeGraph OK\n", stderr: "" };
       }
       if (command === "ccc") {
-        if (args[0] === "--version") return { code: 0, stdout: "cocoindex-code 0.2.37\n", stderr: "" };
+        if (args[0] === "--help") return { code: 0, stdout: "CocoIndex CLI help\n", stderr: "" };
         return { code: 0, stdout: "CocoIndex OK\n", stderr: "" };
       }
       if (command === "npm" || command === "uv") return { code: 0, stdout: "", stderr: "" };
@@ -137,8 +142,12 @@ test("bootstrap creates local AI-agent files without staging, branch, commit, pu
   assert.ok(fs.existsSync(path.join(root, ".ai-agent-kit", "output", "jira-update.md")));
   const installation = JSON.parse(fs.readFileSync(path.join(root, ".ai-agent-kit", "installation.json"), "utf8"));
   assert.equal(installation.preset, "governed");
+  assert.equal(installation.contractVersion, 2);
+  assert.deepEqual(installation.adapters, { claude: true, codex: true });
   assert.ok(installation.managedFiles.some((entry) => entry.path === ".ai/core/quality-gates.md"));
   assert.ok(installation.managedFiles.some((entry) => entry.path === "AGENTS.md" && entry.mode === "managed-section"));
+  assert.ok(installation.managedFiles.every((entry) => /^[a-f0-9]{64}$/.test(entry.installedSha256)));
+  assert.ok(installation.managedFiles.every((entry) => typeof entry.generatedFrom === "string"));
   assert.match(logs, /No files were staged/);
   assert.match(logs, /No branch was created/);
   assert.match(logs, /No merge request was created/);
@@ -215,12 +224,13 @@ test("bootstrap defaults to fast policy-only mode unless deep setup is requested
   assert.equal(defaults.refreshIndexes, false);
 
   const deep = parseBootstrapArgs(["--deep"]);
-  assert.equal(deep.installTools, true);
+  assert.equal(deep.installTools, false);
   assert.equal(deep.refreshIndexes, true);
 
   const refreshOnly = parseBootstrapArgs(["--refresh-indexes"]);
   assert.equal(refreshOnly.installTools, false);
   assert.equal(refreshOnly.refreshIndexes, true);
+  assert.throws(() => parseBootstrapArgs(["--install-tools"]), /tools install --apply/);
 });
 
 test("governed and full presets preserve the same quality contract", async () => {
@@ -282,6 +292,7 @@ test("status, doctor, and diff are read-only", async () => {
 
   assert.equal(status(root), before);
   assert.match(logs.join("\n"), /Core policy: CORE_READY/);
+  assert.match(logs.join("\n"), /Ownership: VERIFIED/);
   assert.match(logs.join("\n"), /Repository Intelligence: READY/);
   assert.match(logs.join("\n"), /Governed implementation: READY/);
   assert.match(logs.join("\n"), /No files were modified/);
@@ -305,6 +316,147 @@ test("update and uninstall lifecycle commands require dry-run and modify nothing
   assert.match(logs.join("\n"), /Update: DRY RUN/);
   assert.match(logs.join("\n"), /Uninstall: DRY RUN/);
   assert.match(logs.join("\n"), /managed-section: AGENTS\.md/);
+});
+
+test("manifest drives contract completeness and detects drift outside the old core subset", async () => {
+  const root = makeRepo("contract-drift");
+  await runBootstrap(root);
+  const runner = createMockRunner();
+  const logs = [];
+  const io = { log: (message = "") => logs.push(String(message)) };
+
+  fs.appendFileSync(path.join(root, ".ai", "rules", "security.md"), "\nHuman drift.\n");
+  await main(["status", "--target", root], io, { runner });
+  assert.match(logs.join("\n"), /Core policy: DRIFTED/);
+  assert.match(logs.join("\n"), /Ownership: DRIFTED/);
+  assert.match(logs.join("\n"), /Governed implementation: BLOCKED/);
+
+  logs.length = 0;
+  fs.rmSync(path.join(root, ".ai", "rules", "security.md"));
+  await main(["doctor", "--target", root], io, { runner });
+  assert.match(logs.join("\n"), /Core policy: INCOMPLETE/);
+  assert.match(logs.join("\n"), /Missing core files:\n- \.ai\/rules\/security\.md/);
+});
+
+test("managed-section ownership ignores human content outside kit markers", async () => {
+  const root = makeRepo("managed-section-ownership");
+  fs.writeFileSync(path.join(root, "AGENTS.md"), "# Human instructions\n\nKeep this.\n");
+  await runBootstrap(root);
+  fs.appendFileSync(path.join(root, "AGENTS.md"), "\n## More human instructions\n");
+
+  const installation = JSON.parse(fs.readFileSync(path.join(root, ".ai-agent-kit", "installation.json"), "utf8"));
+  const ownership = verifyOwnership(root, installation.managedFiles);
+  const agents = ownership.entries.find((entry) => entry.path === "AGENTS.md");
+  assert.equal(agents.state, "UNCHANGED");
+});
+
+test("lifecycle previews surface modified ownership instead of claiming safe removal", async () => {
+  const root = makeRepo("ownership-conflict");
+  await runBootstrap(root);
+  fs.appendFileSync(path.join(root, ".ai", "core", "quality-gates.md"), "\nLocal customization.\n");
+  const runner = createMockRunner();
+  const logs = [];
+  const io = { log: (message = "") => logs.push(String(message)) };
+
+  await main(["update", "--dry-run", "--target", root], io, { runner });
+  await main(["uninstall", "--dry-run", "--target", root], io, { runner });
+
+  assert.match(logs.join("\n"), /Ownership verification: DRIFTED/);
+  assert.match(logs.join("\n"), /MODIFIED: generated-file: \.ai\/core\/quality-gates\.md/);
+  assert.match(logs.join("\n"), /would be preserved/);
+});
+
+test("canonical contract manifest covers every shipped .ai file", () => {
+  const scaffold = loadScaffoldFiles();
+  const manifest = scaffold.get(".ai/manifest.yaml");
+  const requiredPaths = new Set(parseContractManifest(manifest));
+  const uncovered = [...scaffold.keys()]
+    .filter((relPath) => relPath.startsWith(".ai/") && !requiredPaths.has(relPath))
+    .sort();
+  assert.deepEqual(uncovered, []);
+});
+
+test("ownership and contract metadata cannot escape the repository root", () => {
+  const root = makeRepo("ownership-path-safety");
+  const ownership = verifyOwnership(root, [
+    {
+      path: "../outside.txt",
+      mode: "generated-file",
+      installedSha256: "0".repeat(64)
+    }
+  ]);
+  assert.equal(ownership.entries[0].state, "INVALID_PATH");
+  assert.throws(
+    () => parseContractManifest('rules:\n  - ".ai/../../outside.txt"\n'),
+    /must remain inside the repository/
+  );
+});
+
+test("bootstrap refuses to write through repository symlinks", { skip: process.platform === "win32" }, async () => {
+  const root = makeRepo("symlink-safety");
+  const external = fs.mkdtempSync(path.join(os.tmpdir(), "ai-agent-kit-external-"));
+  fs.symlinkSync(external, path.join(root, ".ai"), "dir");
+
+  await assert.rejects(() => runBootstrap(root), /refuses to write through a symbolic link/);
+  assert.deepEqual(fs.readdirSync(external), []);
+});
+
+test("detector reads dependency manifests and records framework versions", () => {
+  const root = makeRepo("detector-manifests");
+  fs.writeFileSync(path.join(root, "package.json"), `${JSON.stringify({
+    engines: { node: ">=20" },
+    dependencies: { react: "^19.1.0" },
+    devDependencies: { typescript: "^5.9.0" }
+  }, null, 2)}\n`);
+  fs.mkdirSync(path.join(root, "services", "api"), { recursive: true });
+  fs.writeFileSync(path.join(root, "services", "api", "pom.xml"), "<dependency>org.springframework.boot</dependency>\n");
+
+  const detection = detectProfile(root);
+  assert.equal(detection.technologies.node, true);
+  assert.equal(detection.technologies.react, true);
+  assert.equal(detection.technologies.typescript, true);
+  assert.equal(detection.technologies.springBoot, true);
+  assert.equal(detection.versions.node, ">=20");
+  assert.equal(detection.versions.react, "^19.1.0");
+  assert.equal(detection.versions.typescript, "^5.9.0");
+  assert.deepEqual(detection.manifests, ["package.json", "services/api/pom.xml"]);
+});
+
+test("tool installation is separate, pinned, and requires explicit apply", async () => {
+  assert.deepEqual(parseToolArgs(["plan"]), {
+    subcommand: "plan",
+    options: { target: process.cwd(), apply: false }
+  });
+  assert.throws(() => parseToolArgs(["install"]), /tools install --apply/);
+  assert.throws(() => parseToolArgs(["plan", "--apply"]), /read-only/);
+
+  const root = makeRepo("tools-plan");
+  const readyRunner = createMockRunner();
+  const logs = [];
+  await main(["tools", "plan", "--target", root], { log: (message = "") => logs.push(String(message)) }, { runner: readyRunner });
+  assert.match(logs.join("\n"), new RegExp(TOOL_SPECS.codegraph.package.replaceAll(".", "\\.")));
+  assert.match(logs.join("\n"), /No tools were installed/);
+  assert.equal(readyRunner.calls.some((call) => call.command === "npm" || call.command === "uv"), false);
+  assert.equal(readyRunner.calls.some((call) => call.command === "codegraph" && call.args[0] !== "--version"), false);
+  assert.equal(readyRunner.calls.some((call) => call.command === "ccc" && call.args[0] !== "--help"), false);
+
+  const installCalls = [];
+  const installingRunner = {
+    run(command, args) {
+      installCalls.push([command, ...args]);
+      return { code: 0, stdout: "", stderr: "" };
+    }
+  };
+  installMissingTools(
+    installingRunner,
+    root,
+    { codegraph: { status: "MISSING" }, cocoindex: { status: "MISSING" } },
+    true
+  );
+  assert.deepEqual(installCalls, [
+    TOOL_SPECS.codegraph.installCommand,
+    TOOL_SPECS.cocoindex.installCommand
+  ]);
 });
 
 test("CLI version comes from package.json", async () => {

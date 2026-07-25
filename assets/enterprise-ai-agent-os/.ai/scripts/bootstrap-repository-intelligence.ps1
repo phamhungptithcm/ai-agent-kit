@@ -1,7 +1,7 @@
 param(
     [switch]$CheckOnly,
     [switch]$Hook,
-    [switch]$NoInstall
+    [switch]$ApplyTools
 )
 
 $ErrorActionPreference = "Stop"
@@ -77,8 +77,11 @@ if ($CheckOnly) {
     exit (Invoke-RepoPython $Python ".ai/scripts/check-repository-intelligence.py" @())
 }
 
-if (-not $NoInstall) {
-    $installExit = Invoke-RepoPython $Python ".ai/scripts/install-repository-intelligence.py" @("--execute")
+if ($ApplyTools) {
+    $installExit = Invoke-RepoPython $Python ".ai/scripts/install-repository-intelligence.py" @("--apply")
+    if ($installExit -ne 0) { exit $installExit }
+} else {
+    $installExit = Invoke-RepoPython $Python ".ai/scripts/install-repository-intelligence.py" @()
     if ($installExit -ne 0) { exit $installExit }
 }
 

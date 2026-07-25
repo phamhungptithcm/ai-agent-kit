@@ -8,6 +8,7 @@ import {
   renderUpdatePreview
 } from "./inspection.mjs";
 import { renderNamedPrompt, renderPromptCatalog, renderPromptList } from "./prompt-catalog.mjs";
+import { applyToolPlan, inspectToolPlan, renderToolInstall, renderToolPlan } from "./tool-lifecycle.mjs";
 import { getPackageVersion } from "./version.mjs";
 
 const FORBIDDEN_BOOTSTRAP_OPTIONS = new Set(["--commit", "--push", "--create-mr", "--git-mode"]);
@@ -23,6 +24,8 @@ Usage:
   ai-agent-kit diff [--target <path>]
   ai-agent-kit update --dry-run [--target <path>]
   ai-agent-kit uninstall --dry-run [--target <path>]
+  ai-agent-kit tools plan [--target <path>]
+  ai-agent-kit tools install --apply [--target <path>]
   ai-agent-kit prompts
   ai-agent-kit prompt <name>
 
@@ -31,11 +34,11 @@ Options:
   --preset <name>          Installation contract: governed or full. Defaults to governed.
   --profile <name|auto>    Force a profile or use auto detection. Defaults to auto.
   --dry-run                Show planned files without writing, installing, or indexing.
-  --install-tools          Install missing CodeGraph/CocoIndex tooling.
+  --install-tools          Disabled. Use tools install --apply after reviewing tools plan.
   --no-install-tools       Keep bootstrap policy-only and skip tool installation.
   --refresh-indexes        Refresh CodeGraph/CocoIndex indexes during bootstrap.
   --no-refresh-indexes     Skip index refresh during bootstrap.
-  --deep                   Install missing tools and refresh indexes.
+  --deep                   Refresh ready indexes; never installs global tools.
   --claude-only            Install Claude Code adapter files only.
   --codex-only             Install Codex adapter files only.
   --yes                    Reserved for non-interactive automation.
@@ -52,6 +55,32 @@ Safety:
   bootstrap is local only. It never stages, commits, pushes, creates branches,
   creates merge requests, updates Jira, deploys, or edits application source code.
   By default it is fast and policy-only: it does not install tools or refresh indexes.`;
+}
+
+export function parseToolArgs(argv) {
+  const subcommand = argv[0];
+  if (subcommand !== "plan" && subcommand !== "install") {
+    throw new Error("Tools command requires one of: plan, install");
+  }
+  const options = { target: process.cwd(), apply: false };
+  for (let index = 1; index < argv.length; index += 1) {
+    const arg = argv[index];
+    if (arg === "--target") {
+      options.target = argv[++index];
+      if (!options.target) throw new Error("--target requires a path");
+    } else if (arg === "--apply") {
+      options.apply = true;
+    } else {
+      throw new Error(`Unknown tools option: ${arg}`);
+    }
+  }
+  if (subcommand === "plan" && options.apply) {
+    throw new Error("tools plan is read-only and does not accept --apply");
+  }
+  if (subcommand === "install" && !options.apply) {
+    throw new Error("Tool installation changes the user environment. Re-run with tools install --apply.");
+  }
+  return { subcommand, options };
 }
 
 export function parseTargetArgs(argv, { requireDryRun = false } = {}) {
@@ -116,8 +145,7 @@ export function parseBootstrapArgs(argv) {
         options.yes = true;
         break;
       case "--install-tools":
-        options.installTools = true;
-        break;
+        throw new Error("--install-tools is disabled. Review `tools plan`, then run `tools install --apply`.");
       case "--no-install-tools":
         options.installTools = false;
         break;
@@ -130,7 +158,7 @@ export function parseBootstrapArgs(argv) {
         options.refreshIndexes = false;
         break;
       case "--deep":
-        options.installTools = true;
+        options.installTools = false;
         options.refreshIndexes = true;
         break;
       case "--claude-only":
@@ -204,6 +232,15 @@ export async function main(argv = process.argv.slice(2), io = console, deps = {}
   if (command === "uninstall") {
     const options = parseTargetArgs(argv.slice(1), { requireDryRun: true });
     io.log(renderUninstallPreview(options, deps));
+    return 0;
+  }
+  if (command === "tools") {
+    const { subcommand, options } = parseToolArgs(argv.slice(1));
+    if (subcommand === "plan") {
+      io.log(renderToolPlan(inspectToolPlan(options, deps)));
+    } else {
+      io.log(renderToolInstall(applyToolPlan(options, deps)));
+    }
     return 0;
   }
   if (command !== "bootstrap") {

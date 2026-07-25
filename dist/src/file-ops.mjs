@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { isApprovedConfigPath, normalizeRelPath } from "./paths.mjs";
+import { hasSymlinkComponent, isApprovedConfigPath, normalizeRelPath } from "./paths.mjs";
 import { MANAGED_BEGIN, MANAGED_END } from "./templates.mjs";
 
 export function ensureParent(filePath) {
@@ -76,6 +76,9 @@ export function writeConfigFile(root, transaction, relPath, content, options = {
   const rel = normalizeRelPath(relPath);
   if (!isApprovedConfigPath(rel)) {
     throw new Error(`Bootstrap attempted to modify a non-approved path: ${rel}`);
+  }
+  if (hasSymlinkComponent(root, rel)) {
+    throw new Error(`Bootstrap refuses to write through a symbolic link: ${rel}`);
   }
   transaction.installationPlan.push({ relPath: rel, mode: options.mode ?? "replace" });
   if (options.dryRun) return { action: "planned" };

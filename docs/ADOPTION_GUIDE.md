@@ -14,7 +14,7 @@ AI Agent Kit turns ad hoc AI coding into a repeatable repository operating model
 4. Run `status` and `doctor` to distinguish installed policy from operational repository-intelligence readiness.
 5. Review `diff` and the copy-ready MR/Jira output under `.ai-agent-kit/output/`.
 6. Commit the setup manually after team review.
-7. Run deep repository-intelligence setup before larger change planning, implementation, or review.
+7. Review `tools plan`, explicitly approve `tools install --apply` if needed, and refresh indexes before larger change planning, implementation, or review.
 8. Ask developers and QA to start work with the generated `start-task`, `fix-bug`, `implement-feature`, `code-review`, and incident workflows.
 
 ## Demo Flow
@@ -23,7 +23,8 @@ Show three moments:
 
 - `bootstrap --dry-run` to prove the command is transparent.
 - `bootstrap` to show fast local-only setup, generated backups, and validation evidence.
-- `bootstrap --deep` to show optional CodeGraph/CocoIndex install and index refresh for teams ready to enable full repository intelligence.
+- `tools plan` to show exact pinned CodeGraph/CocoIndex changes without installing anything.
+- `tools install --apply`, followed by `bootstrap --refresh-indexes`, for teams ready to enable full repository intelligence.
 - `status`, `doctor`, and `diff` to show that readiness and repository changes are observable without writing files.
 - `update --dry-run` and `uninstall --dry-run` to show lifecycle transparency without applying changes.
 - The high-level design diagrams in `docs/HIGH_LEVEL_DESIGN.md` to show what files are affected and how prompts flow into agent output.

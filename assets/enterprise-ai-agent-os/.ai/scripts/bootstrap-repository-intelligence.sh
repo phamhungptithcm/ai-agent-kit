@@ -6,13 +6,13 @@ REPO_ROOT=$(CDPATH= cd -- "$SCRIPT_DIR/../.." && pwd)
 
 CHECK_ONLY=0
 HOOK=0
-NO_INSTALL=0
+APPLY_TOOLS=0
 
 for arg in "$@"; do
   case "$arg" in
     --check-only) CHECK_ONLY=1 ;;
     --hook) HOOK=1 ;;
-    --no-install) NO_INSTALL=1 ;;
+    --apply-tools) APPLY_TOOLS=1 ;;
     *) echo "Unknown argument: $arg" >&2; exit 2 ;;
   esac
 done
@@ -56,9 +56,12 @@ if [ "$CHECK_ONLY" -eq 1 ]; then
   exec $PYTHON_CMD .ai/scripts/check-repository-intelligence.py
 fi
 
-if [ "$NO_INSTALL" -eq 0 ]; then
+if [ "$APPLY_TOOLS" -eq 1 ]; then
   # shellcheck disable=SC2086
-  $PYTHON_CMD .ai/scripts/install-repository-intelligence.py --execute
+  $PYTHON_CMD .ai/scripts/install-repository-intelligence.py --apply
+else
+  # shellcheck disable=SC2086
+  $PYTHON_CMD .ai/scripts/install-repository-intelligence.py
 fi
 
 # shellcheck disable=SC2086

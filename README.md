@@ -151,6 +151,8 @@ npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap --preset governed
 
 `governed` is the default and preserves the complete quality, approval, repository-intelligence, output, and memory contract. `full` is currently an explicit alias for the same contract. A reduced preset is intentionally not shipped until it can pass the same safety and quality regression suite.
 
+`npx --yes` downloads the package into the npm cache and accepts npm's execution prompt. The bootstrap itself does not install global tools, modify application source, stage files, or perform remote Git operations. For controlled enterprise rollout, replace `@latest` with the exact reviewed package version.
+
 After bootstrap, open `.ai/PROMPTS.md` in the target repository or print copy-ready prompts:
 
 ```bash
@@ -166,13 +168,15 @@ Preview the planned files without writing anything:
 npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap --dry-run
 ```
 
-Run the heavier repository-intelligence setup only when needed:
+Review optional global tool changes before applying them:
 
 ```bash
-npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap --deep
+npx --yes @hunpeolabs/ai-agent-kit@latest tools plan
+npx --yes @hunpeolabs/ai-agent-kit@latest tools install --apply
+npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap --refresh-indexes
 ```
 
-`--deep` installs missing CodeGraph/CocoIndex tools and refreshes indexes. For large repositories, prefer the fast bootstrap first, then run deep indexing before risky implementation, impact analysis, or PR review.
+`tools plan` is read-only and prints exact pinned packages and commands. `tools install` refuses to run without `--apply`. `bootstrap --deep` remains a convenience alias for refreshing already available indexes; it never installs global tools. For large repositories, bootstrap first, then refresh indexes before risky implementation, impact analysis, or PR review.
 
 Install only one platform adapter:
 
@@ -191,7 +195,7 @@ npx --yes @hunpeolabs/ai-agent-kit@latest doctor
 npx --yes @hunpeolabs/ai-agent-kit@latest diff
 ```
 
-`CORE_READY` means the governed policy contract is installed. Governed implementation remains `BLOCKED` until CodeGraph and CocoIndex both report `READY`.
+`CORE_READY` means every file declared by `.ai/manifest.yaml` exists and its recorded ownership is not drifted. Ownership hashes cover the complete generated file or only the kit-managed marker section, so surrounding human content in `AGENTS.md`, `CLAUDE.md`, and `.gitignore` remains outside kit ownership. Governed implementation remains `BLOCKED` until the selected adapters, CodeGraph, and CocoIndex all report `READY`.
 
 Lifecycle changes are preview-only in this release:
 
@@ -214,9 +218,11 @@ The bundled scaffold lives under `assets/enterprise-ai-agent-os/`.
 
 ## Safety Model
 
-The bootstrap command detects the current Git repository, safely merges managed sections, installs or refreshes AI-agent config, checks CodeGraph and CocoIndex status, validates the setup, prints the local diff, and stops. It skips tool installation and index refresh by default to keep adoption fast; use `--install-tools`, `--refresh-indexes`, or `--deep` when the team wants full repository-intelligence setup in the same command.
+The bootstrap command detects dependency manifests and framework versions, safely merges managed sections, installs or refreshes AI-agent config, records ownership checksums, checks CodeGraph and CocoIndex status, validates the setup, prints the local diff, and stops. It never installs global tools. Use `tools plan`, then the explicit `tools install --apply`, before `bootstrap --refresh-indexes` when the team wants full repository-intelligence setup.
 
 `status`, `doctor`, and `diff` are read-only. `update` and `uninstall` require `--dry-run`; they cannot apply repository changes in this release.
+
+Managed paths are constrained to the repository root. Bootstrap refuses symbolic-link write targets, and lifecycle inspection flags invalid, oversized, missing, modified, or symbolic-link ownership entries for human review.
 
 It does not:
 
@@ -234,6 +240,7 @@ It does not:
 npm ci
 npm run check
 npm run release:dry-run
+npm run smoke:packed
 ```
 
 Useful individual commands:

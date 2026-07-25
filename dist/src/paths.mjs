@@ -1,3 +1,6 @@
+import fs from "node:fs";
+import path from "node:path";
+
 export const APPROVED_CONFIG_PATHS = [
   ".ai/",
   ".agents/",
@@ -24,7 +27,29 @@ export const PROTECTED_PATH_HINTS = [
 ];
 
 export function normalizeRelPath(relPath) {
-  return relPath.replaceAll("\\", "/").replace(/^\.\//, "");
+  if (typeof relPath !== "string" || relPath.length === 0 || relPath.includes("\0")) {
+    throw new Error("Managed path must be a non-empty relative path");
+  }
+  const slashPath = relPath.replaceAll("\\", "/").replace(/^\.\//, "");
+  if (slashPath.startsWith("/") || /^[A-Za-z]:\//.test(slashPath)) {
+    throw new Error(`Managed path must remain inside the repository: ${relPath}`);
+  }
+  const normalized = path.posix.normalize(slashPath);
+  if (normalized === ".." || normalized.startsWith("../")) {
+    throw new Error(`Managed path must remain inside the repository: ${relPath}`);
+  }
+  return normalized;
+}
+
+export function hasSymlinkComponent(root, relPath) {
+  const normalized = normalizeRelPath(relPath);
+  let current = path.resolve(root);
+  for (const part of normalized.split("/")) {
+    current = path.join(current, part);
+    if (!fs.existsSync(current)) return false;
+    if (fs.lstatSync(current).isSymbolicLink()) return true;
+  }
+  return false;
 }
 
 export function isApprovedConfigPath(relPath) {

@@ -3,7 +3,11 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const MODULE_DIR = path.dirname(fileURLToPath(import.meta.url));
-export const SCAFFOLD_ROOT = path.resolve(MODULE_DIR, "..", "assets", "enterprise-ai-agent-os");
+const SCAFFOLD_CANDIDATES = [
+  path.resolve(MODULE_DIR, "..", "assets", "enterprise-ai-agent-os"),
+  path.resolve(MODULE_DIR, "..", "..", "assets", "enterprise-ai-agent-os")
+];
+export const SCAFFOLD_ROOT = SCAFFOLD_CANDIDATES.find((candidate) => fs.existsSync(candidate)) ?? SCAFFOLD_CANDIDATES[0];
 
 const SKIP_PARTS = new Set(["__pycache__", ".ai-agent-kit", ".codegraph", ".cocoindex_code"]);
 const SKIP_SUFFIXES = [".pyc", ".pyo"];
