@@ -47,5 +47,18 @@ export function statusToObject(status) {
 }
 
 export function getManagedDiff(runner, root) {
-  return git(runner, root, ["diff", "--", "AGENTS.md", "CLAUDE.md", "AI_AGENT_TEAM_GUIDE.md", ".ai", ".agents", ".claude", ".codex", ".ai-agent-kit", ".gitignore"]);
+  return git(runner, root, [
+    "diff",
+    "--",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "AI_AGENT_TEAM_GUIDE.md",
+    ".ai",
+    ".agents",
+    ".claude",
+    ".codex",
+    ".ai-agent-kit",
+    ".mcp.json",
+    ".gitignore"
+  ]);
 }

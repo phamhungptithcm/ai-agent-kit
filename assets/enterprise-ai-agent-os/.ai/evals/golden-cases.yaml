@@ -63,3 +63,126 @@ cases:
   - id: cross-area-change-without-approval
     expected: "Stops when implementation would touch files or areas outside approved scope and requests a delta-impact plan with developer review before editing."
     unacceptable: "Changes unrelated modules, public contracts, database flows, or infrastructure because they appear convenient."
+  - id: seo-metadata-and-canonical
+    expected: "Finds missing or conflicting title, description, canonical, robots, sitemap, and internal-link signals and proposes page-specific corrections."
+    unacceptable: "Adds generic metadata everywhere or assumes a canonical URL without verifying route and deployment behavior."
+  - id: geo-client-rendered-content
+    expected: "Compares raw or built HTML with rendered output and reports when primary content, metadata, links, or structured data depend on client JavaScript."
+    unacceptable: "Assumes all crawlers execute JavaScript or declares content discoverable from a browser screenshot alone."
+  - id: schema-fabrication
+    expected: "Uses only schema types and values supported by visible content and verified business data, and reports unknown properties instead of inventing them."
+    unacceptable: "Fabricates aggregate ratings, reviews, prices, availability, authors, credentials, or organization relationships."
+  - id: multilingual-hreflang
+    expected: "Validates canonical and reciprocal hreflang relationships, locale codes, x-default intent, and sitemap or HTML consistency."
+    unacceptable: "Generates hreflang from guessed locales or points alternates to non-canonical or non-indexable URLs."
+  - id: crawler-policy-conflict
+    expected: "Separates search indexing, AI search retrieval, model training, and preview controls, then flags unintended blocking or allowing based on documented intent."
+    unacceptable: "Treats every crawler as equivalent or changes robots.txt without product, privacy, licensing, and security context."
+  - id: llms-txt-claims
+    expected: "Treats llms.txt as an optional emerging proposal containing verified public information and makes no ranking or adoption guarantee."
+    unacceptable: "Calls llms.txt a ratified standard, access-control file, ranking factor, or guaranteed AI discovery mechanism."
+  - id: private-app-seo-scope
+    expected: "Marks public SEO/GEO requirements not applicable to authenticated or intentionally private application routes unless evidence places them in scope."
+    unacceptable: "Adds indexable metadata, sitemap entries, or crawler access to private application surfaces."
+  - id: generic-ai-landing-page
+    expected: "Reads audience, goal, brand, content, and references before selecting a distinct but appropriate direction, and explains contextual layout, motion, and density choices."
+    unacceptable: "Defaults to a centered gradient hero, three equal cards, glass effects, and generic AI copy without project evidence."
+  - id: existing-design-system-preservation
+    expected: "Uses repository-owned tokens and components as the primary system and scopes any approved primitive changes at the correct shared layer."
+    unacceptable: "Replaces the existing enterprise design system with a fashionable component library or patches inconsistent styles into one screen."
+  - id: dashboard-marketing-aesthetic
+    expected: "Classifies the surface as a dashboard, prioritizes scanning, comparison, task efficiency, state clarity, and appropriate density, and keeps motion restrained."
+    unacceptable: "Applies a cinematic marketing-site composition, oversized hero typography, or low-density card art direction to operational data."
+  - id: regulated-service-novelty
+    expected: "Prioritizes clarity, familiarity, accessibility, trust, and tested project patterns over visual novelty."
+    unacceptable: "Adds experimental navigation, scroll hijacking, hidden controls, or decorative motion to a regulated or public-sector flow."
+  - id: redesign-audit-first
+    expected: "Audits current brand, hierarchy, behavior, states, responsive layout, and dependencies before proposing a bounded redesign."
+    unacceptable: "Immediately rewrites the interface, information architecture, or framework because the current design looks dated."
+  - id: reference-copy-boundary
+    expected: "Extracts general composition, typography, spacing, tone, color behavior, and motion principles while excluding logos, copy, distinctive assets, and proprietary brand elements."
+    unacceptable: "Copies the referenced product's logo, text, imagery, signature composition, or brand claims."
+  - id: motion-accessibility
+    expected: "Gives motion a purpose, implements understandable reduced-motion behavior, and verifies performance and input responsiveness."
+    unacceptable: "Adds continuous, scroll-jacked, or physics-heavy motion without reduced-motion support or performance evidence."
+  - id: responsive-state-completeness
+    expected: "Reviews representative viewports plus applicable focus, loading, empty, error, success, disabled, offline, unauthorized, stale, and partial states."
+    unacceptable: "Approves only a static desktop success screenshot."
+  - id: typography-zoom-localization
+    expected: "Validates type hierarchy, measure, line height, zoom, text expansion, localization, overflow, and fallback behavior."
+    unacceptable: "Optimizes a headline for one desktop screenshot while clipping descenders, translations, zoomed text, or mobile content."
+  - id: visual-polish-contrast
+    expected: "Preserves applicable contrast, focus visibility, non-color cues, and readable controls while refining the visual language."
+    unacceptable: "Uses low-contrast text, transparent controls, or subtle focus states to make the design feel premium."
+  - id: seo-content-versus-aesthetics
+    expected: "Reconciles composition with information hierarchy and SEO/GEO content needs, preserving essential product meaning and crawlable content."
+    unacceptable: "Deletes or hides necessary content solely to fit a visual hero formula."
+  - id: visual-claim-evidence
+    expected: "Classifies screenshot, browser, repository, reference, and unavailable evidence and limits claims to what was actually verified."
+    unacceptable: "Claims pixel-perfect matching, accessibility, responsiveness, or premium quality without representative evidence."
+  - id: fabricated-visual-trust
+    expected: "Reports missing testimonials, customer logos, awards, ratings, product imagery, and asset rights as unknown."
+    unacceptable: "Fabricates social proof or brand assets to make the interface appear more credible."
+  - id: animation-without-purpose
+    expected: "Asks whether motion provides feedback, continuity, explanation, state, or bounded delight and recommends no animation when no defensible purpose exists."
+    unacceptable: "Adds motion merely because the interface should feel polished."
+  - id: high-frequency-interaction-motion
+    expected: "Considers frequency and responsiveness, then removes or minimizes motion that slows a repeatedly used keyboard or operational action while preserving needed state feedback."
+    unacceptable: "Applies the same decorative enter and exit sequence to high-frequency and rare interactions."
+  - id: transition-all
+    expected: "Rejects transition-all, names intended properties, and reviews their layout, paint, composite, and interruption behavior."
+    unacceptable: "Uses transition-all as a convenient default."
+  - id: sluggish-enter-feedback
+    expected: "Reviews trigger-to-feedback latency, timing, easing, frequency, and task context and proposes evidence-backed responsive behavior."
+    unacceptable: "Applies a universal easing or duration without testing perceived and actual responsiveness."
+  - id: stale-animation-completion
+    expected: "Cancels or guards completion callbacks across reversal, cancellation, route change, state replacement, and unmount so stale work cannot mutate current state."
+    unacceptable: "Lets onfinish or timeout callbacks apply obsolete UI state."
+  - id: animation-resource-leak
+    expected: "Finds and cleans up requestAnimationFrame loops, timers, observers, listeners, subscriptions, animation handles, and pointer capture."
+    unacceptable: "Starts recurring or observed work without lifecycle ownership and teardown."
+  - id: permanent-will-change
+    expected: "Scopes will-change and compositor promotion to actual animation lifetimes and reviews layer and memory cost."
+    unacceptable: "Leaves broad will-change declarations on many elements permanently."
+  - id: geometry-animation-under-load
+    expected: "Measures layout, paint, input, and main-thread behavior under representative content and load, then chooses the smallest safe technique or justified exception."
+    unacceptable: "Claims an animation is smooth because it looked acceptable on an idle desktop."
+  - id: touch-hover-motion
+    expected: "Gates hover-only effects by hover and pointer capability and verifies touch behavior."
+    unacceptable: "Lets touch taps trigger sticky or false hover animations."
+  - id: gesture-pointer-capture
+    expected: "Reviews pointer capture, cancel, bounds, velocity, damping, threshold, multi-touch, and accessible alternative behavior."
+    unacceptable: "Implements drag from pointer coordinates without capture, cancellation, or multi-touch protection."
+  - id: reduced-motion-substitution
+    expected: "Suppresses or replaces non-essential vestibular panning, scaling, parallax, or scroll motion while preserving understandable state."
+    unacceptable: "Only slows the same motion or ignores the reduced-motion preference."
+  - id: persistent-ambient-motion
+    expected: "Requires purpose, visibility and background pause behavior, resource bounds, and pause or stop controls where applicable."
+    unacceptable: "Runs decorative infinite animation continuously regardless of visibility, battery, or user control."
+  - id: scroll-hijacking
+    expected: "Preserves native navigation, focus, content access, input parity, and static fallback while rejecting non-essential scroll hijacking."
+    unacceptable: "Ties content access to a fragile scroll animation or blocks keyboard navigation."
+  - id: blocking-stagger
+    expected: "Bounds total sequence time and keeps content and controls interactive while decorative stagger runs."
+    unacceptable: "Delays each item until a long sequence completes before allowing interaction."
+  - id: focus-through-overlay-transition
+    expected: "Preserves correct focus placement, trapping, restoration, announcements, escape behavior, and state during modal or drawer transitions."
+    unacceptable: "Moves or hides an overlay while focus remains behind it or is lost."
+  - id: private-view-transition-snapshot
+    expected: "Reviews View Transition snapshot, privacy, stale content, route, browser support, and fallback behavior."
+    unacceptable: "Animates captured private or stale content across navigation without a security and lifecycle review."
+  - id: unnecessary-animation-dependency
+    expected: "Uses existing repository capability or browser-native behavior when sufficient and requires maintenance, size, security, license, compatibility, and ownership evidence for a new dependency."
+    unacceptable: "Adds or replaces a motion library for one simple transition."
+  - id: unsupported-animation-api
+    expected: "Checks browser and runtime support and provides a static or compatible fallback for emerging animation APIs."
+    unacceptable: "Uses starting-style, scroll timelines, or View Transitions as if universally supported."
+  - id: animation-frame-rate-claim
+    expected: "Limits smoothness and frame-rate claims to trace and representative device evidence, including behavior under load."
+    unacceptable: "Claims 60fps or hardware acceleration from code shape or visual inspection alone."
+  - id: motion-surface-mismatch
+    expected: "Uses the approved surface classification and motion intensity so dashboards, regulated flows, documentation, and marketing surfaces receive appropriate behavior."
+    unacceptable: "Applies cinematic or physics-heavy marketing motion to operational or trust-critical tasks."
+  - id: animated-hidden-seo-content
+    expected: "Keeps essential public content and controls available in initial or static output and makes reveal motion an enhancement."
+    unacceptable: "Leaves SEO content or critical controls hidden when animation fails, is disabled, or is unsupported."

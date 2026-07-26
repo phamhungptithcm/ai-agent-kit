@@ -9,21 +9,22 @@ purpose: >
 verified_tools:
   codegraph:
     product: "CodeGraph"
-    package: "@colbymchenry/codegraph"
+    package: "@colbymchenry/codegraph@1.5.0"
     source: "https://github.com/colbymchenry/codegraph"
     install_commands:
-      preferred: "npx @colbymchenry/codegraph"
-      manual_npm: "npm install -g @colbymchenry/codegraph"
+      plan: "npx --yes @hunpeolabs/ai-agent-kit@latest tools plan"
+      apply: "npm install -g @colbymchenry/codegraph@1.5.0"
     executable: "codegraph"
     mcp_command: "codegraph serve --mcp"
     role: "structural graph, symbols, callers/callees, impact, blast radius"
   cocoindex:
     product: "CocoIndex Code"
-    package: "cocoindex-code[full]"
+    package: "cocoindex-code[full]==0.2.39"
     source: "https://github.com/cocoindex-io/cocoindex-code"
     install_commands:
-      preferred: "uv tool install --upgrade \"cocoindex-code[full]\""
-      fallback: "pipx install \"cocoindex-code[full]\""
+      plan: "npx --yes @hunpeolabs/ai-agent-kit@latest tools plan"
+      apply: "uv tool install \"cocoindex-code[full]==0.2.39\""
+      fallback: "pipx install \"cocoindex-code[full]==0.2.39\""
     executable: "ccc"
     mcp_command: "ccc mcp"
     role: "semantic code and documentation retrieval, similar implementations, specs, runbooks"

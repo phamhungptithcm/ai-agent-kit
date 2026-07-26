@@ -24,8 +24,10 @@ flowchart LR
   TargetRepo --> Claude[Claude adapter]
   TargetRepo --> Codex[Codex adapter]
   TargetRepo --> LocalState[.ai-agent-kit local state]
+  LocalState --> Ownership[Ownership checksums]
 
-  AI --> Workflows[Workflows]
+  AI --> Contract[Manifest contract]
+  Contract --> Workflows[Workflows]
   AI --> Skills[Skills source]
   AI --> Guards[Safety gates]
   AI --> Prompts[Prompt catalog]
@@ -123,8 +125,13 @@ flowchart TD
   Copy --> Gitignore[Managed .gitignore entries]
 
   Detect --> Tools[Check CodeGraph and CocoIndex]
+  Tools --> ToolPlan[Read-only tools plan]
+  ToolPlan --> ToolApply[Explicit tools install --apply]
   Tools --> Index[Refresh indexes when tools are available]
+  ToolApply --> Index
   Index --> Validate[Validate agent config]
+  Copy --> Ownership[Record generated-file and managed-section checksums]
+  Ownership --> Validate
   Validate --> Diff[Print local diff and review commands]
 
   Policy --> NoApp[Application source unchanged]
@@ -138,7 +145,7 @@ flowchart TD
 | `AGENTS.md` and `CLAUDE.md` | Route Codex and Claude Code to the same team policy. | Managed sections only. |
 | `.codex/`, `.claude/`, `.agents/` | Platform adapters, agent roles, generated skills, hooks, and rules. | No app source change. |
 | `.mcp.json` | Local MCP wiring for repository intelligence tools. | No app source change. |
-| `.ai-agent-kit/` | Local backups, transaction report, and copy-ready handoff drafts. | Local metadata only. |
+| `.ai-agent-kit/` | Local backups, transaction report, ownership checksums, detected manifests/versions, and copy-ready handoff drafts. | Local metadata only. |
 | `.gitignore` | Ignores local AI-agent caches and backup folders. | Managed section only. |
 
 ## Prompt-To-Project Workflow

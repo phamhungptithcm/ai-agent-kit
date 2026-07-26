@@ -44,6 +44,14 @@ goals:
   - consistency
   - browser compatibility
 
+composes_for_user_facing_visual_changes:
+  - ".ai/quality-profiles/visual-design.yaml"
+  - ".ai/rules/visual-design-integrity.md"
+
+composes_when_material_animation_exists:
+  - ".ai/quality-profiles/animation-motion.yaml"
+  - ".ai/rules/animation-integrity.md"
+
 preferred_checks:
 
   accessibility:

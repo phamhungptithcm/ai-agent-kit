@@ -62,11 +62,11 @@ name: repository-intelligence-gate
 mode: fail-closed
 tools:
   codegraph:
-    package: "@colbymchenry/codegraph"
+    package: "@colbymchenry/codegraph@1.5.0"
     executable: "codegraph"
     role: "structural graph and impact analysis"
   cocoindex:
-    package: "cocoindex-code[full]"
+    package: "cocoindex-code[full]==0.2.39"
     executable: "ccc"
     role: "semantic code and documentation retrieval"
 required_before:
@@ -277,12 +277,20 @@ Generated from \`.ai/skills-src\`. Do not edit generated skills directly.
 }
 
 export function renderProjectYaml({ detection }) {
+  const versions = Object.entries(detection.versions ?? {});
+  const manifests = detection.manifests ?? [];
   return `${GENERATED_HEADER}
 profile: ${detection.profile}
 technologies:
 ${Object.entries(detection.technologies)
   .map(([name, enabled]) => `  ${name}: ${enabled}`)
   .join("\n")}
+${versions.length > 0
+    ? `versions:\n${versions.map(([name, version]) => `  ${name}: ${JSON.stringify(version)}`).join("\n")}`
+    : "versions: {}"}
+${manifests.length > 0
+    ? `manifests:\n${manifests.map((relPath) => `  - ${JSON.stringify(relPath)}`).join("\n")}`
+    : "manifests: []"}
 `;
 }
 

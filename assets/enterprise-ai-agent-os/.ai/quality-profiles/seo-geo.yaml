@@ -1,0 +1,91 @@
+version: 1
+
+id: seo-geo
+
+name: SEO And Generative Engine Optimization Quality Profile
+
+description:
+  Mandatory discoverability, content-integrity, and verification standards for
+  public websites intended for search indexing, rich results, AI-assisted
+  search retrieval, or accurate machine understanding.
+
+applies_when:
+  - "public routes, pages, layouts, landing pages, articles, documentation, product pages, category pages, or localized content change"
+  - "titles, descriptions, canonical URLs, robots directives, hreflang, social metadata, or structured data change"
+  - "robots.txt, XML sitemaps, redirects, URL structures, internal links, HTTP headers, or crawler access policy change"
+  - "SSR, SSG, prerendering, hydration, or client rendering changes the HTML available to non-browser clients"
+  - "llms.txt or another machine-readable discovery surface is introduced or changed"
+
+compose_with:
+  - ".ai/quality-profiles/universal.yaml"
+  - ".ai/quality-profiles/web-app.yaml"
+  - ".ai/quality-profiles/frontend-html-css.yaml"
+  - ".ai/rules/seo-geo.md"
+
+detect:
+  files:
+    - "robots.txt"
+    - "public/robots.txt"
+    - "static/robots.txt"
+    - "sitemap.xml"
+    - "public/sitemap*.xml"
+    - "static/sitemap*.xml"
+    - "llms.txt"
+    - "public/llms.txt"
+    - "static/llms.txt"
+    - "app/**/page.*"
+    - "app/**/layout.*"
+    - "pages/**"
+    - "routes/**"
+    - "content/**"
+    - "docs/**"
+    - "next-sitemap.config.*"
+    - "astro.config.*"
+    - "nuxt.config.*"
+    - "gatsby-config.*"
+
+required_review:
+  discovery_contract:
+    - "public, canonical, indexable, localized, redirected, and excluded routes are explicit"
+    - "page types and primary site entities are identified from verified project evidence"
+    - "titles, descriptions, canonical URLs, robots directives, and social metadata are page-appropriate"
+    - "canonical, sitemap, hreflang, navigation, and redirect signals do not conflict"
+  crawlability_and_rendering:
+    - "primary content, headings, metadata, structured data, and crawlable internal links exist in raw or built HTML where required"
+    - "robots.txt, robots meta tags, and HTTP crawler directives match documented intent"
+    - "important public pages are reachable without requiring site search or non-crawlable interactions"
+    - "mobile and desktop experiences preserve important content and navigation"
+  structured_data:
+    - "schema types match the visible page purpose and verified data"
+    - "required and recommended properties are validated with current authoritative guidance"
+    - "reviews, ratings, prices, availability, authorship, credentials, and organization facts are not fabricated"
+    - "structured data outcomes are described as eligibility, not guaranteed display or ranking"
+  content_and_geo:
+    - "important user questions receive clear, direct, self-contained answers where appropriate"
+    - "entity names, authorship, dates, sources, and update history are consistent and verifiable"
+    - "facts, inferences, assumptions, and recommendations are distinguished"
+    - "no unsupported scoring formula, passage-length threshold, authority signal, or visibility promise is presented as fact"
+  emerging_surfaces:
+    - "llms.txt is optional and labeled as an emerging proposal"
+    - "llms.txt contains only public, verified information and is not treated as crawler access control"
+    - "search indexing, AI search retrieval, model training, and preview controls are evaluated separately"
+  verification:
+    - "source or build output is inspected before deployment"
+    - "deployed URL checks record URL, date, environment, user agent or tool, and limitations"
+    - "field data, lab data, estimates, and unavailable measurements are clearly separated"
+
+preferred_evidence:
+  - "repository-defined build and prerender output"
+  - "raw HTML and HTTP response headers"
+  - "robots.txt and XML sitemap validation"
+  - "schema.org validation and supported search-platform structured-data tests"
+  - "canonical and hreflang graph inspection"
+  - "mobile and desktop browser smoke tests"
+  - "repository-defined Lighthouse or web performance checks"
+
+agent_constraints:
+  - "do not make live-site changes during an audit"
+  - "do not fabricate business, author, product, review, rating, or authority data"
+  - "do not promise rankings, rich results, indexing, AI visibility, traffic, conversions, or citations"
+  - "do not describe llms.txt as a ratified standard or guaranteed discovery mechanism"
+  - "report missing external access or measurement as unavailable rather than inferring success"

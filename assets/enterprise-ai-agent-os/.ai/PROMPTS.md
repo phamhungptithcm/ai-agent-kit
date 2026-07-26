@@ -34,6 +34,9 @@ npx --yes @hunpeolabs/ai-agent-kit@latest prompt start-task
 | `review-pr` | A diff, branch, PR, or MR needs senior engineering review. |
 | `investigate-incident` | A production issue needs timeline, impact, evidence, mitigation, and prevention. |
 | `prepare-handoff` | Work is ready for PR/MR, Jira, validation, quality gates, and memory-candidate handoff. |
+| `build-seo-geo-website` | A public website needs an evidence-based SEO/GEO plan, implementation, or audit. |
+| `design-website` | A website or product surface needs design direction, approved implementation, audit-first redesign, or visual review. |
+| `animate-interface` | A user interface needs animation opportunities, motion direction, approved implementation, strict review, or an improvement inventory. |
 
 ## start-task
 
@@ -259,4 +262,101 @@ Prepare:
 - remaining risks and follow-ups
 
 Do not claim Jira, PR/MR, screenshots, PPTX, XLSX, docs, diagrams, or tests exist unless verified.
+```
+
+## build-seo-geo-website
+
+```text
+Use the seo-geo-website skill and `.ai/workflows/build-public-website.md`.
+
+Mode:
+[plan | implement | audit]
+
+Website scope:
+[describe repository, routes/page types, locales, or authorized public URL]
+
+Business facts and constraints:
+[provide verified entity, product, author, location, content, crawler, privacy, and licensing context; mark unknowns]
+
+Return:
+- repository intelligence gate status
+- site type, framework, rendering model, public page types, locales, and primary entities
+- public/canonical/indexable/redirected/excluded route contract
+- selected web and SEO/GEO quality profiles
+- metadata, canonical, hreflang, sitemap, redirect, internal-link, and crawler-policy review
+- raw/build HTML discoverability review
+- structured-data integrity review based only on visible verified facts
+- content, authorship, source, date, and entity-integrity review
+- measured, source-verified, inferred, unavailable, and not-applicable evidence separated
+- smallest safe implementation or prioritized findings
+- tests, quality gates, deployment verification, and rollback
+
+Treat llms.txt as optional and experimental. Do not promise indexing, rankings, rich results, traffic, conversions, AI visibility, or citations.
+
+In plan or audit mode, do not edit website files. In implement mode, require approval evidence and remain inside approved scope.
+```
+
+## design-website
+
+```text
+Use the design-taste-website skill.
+
+Mode:
+[direction | implement | redesign | review]
+
+Surface and scope:
+[describe the website, product UI, routes, screens, components, or approved redesign boundary]
+
+Audience, goal, and constraints:
+[provide audience, user task, business outcome, existing brand/design system, references, content, supported viewports/locales, accessibility, compliance, and performance constraints]
+
+Return:
+- repository intelligence gate status
+- surface classification, audience, primary task, and business outcome
+- one-sentence Design Read
+- contextual layout variance, motion intensity, and information density with rationale
+- existing design-system and brand evidence
+- primary inspiration and optional secondary influence, with copy boundaries
+- design principles, anti-goals, tokens, typography, color, spacing, layout, imagery, icons, shape, elevation, and motion direction
+- responsive composition
+- applicable default, hover, active, focus, disabled, loading, empty, error, success, offline, unauthorized, stale, and partial states
+- accessibility, reduced-motion, performance, content, SEO/GEO, and asset-rights boundaries
+- evidence classified as repository-verified, screenshot-observed, browser-measured, reference-derived, inferred, unavailable, or not applicable
+- visual QA plan or prioritized findings
+
+Use project-owned design guidance before external inspiration. Do not hard-code a framework, font, icon library, or animation library. Do not copy protected brand material or fabricate trust signals.
+
+In direction and review modes, do not edit application files. Redesign is audit-first. Implement only with approval evidence and remain inside approved scope.
+```
+
+## animate-interface
+
+```text
+Use the animation-design-engineering skill.
+
+Mode:
+[opportunities | direction | implement | review | improve]
+
+Surface and scope:
+[describe the route, component, flow, diff, codebase area, or approved animation boundary]
+
+Motion context:
+[provide audience, task, frequency, approved motion intensity, existing motion system, supported browsers/devices/inputs, accessibility target, performance budget, and constraints]
+
+Return:
+- repository intelligence gate status
+- current motion inventory or explicit no-animation baseline
+- animation decision: should it animate, purpose, frequency, trigger, and essential/decorative status
+- motion vocabulary, tokens, timing, enter/exit, origin, stagger, and spatial-continuity direction where applicable
+- repeated, interrupted, reversed, canceled, route-change, background-tab, and unmount behavior
+- gesture bounds, pointer capture, velocity, damping, multi-touch, and input parity where applicable
+- static and reduced-motion behavior
+- layout, paint, composite, main-thread, input, memory, layer, battery, and lifecycle review
+- browser/API compatibility, fallback, and dependency impact
+- evidence classified as source-verified, browser-observed, trace-measured, device-observed, inferred, unavailable, or not applicable
+- prioritized findings, approved implementation result, or verification plan
+
+Do not add motion without a purpose. Do not hard-code a universal duration, easing, spring, scale, or library. Do not claim smoothness, frame rate, hardware acceleration, accessibility, or negligible performance impact without evidence.
+
+Opportunities, direction, review, and improve modes are read-only. Implement only with approval evidence and remain inside approved scope.
 ```

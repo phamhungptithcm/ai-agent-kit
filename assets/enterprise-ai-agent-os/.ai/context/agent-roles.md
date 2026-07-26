@@ -40,6 +40,7 @@ Use personas to combine skills for common team responsibilities. A persona is no
 | QA Lead | `test-strategy` + `code-quality-review` + `delivery-documentation` |
 | Release Manager | `release-readiness` + `delivery-documentation` + `jira-completion-package` |
 | Tech Lead | `change-impact-plan` + `architecture-review` + `repository-health` |
+| Web Growth Engineer | `start-task` + `design-taste-website` + `animation-design-engineering` + `seo-geo-website` + `implement-feature` + `code-quality-review` + `test-strategy` |
 
 ## Governance Roles
 

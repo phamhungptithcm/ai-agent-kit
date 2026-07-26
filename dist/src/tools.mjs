@@ -1,3 +1,18 @@
+export const TOOL_SPECS = {
+  codegraph: {
+    name: "CodeGraph",
+    package: "@colbymchenry/codegraph@1.5.0",
+    command: "codegraph",
+    installCommand: ["npm", "install", "-g", "@colbymchenry/codegraph@1.5.0"]
+  },
+  cocoindex: {
+    name: "CocoIndex",
+    package: "cocoindex-code[full]==0.2.39",
+    command: "ccc",
+    installCommand: ["uv", "tool", "install", "cocoindex-code[full]==0.2.39"]
+  }
+};
+
 export function commandSucceeded(result) {
   return result && result.code === 0;
 }
@@ -7,26 +22,40 @@ export function checkCommand(runner, root, command, args = []) {
   return { ok: commandSucceeded(result), stdout: result.stdout.trim(), stderr: result.stderr.trim() };
 }
 
-export function checkCodeGraph(runner, root) {
+export function checkCodeGraphAvailability(runner, root) {
   const version = checkCommand(runner, root, "codegraph", ["--version"]);
-  if (!version.ok) return { status: "MISSING", detail: version.stderr || "codegraph not found" };
+  return version.ok
+    ? { status: "AVAILABLE", version: version.stdout || "available", detail: "executable available" }
+    : { status: "MISSING", detail: version.stderr || "codegraph not found" };
+}
+
+export function checkCocoIndexAvailability(runner, root) {
+  const availability = checkCommand(runner, root, "ccc", ["--help"]);
+  return availability.ok
+    ? { status: "AVAILABLE", version: "available", detail: "executable available" }
+    : { status: "MISSING", detail: availability.stderr || "ccc not found" };
+}
+
+export function checkCodeGraph(runner, root) {
+  const availability = checkCodeGraphAvailability(runner, root);
+  if (availability.status === "MISSING") return availability;
   const status = checkCommand(runner, root, "codegraph", ["status", "."]);
   const query = checkCommand(runner, root, "codegraph", ["query", "--path", ".", "--limit", "1", "Account"]);
   return {
     status: status.ok && query.ok ? "READY" : "BLOCKED",
-    version: version.stdout || "available",
+    version: availability.version,
     detail: status.ok && query.ok ? "health check passed" : status.stderr || query.stderr || "health check failed"
   };
 }
 
 export function checkCocoIndex(runner, root) {
-  const version = checkCommand(runner, root, "ccc", ["--version"]);
-  if (!version.ok) return { status: "MISSING", detail: version.stderr || "ccc not found" };
+  const availability = checkCocoIndexAvailability(runner, root);
+  if (availability.status === "MISSING") return availability;
   const status = checkCommand(runner, root, "ccc", ["status"]);
   const search = checkCommand(runner, root, "ccc", ["search", "--limit", "1", "account"]);
   return {
     status: status.ok && search.ok ? "READY" : "BLOCKED",
-    version: version.stdout || "available",
+    version: "available",
     detail: status.ok && search.ok ? "health check passed" : status.stderr || search.stderr || "health check failed"
   };
 }
@@ -38,12 +67,14 @@ export function installMissingTools(runner, root, toolStatus, enabled) {
     return results;
   }
   if (toolStatus.codegraph.status === "MISSING") {
-    const result = runner.run("npm", ["install", "-g", "@colbymchenry/codegraph"], { cwd: root, timeout: 900000 });
-    results.push(result.code === 0 ? "CodeGraph install attempted successfully." : `CodeGraph install failed: ${result.stderr.trim()}`);
+    const [command, ...args] = TOOL_SPECS.codegraph.installCommand;
+    const result = runner.run(command, args, { cwd: root, timeout: 900000 });
+    results.push(result.code === 0 ? `CodeGraph ${TOOL_SPECS.codegraph.package} installed.` : `CodeGraph install failed: ${result.stderr.trim()}`);
   }
   if (toolStatus.cocoindex.status === "MISSING") {
-    const result = runner.run("uv", ["tool", "install", "--upgrade", "cocoindex-code[full]"], { cwd: root, timeout: 1800000 });
-    results.push(result.code === 0 ? "CocoIndex install attempted successfully." : `CocoIndex install failed: ${result.stderr.trim()}`);
+    const [command, ...args] = TOOL_SPECS.cocoindex.installCommand;
+    const result = runner.run(command, args, { cwd: root, timeout: 1800000 });
+    results.push(result.code === 0 ? `CocoIndex ${TOOL_SPECS.cocoindex.package} installed.` : `CocoIndex install failed: ${result.stderr.trim()}`);
   }
   return results;
 }

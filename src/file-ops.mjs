@@ -1,6 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { isApprovedConfigPath, normalizeRelPath } from "./paths.mjs";
+import { hasSymlinkComponent, isApprovedConfigPath, normalizeRelPath } from "./paths.mjs";
 import { MANAGED_BEGIN, MANAGED_END } from "./templates.mjs";
 
 export function ensureParent(filePath) {
@@ -26,11 +26,13 @@ export function mergeManagedSection(existing, section) {
   return `${existing.slice(0, begin)}${section.trimEnd()}${existing.slice(afterEnd)}`;
 }
 
-export function createTransaction(root, transactionId, packageVersion, initialStatus, detection, gitInfo) {
+export function createTransaction(root, transactionId, packageVersion, initialStatus, detection, gitInfo, options = {}) {
   const txRoot = path.join(root, ".ai-agent-kit", "transactions", transactionId);
   const backupRoot = path.join(root, ".ai-agent-kit", "backups", transactionId);
-  fs.mkdirSync(txRoot, { recursive: true });
-  fs.mkdirSync(backupRoot, { recursive: true });
+  if (options.createDirectories !== false) {
+    fs.mkdirSync(txRoot, { recursive: true });
+    fs.mkdirSync(backupRoot, { recursive: true });
+  }
   const state = {
     transactionId,
     packageVersion,
@@ -74,6 +76,9 @@ export function writeConfigFile(root, transaction, relPath, content, options = {
   const rel = normalizeRelPath(relPath);
   if (!isApprovedConfigPath(rel)) {
     throw new Error(`Bootstrap attempted to modify a non-approved path: ${rel}`);
+  }
+  if (hasSymlinkComponent(root, rel)) {
+    throw new Error(`Bootstrap refuses to write through a symbolic link: ${rel}`);
   }
   transaction.installationPlan.push({ relPath: rel, mode: options.mode ?? "replace" });
   if (options.dryRun) return { action: "planned" };

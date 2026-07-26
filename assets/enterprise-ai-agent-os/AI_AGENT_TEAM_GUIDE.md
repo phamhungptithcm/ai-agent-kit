@@ -40,7 +40,7 @@ python .ai/scripts/validate_agent_config.py
 5. For existing-system changes, approve the generated change-impact plan before implementation starts.
 6. Before handoff, require quality gates and memory candidates or `None`.
 
-For full repository intelligence, run `npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap --deep` or run `.ai/scripts/index-repository.py` when the team is ready. Large repositories should use fast bootstrap first, then index before risky implementation, impact analysis, or PR/MR review.
+For full repository intelligence, first run `npx --yes @hunpeolabs/ai-agent-kit@latest tools plan`. After reviewing the pinned commands, run `tools install --apply`, then `bootstrap --refresh-indexes`. The bootstrap command and `--deep` never install global tools. Large repositories should use fast bootstrap first, then index before risky implementation, impact analysis, or PR/MR review.
 
 ## Starting Work
 
@@ -71,6 +71,7 @@ Use these persona bundles when the team wants a familiar role rather than a sing
 | QA Lead | `test-strategy` + `code-quality-review` + `delivery-documentation` |
 | Release Manager | `release-readiness` + `delivery-documentation` + `jira-completion-package` |
 | Tech Lead | `change-impact-plan` + `architecture-review` + `repository-health` |
+| Web Growth Engineer | `start-task` + `design-taste-website` + `animation-design-engineering` + `seo-geo-website` + `implement-feature` + `code-quality-review` + `test-strategy` |
 
 ## Risk Gates
 

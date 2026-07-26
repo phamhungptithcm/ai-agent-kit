@@ -22,14 +22,17 @@ def ensure_codegraph(execute: bool) -> int:
     root = repo_root()
     if which("codegraph"):
         version = run_command(["codegraph", "--version"], root, timeout=30)
-        print(f"CodeGraph already installed: {version.stdout.strip() or 'available'}")
-        return 0
-    if not which("npm") and not which("npx"):
-        print("ERROR: CodeGraph is missing and npm/npx is unavailable.", file=sys.stderr)
-        print("Expected command after Node/npm is available: npx @colbymchenry/codegraph", file=sys.stderr)
+        if version.ok:
+            print(f"CodeGraph already installed: {version.stdout.strip() or 'available'}")
+            return 0
+        print(f"ERROR: CodeGraph is on PATH but its version check failed: {version.combined}", file=sys.stderr)
+        return 1
+    if not which("npm"):
+        print("ERROR: CodeGraph is missing and npm is unavailable.", file=sys.stderr)
+        print("Expected command after npm is available: npm install -g @colbymchenry/codegraph@1.5.0", file=sys.stderr)
         return 1
 
-    command = ["npm", "install", "-g", "@colbymchenry/codegraph"] if which("npm") else ["npx", "@colbymchenry/codegraph"]
+    command = ["npm", "install", "-g", "@colbymchenry/codegraph@1.5.0"]
     print_verified_command("Verified CodeGraph install command", command)
     if not execute:
         return 0
@@ -43,17 +46,20 @@ def ensure_codegraph(execute: bool) -> int:
 def ensure_cocoindex(execute: bool) -> int:
     root = repo_root()
     if which("ccc"):
-        version = run_command(["ccc", "--version"], root, timeout=30)
-        print(f"CocoIndex Code already installed: {version.stdout.strip() or 'available'}")
-        return 0
+        availability = run_command(["ccc", "--help"], root, timeout=30)
+        if availability.ok:
+            print("CocoIndex Code already installed: available")
+            return 0
+        print(f"ERROR: CocoIndex Code is on PATH but its help check failed: {availability.combined}", file=sys.stderr)
+        return 1
 
     if which("uv"):
-        command = ["uv", "tool", "install", "--upgrade", "cocoindex-code[full]"]
+        command = ["uv", "tool", "install", "cocoindex-code[full]==0.2.39"]
     elif which("pipx"):
-        command = ["pipx", "install", "cocoindex-code[full]"]
+        command = ["pipx", "install", "cocoindex-code[full]==0.2.39"]
     else:
         print("ERROR: CocoIndex Code is missing and neither uv nor pipx is available.", file=sys.stderr)
-        print('Expected command after installing uv: uv tool install --upgrade "cocoindex-code[full]"', file=sys.stderr)
+        print('Expected command after installing uv: uv tool install "cocoindex-code[full]==0.2.39"', file=sys.stderr)
         return 1
 
     print_verified_command("Verified CocoIndex Code install command", command)
@@ -71,16 +77,16 @@ def ensure_cocoindex(execute: bool) -> int:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--execute", action="store_true", help="actually run missing-tool installation commands")
+    parser.add_argument("--apply", action="store_true", help="apply the displayed, pinned missing-tool installation commands")
     parser.add_argument("--skip-codegraph", action="store_true")
     parser.add_argument("--skip-cocoindex", action="store_true")
     args = parser.parse_args()
 
     failures = 0
     if not args.skip_codegraph:
-        failures += 0 if ensure_codegraph(args.execute) == 0 else 1
+        failures += 0 if ensure_codegraph(args.apply) == 0 else 1
     if not args.skip_cocoindex:
-        failures += 0 if ensure_cocoindex(args.execute) == 0 else 1
+        failures += 0 if ensure_cocoindex(args.apply) == 0 else 1
     return 0 if failures == 0 else 1
 
 

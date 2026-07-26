@@ -1,0 +1,108 @@
+version: 1
+
+id: visual-design
+
+name: Context-Aware Visual Design Quality Profile
+
+description:
+  Quality standards for art direction, brand fidelity, visual hierarchy,
+  interaction completeness, responsive composition, accessible motion, and
+  evidence-backed visual review across user-facing product surfaces.
+
+applies_when:
+  - "a user-facing page, view, component, style, design token, icon, illustration, image, or animation changes"
+  - "a website, landing page, portfolio, documentation site, onboarding flow, dashboard, admin surface, or product UI is created or redesigned"
+  - "a screenshot, mockup, design reference, brand guide, or design-system migration is in scope"
+  - "loading, empty, error, success, focus, disabled, offline, or partial-data presentation changes"
+
+compose_with:
+  - ".ai/quality-profiles/universal.yaml"
+  - ".ai/quality-profiles/frontend-html-css.yaml"
+  - ".ai/quality-profiles/web-app.yaml"
+  - ".ai/rules/visual-design-integrity.md"
+
+context_classification:
+  surfaces:
+    - "marketing or campaign"
+    - "portfolio or editorial"
+    - "documentation"
+    - "ecommerce"
+    - "dashboard or analytics"
+    - "admin or operations"
+    - "onboarding or transactional flow"
+    - "public-sector, regulated, or accessibility-critical service"
+  required_inputs:
+    - "audience and primary user goal"
+    - "business outcome and content hierarchy"
+    - "existing brand assets and design system"
+    - "supported devices, locales, and accessibility constraints"
+    - "approved references and asset rights"
+
+design_direction:
+  required:
+    - "one-sentence design read"
+    - "primary inspiration and optional secondary influence"
+    - "explicit design principles and anti-goals"
+    - "layout variance from 1 to 10 with rationale"
+    - "motion intensity from 1 to 10 with rationale"
+    - "information density from 1 to 10 with rationale"
+  constraints:
+    - "dial values are inferred from context and never use one universal default"
+    - "project-owned design guidance takes precedence over external inspiration"
+    - "regulated, trust-critical, and accessibility-critical contexts prioritize clarity and familiarity"
+
+required_review:
+  brand_and_system:
+    - "existing tokens, components, assets, and interaction conventions are identified"
+    - "official design systems are distinguished from aesthetic inspiration"
+    - "component, icon, and typography systems are internally consistent"
+    - "new dependencies are justified and verified against the repository"
+  hierarchy_and_composition:
+    - "visual hierarchy matches content and task priority"
+    - "layout rhythm, grouping, whitespace, alignment, and density support scanning and comprehension"
+    - "primary and secondary actions are distinguishable"
+    - "composition adapts intentionally across supported widths"
+  typography_and_color:
+    - "type roles, scale, measure, line height, emphasis, and fallback behavior are coherent"
+    - "color roles are tokenized and meaningful"
+    - "contrast and non-color state indicators meet applicable accessibility requirements"
+    - "zoom, text expansion, localization, and long content do not break the layout"
+  components_and_states:
+    - "default, hover, active, focus, disabled, loading, empty, error, and success states are covered where applicable"
+    - "offline, unauthorized, stale, and partial-data states are covered where applicable"
+    - "navigation, forms, feedback, recovery, and destructive actions remain predictable"
+  imagery_and_icons:
+    - "imagery and icons share a coherent direction and have appropriate rights or provenance"
+    - "decorative and informative images have correct accessibility treatment"
+    - "logos, testimonials, ratings, awards, and trust signals are verified rather than fabricated"
+  motion:
+    - "motion has a stated purpose"
+    - "motion intensity matches audience, task, and surface"
+    - "reduced-motion behavior is implemented and understandable"
+    - "animation avoids layout thrashing, input delay, and excessive resource usage"
+  evidence:
+    - "representative mobile, tablet, and desktop screenshots or explicit not-applicable rationale exist"
+    - "material UI states and focus behavior are visually verified"
+    - "console, accessibility, responsive, and visual-regression evidence is reported when available"
+    - "pixel-perfect, responsive, accessible, premium, or polished claims are not made without evidence"
+
+preferred_checks:
+  - "repository-defined component and browser tests"
+  - "Playwright or equivalent representative viewport screenshots"
+  - "visual regression or screenshot diff when a trusted baseline exists"
+  - "automated accessibility scan plus manual keyboard and focus review"
+  - "reduced-motion emulation"
+  - "zoom, text expansion, localization, and overflow review"
+  - "browser console and network inspection"
+  - "production build and bundle impact"
+
+agent_constraints:
+  - "do not replace the existing design system merely to follow a visual trend"
+  - "do not hard-code a framework, styling system, font, icon library, or animation library"
+  - "do not copy references literally or reuse their protected brand material"
+  - "do not sacrifice usability, accessibility, content meaning, SEO, or performance for visual novelty"
+  - "report missing brand, content, asset-rights, or user-research inputs as unknown"
+
+composes_when_material_animation_exists:
+  - ".ai/quality-profiles/animation-motion.yaml"
+  - ".ai/rules/animation-integrity.md"
