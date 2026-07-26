@@ -1,0 +1,12 @@
+{
+  "task_id": "TODO",
+  "allowed_tools": ["read"],
+  "allowed_paths": [],
+  "network_domains": [],
+  "max_risk": "low",
+  "max_actions": 100,
+  "expires_at": "TODO",
+  "approval_hash": "TODO",
+  "repository_commit": "TODO",
+  "policy_revision": "TODO"
+}

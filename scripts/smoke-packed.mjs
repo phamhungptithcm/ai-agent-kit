@@ -46,6 +46,25 @@ try {
   const dryRunOutput = `${dryRunResult.stdout}${dryRunResult.stderr}`;
   assert.match(dryRunOutput, /AI Agent Kit Bootstrap: DRY RUN/);
   assert.equal(fs.existsSync(path.join(fixture, ".ai-agent-kit")), false);
+
+  const runtimeCreate = execute(
+    npxCommand,
+    [
+      "--yes", packageOption, "ai-agent-kit", "runtime", "task", "create",
+      "--id", "SMOKE-001", "--goal", "Verify packaged runtime",
+      "--acceptance", "Task state persists", "--approval-hash", "smoke-approval",
+      "--tool", "read", "--path", "src/**"
+    ],
+    fixture
+  );
+  assert.match(runtimeCreate.stdout, /"state": "DISCOVER"/);
+  const runtimeStatus = execute(
+    npxCommand,
+    ["--yes", packageOption, "ai-agent-kit", "runtime", "task", "status", "--id", "SMOKE-001"],
+    fixture
+  );
+  assert.match(runtimeStatus.stdout, /"goal": "Verify packaged runtime"/);
+  assert.ok(fs.existsSync(path.join(fixture, ".ai-agent-kit", "runtime", "tasks", "SMOKE-001.json")));
   console.log("packed npx smoke test passed");
 } finally {
   fs.rmSync(temporaryRoot, { recursive: true, force: true });

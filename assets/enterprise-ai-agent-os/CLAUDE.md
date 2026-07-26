@@ -24,6 +24,8 @@ During implementation after approval, preserve existing behavior unless explicit
 
 Before completion, run relevant checks, complete `.ai/core/quality-gates.md` with evidence, report actual command results, update or provide no-change rationale for docs/specs/diagrams, and cover security, data, performance, deployment, rollback, Jira/MR evidence when applicable, memory candidates under `.ai/core/memory-policy.md`, and remaining risks.
 
+For protected execution, use `.ai/core/governed-runtime.md` and `.ai/guards/capability-policy.yaml`: bind work to a task capability, evaluate actions before execution, stop on ask/deny, and require independent evidence verification.
+
 ## Claude Code Resources
 
 - `.claude/rules/` contains thin Claude-specific adapters that route to `.ai/`.

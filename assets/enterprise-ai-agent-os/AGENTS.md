@@ -54,9 +54,15 @@ Before completion, run relevant checks, complete `.ai/core/quality-gates.md` wit
 - Quality gates: `.ai/core/quality-gates.md`
 - Code quality intelligence: `.ai/core/code-quality-intelligence.md`
 - Code quality profile gate: `.ai/guards/code-quality-profile-gate.yaml`
+- Protected edits: `.ai/scripts/validate_implementation_approval.py`
+- Command policy: `.ai/scripts/enforce_command_policy.py`
+- Behavioral safety evaluations: `.ai/scripts/evaluate_agent_behavior.py`
 - Quality profiles: `.ai/quality-profiles/`
 - Memory policy: `.ai/core/memory-policy.md`
 - Definition of done: `.ai/core/definition-of-done.md`
+- Governed runtime: `.ai/core/governed-runtime.md`
+- Capability policy: `.ai/guards/capability-policy.yaml`
+- MCP trust registry: `.ai/context/mcp-trust-registry.yaml`
 - Output contract: `.ai/core/output-contract.md`
 - Risk model: `.ai/core/risk-model.md`
 - Existing-system plan gate: `.ai/workflows/plan-existing-system-change.md`

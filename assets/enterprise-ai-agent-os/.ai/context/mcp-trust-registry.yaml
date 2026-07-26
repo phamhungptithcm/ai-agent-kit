@@ -1,0 +1,18 @@
+version: 1
+default_trust: deny
+required_fields:
+  - id
+  - owner
+  - version
+  - source
+  - executable_or_image_digest
+  - transport
+  - authentication
+  - allowed_tools_and_resources
+  - data_classification
+  - network_destinations
+  - write_capability
+  - approval_requirement
+  - last_security_review
+  - review_expires
+servers: []

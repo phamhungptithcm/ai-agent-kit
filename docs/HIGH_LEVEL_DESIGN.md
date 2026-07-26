@@ -208,6 +208,26 @@ flowchart LR
 
 The loop turns good work into reusable team behavior. The memory policy prevents agents from retaining sensitive or speculative information, while golden cases capture reusable failure patterns.
 
+## Governed Runtime Control Plane
+
+Version 0.3 adds a deterministic control plane beneath agent instructions:
+
+```mermaid
+flowchart LR
+  Task[Task state machine] --> Capability[Task capability]
+  Capability --> Policy[Allow / ask / deny policy]
+  Policy --> Gateway[Tool gateway]
+  Gateway --> Target[Repository, shell, or MCP]
+  Gateway --> Receipt[Hash-linked receipt]
+  Receipt --> Ledger[Local evidence ledger]
+  Ledger --> Verify[Independent verifier]
+  Gateway --> Telemetry[Privacy-minimized JSONL spans]
+```
+
+Capabilities bind approval to tools, paths, network domains, risk, expiry, action budget, repository revision, policy revision, and adapter. The gateway records decisions but deliberately does not autonomously execute protected production, infrastructure, database, release, Git, or messaging mutations.
+
+Runtime state is stored under ignored `.ai-agent-kit/runtime/`. Evidence contains hashes and decision metadata, not prompts, chain-of-thought, source contents, secrets, or raw command output.
+
 ## Daily Prompt Names
 
 | Prompt | Purpose |

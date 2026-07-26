@@ -1,6 +1,6 @@
 {
   "name": "@hunpeolabs/ai-agent-kit",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Bootstrap a repository-scoped AI agent operating system for Claude Code and Codex with CodeGraph and CocoIndex safety gates.",
   "type": "module",
   "bin": {
@@ -32,6 +32,7 @@
     "assets/",
     "dist/bin/",
     "dist/src/",
+    "dist/sbom.spdx.json",
     "docs/",
     "CHANGELOG.md",
     "CONTRIBUTING.md",
@@ -40,13 +41,14 @@
     "SECURITY.md"
   ],
   "scripts": {
-    "check": "npm run lint && npm run typecheck && npm test && npm run build && npm run smoke:packed",
+    "check": "npm run lint && npm run typecheck && npm test && npm run security:supply-chain && npm run build && npm run smoke:packed",
     "lint": "node scripts/lint.mjs",
     "typecheck": "node scripts/typecheck.mjs",
     "test": "node --test",
     "build": "node scripts/build.mjs",
     "smoke:packed": "node scripts/smoke-packed.mjs",
     "release:dry-run": "npm pack --dry-run",
+    "security:supply-chain": "node scripts/supply-chain-check.mjs",
     "prepack": "npm run build"
   },
   "engines": {

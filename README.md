@@ -172,6 +172,35 @@ For user-facing visual work, the kit adds a context-aware `visual-design` profil
 
 Material motion composes the `animation-motion` profile and `animation-design-engineering` skill. The skill can find opportunities, define direction, implement approved motion, perform strict review, or inventory improvements while requiring purpose, reduced-motion behavior, interruptibility, compatibility, performance, cleanup, and browser or trace evidence.
 
+## Governed Runtime
+
+Version 0.3 adds executable governance beyond natural-language rules:
+
+- sequential task states with evidence-gated transitions;
+- task-scoped capabilities for tools, paths, domains, risk, expiry, and action budgets;
+- stable allow/ask/deny policy decisions;
+- privacy-minimized hash-linked receipts;
+- independent evidence verification and export;
+- sourced facts, explicit assumptions, and trigger-based adaptive plans;
+- human-approved provenance-aware local memory and deterministic task scoring;
+- OpenTelemetry-compatible local JSONL spans;
+- MCP trust, sandbox, secret-broker, and governance-maturity contracts.
+
+```bash
+ai-agent-kit runtime task create --id TASK-123 --goal 'Ship safely' --acceptance 'Tests pass' --approval-hash SHA256 --risk medium --tool read --tool edit --path 'src/**'
+ai-agent-kit runtime task status --id TASK-123
+ai-agent-kit runtime context add --id TASK-123 --kind fact --statement 'Call path inspected' --source codegraph://call-path
+ai-agent-kit runtime plan revise --id TASK-123 --trigger 'Evidence collected' --step 'Implement' --step 'Verify'
+ai-agent-kit runtime policy evaluate --id TASK-123 --tool edit --path src/example.ts
+ai-agent-kit runtime evidence verify --id TASK-123
+ai-agent-kit runtime evidence export --id TASK-123
+ai-agent-kit runtime eval score --id TASK-123
+```
+
+Runtime data stays local under `.ai-agent-kit/runtime/`. The gateway records policy decisions but does not autonomously execute Git, release, infrastructure, database, messaging, or production mutations.
+
+The complete scope and acceptance criteria are in [Governed Runtime V1 Plan](docs/GOVERNED_RUNTIME_V1_PLAN.md).
+
 Preview the planned files without writing anything:
 
 ```bash
@@ -206,6 +235,15 @@ npx --yes @hunpeolabs/ai-agent-kit@latest diff
 ```
 
 `CORE_READY` means every file declared by `.ai/manifest.yaml` exists and its recorded ownership is not drifted. Ownership hashes cover the complete generated file or only the kit-managed marker section, so surrounding human content in `AGENTS.md`, `CLAUDE.md`, and `.gitignore` remains outside kit ownership. Governed implementation remains `BLOCKED` until the selected adapters, CodeGraph, and CocoIndex all report `READY`.
+
+Protected edits are also checked against `.ai/local/implementation-approval.md`. Copy the tracked approval template, record the approver and exact approved paths, and validate the final scope with:
+
+```bash
+python .ai/scripts/validate_implementation_approval.py --base-ref <approved-base-ref>
+python .ai/scripts/evaluate_agent_behavior.py
+```
+
+Claude-compatible pre-tool hooks enforce approval on edit/write operations and classify shell commands as allow, ask, or deny. Codex command rules remain the native execution-policy layer for Codex.
 
 Lifecycle changes are preview-only in this release:
 

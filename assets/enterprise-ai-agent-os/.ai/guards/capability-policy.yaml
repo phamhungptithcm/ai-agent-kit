@@ -1,0 +1,36 @@
+version: 1
+mode: fail-closed
+decision_values: [allow, ask, deny]
+required_capability_fields:
+  - task_id
+  - allowed_tools
+  - allowed_paths
+  - network_domains
+  - max_risk
+  - max_actions
+  - expires_at
+  - approval_hash
+binding:
+  - repository_commit
+  - approval_record_hash
+  - policy_revision
+  - agent_adapter
+deny:
+  - expired_capability
+  - path_or_tool_outside_scope
+  - risk_above_ceiling
+  - exhausted_action_budget
+  - critical_autonomous_execution
+  - altered_action_after_decision
+reason_codes:
+  - CAPABILITY_MATCH
+  - TASK_STATE_NOT_EXECUTABLE
+  - CAPABILITY_EXPIRED
+  - ACTION_BUDGET_EXHAUSTED
+  - TOOL_NOT_ALLOWED
+  - PATH_NOT_ALLOWED
+  - RISK_CEILING_EXCEEDED
+  - NETWORK_DOMAIN_NOT_ALLOWED
+  - CRITICAL_AUTONOMOUS_EXECUTION_FORBIDDEN
+  - CRITICAL_MUTATION_FORBIDDEN
+  - HUMAN_CONFIRMATION_REQUIRED

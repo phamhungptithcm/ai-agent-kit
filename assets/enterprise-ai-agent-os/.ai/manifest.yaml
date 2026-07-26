@@ -1,5 +1,5 @@
 version: 2
-owner: "TODO(owner): assign platform or architecture owner"
+owner: "repository maintainers"
 retrieved_on: "2026-07-15"
 canonical_skill_root: ".ai/skills-src"
 generated_skill_roots:
@@ -31,6 +31,7 @@ core:
   - ".ai/core/risk-model.md"
   - ".ai/core/definition-of-done.md"
   - ".ai/core/output-contract.md"
+  - ".ai/core/governed-runtime.md"
 context:
   - ".ai/context/architecture.md"
   - ".ai/context/glossary.md"
@@ -38,6 +39,7 @@ context:
   - ".ai/context/build-test-commands.md"
   - ".ai/context/ownership.md"
   - ".ai/context/agent-roles.md"
+  - ".ai/context/mcp-trust-registry.yaml"
 rules:
   - ".ai/rules/engineering.md"
   - ".ai/rules/security.md"
@@ -77,6 +79,8 @@ guards:
   - ".ai/guards/dependency-policy.yaml"
   - ".ai/guards/sensitive-data-policy.yaml"
   - ".ai/guards/change-risk-rules.yaml"
+  - ".ai/guards/capability-policy.yaml"
+  - ".ai/guards/sandbox-and-secrets.yaml"
 templates:
   - ".ai/templates/jira-completion-comment.md"
   - ".ai/templates/repository-intelligence-brief.md"
@@ -96,13 +100,18 @@ templates:
   - ".ai/templates/motion-contract.md"
   - ".ai/templates/animation-inventory.md"
   - ".ai/templates/animation-review.md"
+  - ".ai/templates/capability.json"
+  - ".ai/templates/evidence-bundle.json"
 docs:
   - ".ai/docs/repository-intelligence-guide.md"
   - ".ai/docs/agent-adapter-strategy.md"
+  - ".ai/docs/governed-runtime-guide.md"
 scripts:
   - ".ai/scripts/bootstrap-repository-intelligence.ps1"
   - ".ai/scripts/bootstrap-repository-intelligence.sh"
   - ".ai/scripts/check-repository-intelligence.py"
+  - ".ai/scripts/enforce_command_policy.py"
+  - ".ai/scripts/evaluate_agent_behavior.py"
   - ".ai/scripts/generate_delivery_artifacts.py"
   - ".ai/scripts/index-repository.py"
   - ".ai/scripts/install-repository-intelligence.py"
@@ -111,8 +120,10 @@ scripts:
   - ".ai/scripts/sync_agent_assets.py"
   - ".ai/scripts/test_agent_policies.py"
   - ".ai/scripts/validate_agent_config.py"
+  - ".ai/scripts/validate_implementation_approval.py"
 evals:
   - ".ai/evals/README.md"
+  - ".ai/evals/behavioral-cases.json"
   - ".ai/evals/golden-cases.yaml"
   - ".ai/evals/scorecard.yaml"
 skills:
@@ -141,6 +152,7 @@ skills:
   - ".ai/skills-src/seo-geo-website/SKILL.md"
   - ".ai/skills-src/design-taste-website/SKILL.md"
   - ".ai/skills-src/animation-design-engineering/SKILL.md"
+  - ".ai/skills-src/governed-agent-runtime/SKILL.md"
 quality_profiles:
   - ".ai/quality-profiles/universal.yaml"
   - ".ai/quality-profiles/go.yaml"
@@ -160,6 +172,7 @@ quality_profiles:
   - ".ai/quality-profiles/database.yaml"
   - ".ai/quality-profiles/concurrency.yaml"
   - ".ai/quality-profiles/memory.yaml"
+  - ".ai/quality-profiles/governance-maturity.yaml"
 ci:
   status: "proposed"
   proposal: ".ai/proposals/agent-config-validation.yml"

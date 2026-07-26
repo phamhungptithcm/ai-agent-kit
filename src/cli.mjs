@@ -10,6 +10,20 @@ import {
 import { renderNamedPrompt, renderPromptCatalog, renderPromptList } from "./prompt-catalog.mjs";
 import { applyToolPlan, inspectToolPlan, renderToolInstall, renderToolPlan } from "./tool-lifecycle.mjs";
 import { getPackageVersion } from "./version.mjs";
+import {
+  addContext,
+  approveMemory,
+  createTask,
+  evaluateAction,
+  exportEvidence,
+  inspectTask,
+  proposeMemory,
+  queryMemory,
+  revisePlan,
+  scoreTask,
+  transitionTask,
+  verifyEvidence
+} from "./governed-runtime.mjs";
 
 const FORBIDDEN_BOOTSTRAP_OPTIONS = new Set(["--commit", "--push", "--create-mr", "--git-mode"]);
 const SUPPORTED_PRESETS = new Set(["governed", "full"]);
@@ -28,6 +42,13 @@ Usage:
   ai-agent-kit tools install --apply [--target <path>]
   ai-agent-kit prompts
   ai-agent-kit prompt <name>
+  ai-agent-kit runtime task create|status|transition [options]
+  ai-agent-kit runtime context add [options]
+  ai-agent-kit runtime plan revise [options]
+  ai-agent-kit runtime policy evaluate [options]
+  ai-agent-kit runtime evidence verify|export [options]
+  ai-agent-kit runtime memory propose|approve|query [options]
+  ai-agent-kit runtime eval score [options]
 
 Options:
   --target <path>          Repository to bootstrap. Defaults to the current directory.
@@ -46,6 +67,12 @@ Options:
   -h, --help               Show this help.
   -v, --version            Show CLI version.
 
+Governed runtime:
+  task create requires --id and accepts --approval-hash, --risk, --tool,
+  --path, --domain, --expires-at, --max-actions, and --target.
+  task transition requires --id, --to, and transition evidence as --evidence key=value.
+  policy evaluate requires --id and --tool; it records an allow/ask/deny receipt.
+
 Prompt names:
   start-task, plan-change, implement-approved, fix-bug,
   code-quality-review, review-pr, investigate-incident,
@@ -55,6 +82,70 @@ Safety:
   bootstrap is local only. It never stages, commits, pushes, creates branches,
   creates merge requests, updates Jira, deploys, or edits application source code.
   By default it is fast and policy-only: it does not install tools or refresh indexes.`;
+}
+
+export function parseRuntimeArgs(argv) {
+  const area = argv[0];
+  const action = argv[1];
+  const options = { target: process.cwd(), tools: [], paths: [], domains: [], evidence: {}, acceptanceCriteria: [], steps: [] };
+  const valueFlags = new Set([
+    "--target", "--id", "--to", "--approval-hash", "--risk", "--tool", "--path",
+    "--domain", "--expires-at", "--max-actions", "--command", "--evidence",
+    "--repository-commit", "--policy-revision", "--adapter", "--goal", "--acceptance",
+    "--kind", "--statement", "--source", "--confidence", "--trigger", "--step", "--title",
+    "--content", "--category", "--scope", "--source-commit", "--memory-id", "--approver",
+    "--review-date", "--query"
+  ]);
+  for (let index = 2; index < argv.length; index += 1) {
+    const flag = argv[index];
+    if (!valueFlags.has(flag)) throw new Error(`Unknown runtime option: ${flag}`);
+    const value = argv[++index];
+    if (!value) throw new Error(`${flag} requires a value`);
+    if (flag === "--tool") options.tools.push(value);
+    else if (flag === "--path") options.paths.push(value);
+    else if (flag === "--domain") options.domains.push(value);
+    else if (flag === "--acceptance") options.acceptanceCriteria.push(value);
+    else if (flag === "--step") options.steps.push(value);
+    else if (flag === "--evidence") {
+      const separator = value.indexOf("=");
+      if (separator < 1) throw new Error("--evidence requires key=value");
+      options.evidence[value.slice(0, separator)] = value.slice(separator + 1);
+    } else {
+      const key = flag.slice(2).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+      options[key] = value;
+    }
+  }
+  if (!["task", "context", "plan", "policy", "evidence", "memory", "eval"].includes(area)) {
+    throw new Error("runtime area must be task, context, plan, policy, evidence, memory, or eval");
+  }
+  if (!(area === "memory" && action === "query") && !options.id) throw new Error("runtime command requires --id");
+  return { area, action, options };
+}
+
+function runRuntime(argv) {
+  const { area, action, options } = parseRuntimeArgs(argv);
+  if (area === "task" && action === "create") {
+    return createTask({ ...options, tools: options.tools, paths: options.paths, domains: options.domains });
+  }
+  if (area === "task" && action === "status") return inspectTask(options);
+  if (area === "task" && action === "transition") return transitionTask(options);
+  if (area === "context" && action === "add") return addContext(options);
+  if (area === "plan" && action === "revise") return revisePlan(options);
+  if (area === "policy" && action === "evaluate") {
+    return evaluateAction({
+      ...options,
+      tool: options.tools[0],
+      path: options.paths[0],
+      domain: options.domains[0]
+    });
+  }
+  if (area === "evidence" && action === "verify") return verifyEvidence(options);
+  if (area === "evidence" && action === "export") return exportEvidence(options);
+  if (area === "memory" && action === "propose") return proposeMemory(options);
+  if (area === "memory" && action === "approve") return approveMemory(options);
+  if (area === "memory" && action === "query") return queryMemory(options);
+  if (area === "eval" && action === "score") return scoreTask(options);
+  throw new Error(`Unknown runtime command: ${area} ${action ?? ""}`.trim());
 }
 
 export function parseToolArgs(argv) {
@@ -241,6 +332,10 @@ export async function main(argv = process.argv.slice(2), io = console, deps = {}
     } else {
       io.log(renderToolInstall(applyToolPlan(options, deps)));
     }
+    return 0;
+  }
+  if (command === "runtime") {
+    io.log(JSON.stringify(runRuntime(argv.slice(1)), null, 2));
     return 0;
   }
   if (command !== "bootstrap") {
