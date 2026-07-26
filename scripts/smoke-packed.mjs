@@ -11,9 +11,15 @@ const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 const npxCommand = process.platform === "win32" ? "npx.cmd" : "npx";
 
 function execute(command, args, cwd) {
-  const result = spawnSync(command, args, { cwd, encoding: "utf8" });
+  const result = spawnSync(command, args, {
+    cwd,
+    encoding: "utf8",
+    shell: process.platform === "win32"
+  });
   if (result.status !== 0) {
-    throw new Error(`${command} ${args.join(" ")} failed:\n${result.stderr || result.stdout}`);
+    throw new Error(
+      `${command} ${args.join(" ")} failed:\n${result.stderr || result.stdout || result.error?.message || "unknown error"}`
+    );
   }
   return { stdout: result.stdout ?? "", stderr: result.stderr ?? "" };
 }
