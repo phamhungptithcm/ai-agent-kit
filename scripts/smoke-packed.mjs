@@ -11,7 +11,10 @@ const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 const npxCommand = process.platform === "win32" ? "npx.cmd" : "npx";
 
 function execute(command, args, cwd) {
-  const result = spawnSync(command, args, {
+  const spawnArgs = process.platform === "win32"
+    ? args.map((argument) => `"${argument.replaceAll('"', '\\"')}"`)
+    : args;
+  const result = spawnSync(command, spawnArgs, {
     cwd,
     encoding: "utf8",
     shell: process.platform === "win32"
