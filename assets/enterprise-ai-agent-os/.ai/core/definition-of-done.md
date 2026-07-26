@@ -15,3 +15,6 @@ Completed AI-assisted engineering work must be able to answer:
 - How can the change be rolled back?
 - Are there approved-safe memory candidates, or is the answer explicitly `None`?
 - What remains uncertain or unverified?
+- For public web changes, are canonical/indexing intent, crawler policy, structured data integrity, content claims, and verification evidence explicit?
+- For user-facing visual changes, are audience, design direction, existing-system fidelity, responsive composition, UI states, accessibility, motion, and screenshot or browser evidence explicit?
+- For material animation changes, are purpose, frequency, timing, reduced-motion behavior, interruption, cancellation, gesture parity, performance, compatibility, cleanup, and trace or browser evidence explicit?

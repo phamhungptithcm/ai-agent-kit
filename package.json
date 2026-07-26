@@ -1,6 +1,6 @@
 {
   "name": "@hunpeolabs/ai-agent-kit",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Bootstrap a repository-scoped AI agent operating system for Claude Code and Codex with CodeGraph and CocoIndex safety gates.",
   "type": "module",
   "bin": {

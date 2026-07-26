@@ -16,6 +16,9 @@ required_selection:
   - "select_language_profiles"
   - "select_platform_or_domain_profiles"
   - "select_cross_cutting_profiles"
+  - "select_seo_geo_profile_for_public_web_surfaces"
+  - "select_visual_design_profile_for_user_facing_surfaces"
+  - "select_animation_motion_profile_when_material_motion_exists"
   - "prefer_repository_defined_commands"
 required_statuses:
   - "PASSED"
@@ -37,6 +40,9 @@ must_review:
   - "security"
   - "observability"
   - "release_delivery_safety"
+  - "public_web_search_and_machine_discoverability"
+  - "context_aware_visual_design_and_state_completeness"
+  - "animation_purpose_interruptibility_accessibility_performance_and_lifecycle"
 missing_tooling:
   behavior: "report_gap_and_recommend_team_approved_tooling"
   autonomous_install_allowed: false

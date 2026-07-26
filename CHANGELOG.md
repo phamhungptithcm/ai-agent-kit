@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 0.2.0 - 2026-07-25
+
+- Added an evidence-based SEO/GEO quality profile, mandatory public-web rules, a plan/implement/audit skill, review template, workflow, prompt, and Web Growth Engineer adapters.
+- Added SEO/GEO golden cases covering metadata, raw HTML discoverability, schema fabrication, hreflang, crawler-policy separation, `llms.txt` claim boundaries, and private-route exclusions.
+- Added context-aware visual-design rules and quality profile, a four-mode design-taste skill, design brief/direction/review/state artifacts, public-website workflow composition, and Web Growth Engineer integration.
+- Added visual-design golden cases for generic AI layouts, design-system preservation, surface classification, regulated services, audit-first redesign, reference boundaries, motion, responsive states, localization, contrast, SEO/content integrity, evidence claims, and fabricated trust signals.
+- Added animation-integrity rules, a motion-engineering quality profile, a five-mode animation skill, motion brief/contract/inventory/review artifacts, public-website workflow composition, and Web Growth Engineer integration.
+- Added animation golden cases for purpose, frequency, explicit properties, timing, stale completion, resource cleanup, compositor layers, under-load performance, touch, gestures, reduced motion, persistent and scroll motion, stagger, focus, View Transitions, dependencies, compatibility, evidence claims, surface fit, and static SEO content.
+
 - Added read-only `status`, `doctor`, and managed `diff` lifecycle commands.
 - Added preview-only `update --dry-run` and `uninstall --dry-run` commands.
 - Added installation ownership metadata for future transactional lifecycle operations.

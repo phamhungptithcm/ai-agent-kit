@@ -32,6 +32,19 @@ goals:
   - "browser and device compatibility"
   - "privacy-preserving telemetry"
   - "observable and reversible delivery"
+  - "search and machine discoverability for public website surfaces"
+
+composes_when_publicly_discoverable:
+  - ".ai/quality-profiles/seo-geo.yaml"
+  - ".ai/rules/seo-geo.md"
+
+composes_for_user_facing_visual_changes:
+  - ".ai/quality-profiles/visual-design.yaml"
+  - ".ai/rules/visual-design-integrity.md"
+
+composes_when_material_animation_exists:
+  - ".ai/quality-profiles/animation-motion.yaml"
+  - ".ai/rules/animation-integrity.md"
 
 detect:
 
@@ -1275,4 +1288,3 @@ review_output:
       - "distinguish lab performance evidence from field performance evidence"
       - "identify all mixed-version, cache-invalidation, persisted-state, service-worker, and backend compatibility limitations"
       - "require explicit human approval for production deployment, security-policy weakening, broad third-party tracking, destructive persisted-state migration, or high-risk forced rollout"
-

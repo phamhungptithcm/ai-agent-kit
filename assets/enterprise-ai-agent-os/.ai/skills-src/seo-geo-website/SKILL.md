@@ -1,0 +1,60 @@
+---
+name: seo-geo-website
+description: Plan, implement, or audit public websites for technical SEO, structured discoverability, content integrity, and evidence-based generative engine readiness without unsupported ranking or visibility claims.
+---
+
+# SEO And GEO Website
+
+Use this skill for public websites, landing pages, documentation, publishers, local businesses, ecommerce, and SaaS marketing surfaces. Do not apply public discoverability requirements to authenticated or intentionally private applications without evidence that they are in scope.
+
+## Mode
+
+Select exactly one mode:
+
+- `plan`: define the page, entity, discovery, content, schema, and verification contract before implementation.
+- `implement`: make only the approved changes and preserve existing crawler, privacy, licensing, and product intent.
+- `audit`: inspect repository source, build output, or an explicitly supplied public URL without modifying the website.
+
+If the mode is not explicit, infer the narrowest safe mode from the request and state it.
+
+## Required Inputs And Discovery
+
+1. Run the `repository-intelligence` skill and load:
+   - `.ai/rules/seo-geo.md`
+   - `.ai/quality-profiles/web-app.yaml`
+   - `.ai/quality-profiles/seo-geo.yaml`
+2. Determine the site type: SaaS, ecommerce, local business, publisher, documentation, or general.
+3. Identify public page types, audiences, locales, primary entities, framework, rendering model, and deployment surface from evidence.
+4. Record unknown business facts instead of inventing them.
+5. For live checks, use only URLs and network access authorized by the task, respect rate limits and access controls, and record limitations.
+
+## Review Sequence
+
+1. Map public, canonical, indexable, localized, redirected, and excluded routes.
+2. Inspect titles, descriptions, canonical URLs, robots directives, social metadata, headings, and internal links.
+3. Inspect `robots.txt`, sitemaps, redirects, URL consistency, HTTP headers, and crawler-policy intent.
+4. Compare source or raw/build HTML with browser-rendered output when JavaScript can defer important content.
+5. Select structured-data types only from visible purpose and verified data; validate syntax and applicable properties.
+6. Review content for direct answers, entity clarity, authorship, dates, primary sources, factual support, and update history.
+7. Treat AI search retrieval, model training, search indexing, and preview controls as separate concerns.
+8. Treat `llms.txt` as optional and experimental. Never present it as access control or guaranteed visibility.
+9. Review mobile behavior, accessibility, Core Web Vitals evidence, and performance without substituting estimates for field data.
+10. Produce prioritized findings and verification steps.
+
+## Output Contract
+
+Use `.ai/templates/seo-geo-review.md`.
+
+For every material finding include:
+
+- affected route, page type, or configuration;
+- observed evidence;
+- evidence class: measured, source-verified, inferred, unavailable, or not applicable;
+- impact and severity;
+- smallest safe recommendation;
+- verification method;
+- remaining uncertainty.
+
+Never promise indexing, ranking, rich results, AI visibility, traffic, conversions, or citations. Never generate fake authorship, reviews, ratings, prices, availability, credentials, sources, or authority signals.
+
+In `plan` and `audit` modes, do not modify application files. In `implement` mode, require the existing approval workflow and validate the final diff against approved scope.

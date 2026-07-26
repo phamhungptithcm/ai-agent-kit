@@ -1,0 +1,83 @@
+---
+name: animation-design-engineering
+description: Find, direct, implement, review, or improve purposeful web animation with evidence-based timing, spatial continuity, interruptibility, gesture correctness, reduced-motion accessibility, performance, compatibility, and lifecycle safety.
+---
+
+# Animation Design Engineering
+
+Use this skill for material UI motion, transitions, gestures, animation architecture, or animation audits. Motion direction comes from the approved visual-design context; this skill owns animation engineering and evidence.
+
+## Mode
+
+Select exactly one:
+
+- `opportunities`: find places that genuinely benefit from motion and identify places that should remain static.
+- `direction`: define motion principles, vocabulary, tokens, reduced-motion behavior, and technique boundaries.
+- `implement`: implement only the approved animation contract and file or surface scope.
+- `review`: perform a strict read-only review of a component, flow, diff, or animation.
+- `improve`: inventory existing animations and produce a prioritized, independently executable improvement plan.
+
+`opportunities`, `direction`, `review`, and `improve` are read-only. `implement` requires approval evidence.
+
+## Required Context
+
+1. Run the `repository-intelligence` skill.
+2. Load:
+   - `.ai/rules/animation-integrity.md`;
+   - `.ai/quality-profiles/animation-motion.yaml`;
+   - `.ai/quality-profiles/visual-design.yaml`;
+   - `.ai/quality-profiles/concurrency.yaml`;
+   - `.ai/quality-profiles/memory.yaml`.
+3. Identify the surface, audience, task, existing motion language, frameworks, dependencies, supported browsers/devices, input methods, accessibility target, performance budget, and approved scope.
+4. Use the approved `MOTION_INTENSITY` from the design direction when present. Do not invent a universal default.
+
+## Animation Decision
+
+For each proposed or reviewed animation answer:
+
+1. Should this animate at all?
+2. What user, spatial, feedback, state, explanatory, continuity, or bounded delight purpose does it serve?
+3. How often does the user encounter it?
+4. What triggers it and which input modalities apply?
+5. Can it be retriggered, interrupted, reversed, canceled, backgrounded, or unmounted?
+6. What is the static or reduced-motion behavior?
+7. Which properties and browser rendering stages are affected?
+8. What owns cleanup and completion?
+9. Which evidence will validate correctness, accessibility, and cost?
+
+Reject animation that has no defensible purpose or makes frequent tasks slower.
+
+## Direction And Technique
+
+Define a vocabulary and tokens for enter, exit, feedback, reveal, crossfade, morph, shared transition, stagger, progress, spring, inertia, damping, and gesture behavior as applicable.
+
+Select a technique from repository evidence and behavior:
+
+- CSS transitions for simple interruptible state changes;
+- CSS animations for predetermined sequences;
+- Web Animations for browser-native programmatic control;
+- View Transitions for compatible shared page or route transitions;
+- existing approved motion or gesture libraries for dynamic physics;
+- existing approved timeline capability for complex coordination.
+
+These are starting points, not mandatory mappings. Check compatibility and fallbacks. Do not add dependencies autonomously.
+
+## Implementation Safety
+
+- Name animated properties explicitly.
+- Preserve deterministic SSR and hydration state.
+- Keep content and controls usable without animation.
+- Handle rapid repeats, cancellation, reversal, route changes, background tabs, and unmount.
+- Prevent stale callbacks and double side effects.
+- Clean up rAF, timers, handles, observers, listeners, subscriptions, and pointer capture.
+- Scope `will-change` and compositor layers.
+- Keep reduced-motion behavior equivalent and understandable.
+- Stop for delta approval when implementation requires new dependencies, broader design-system changes, framework changes, or unapproved behavior.
+
+## Review And Evidence
+
+Use `.ai/templates/animation-review.md`.
+
+Inspect at normal speed and slow motion or frame-by-frame where practical. Test reduced motion, repeated and interrupted actions, representative keyboard/pointer/touch input, content loading, route changes, cancellation, backgrounding, and unmount behavior.
+
+For each finding include severity, location, current behavior, recommended behavior, why, evidence class, and verification. Do not claim smoothness, frame rate, hardware acceleration, accessibility, or negligible cost without evidence.

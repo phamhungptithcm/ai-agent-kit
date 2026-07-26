@@ -1,0 +1,119 @@
+version: 1
+
+id: animation-motion
+
+name: Animation And Motion Engineering Quality Profile
+
+description:
+  Standards for purposeful motion, timing, spatial continuity,
+  interruptibility, gesture correctness, accessibility, performance,
+  compatibility, lifecycle cleanup, and evidence-backed animation review.
+
+applies_when:
+  - "CSS transition, animation, keyframes, starting-style, scroll timeline, or view transition changes"
+  - "Web Animations API or requestAnimationFrame changes"
+  - "an animation, gesture, physics, scroll, canvas, SVG, WebGL, Lottie, or motion library is introduced or changed"
+  - "drag, swipe, pinch, pointer capture, inertia, damping, or spring behavior changes"
+  - "route, overlay, list, layout, loading, progress, feedback, or shared-element transitions change"
+
+compose_with:
+  - ".ai/quality-profiles/universal.yaml"
+  - ".ai/quality-profiles/frontend-html-css.yaml"
+  - ".ai/quality-profiles/web-app.yaml"
+  - ".ai/quality-profiles/visual-design.yaml"
+  - ".ai/quality-profiles/concurrency.yaml"
+  - ".ai/quality-profiles/memory.yaml"
+  - ".ai/rules/animation-integrity.md"
+
+detect:
+  source_signals:
+    - "transition:"
+    - "animation:"
+    - "@keyframes"
+    - "@starting-style"
+    - "view-transition"
+    - "scroll-timeline"
+    - "animation-timeline"
+    - "Element.animate"
+    - "requestAnimationFrame"
+    - "IntersectionObserver"
+    - "pointercapture"
+    - "motion/react"
+    - "framer-motion"
+    - "gsap"
+    - "react-spring"
+    - "animejs"
+    - "lottie"
+
+required_review:
+  decision:
+    - "animation purpose, user benefit, frequency, trigger, task criticality, and essential-or-decorative status are explicit"
+    - "the no-animation option was considered"
+    - "motion direction and intensity match the approved visual-design context"
+    - "animation does not delay input, feedback, navigation, or task completion without a user benefit"
+  timing_and_spatial_behavior:
+    - "duration, delay, easing or spring, enter, exit, transform origin, direction, and total sequence time are intentional"
+    - "enter and exit asymmetry is deliberate where present"
+    - "spatial transitions preserve understandable origin and destination relationships"
+    - "stagger does not block interaction or make frequent tasks feel slow"
+  interruptibility:
+    - "rapid retriggering, reversal, cancellation, route changes, unmount, and background-tab behavior are defined"
+    - "completion callbacks cannot apply stale state"
+    - "dynamic interactions retarget or cancel safely"
+    - "animation failure does not leave content hidden, controls disabled, or state inconsistent"
+  gestures:
+    - "pointer capture, cancellation, bounds, threshold, velocity, damping, multi-touch, and input parity are reviewed where applicable"
+    - "gesture alternatives exist where required"
+    - "touch does not accidentally trigger hover-only animation"
+    - "scroll motion does not hijack navigation or hide content"
+  accessibility:
+    - "reduced-motion behavior removes or replaces non-essential vestibular movement"
+    - "motion is not the only state or meaning signal"
+    - "focus, keyboard operation, announcements, pause or stop needs, and assistive-technology behavior remain correct"
+    - "flashing, persistent movement, parallax, large scaling, panning, and zooming risks are reviewed"
+  performance:
+    - "transition properties are explicit and transition-all is absent"
+    - "layout, paint, composite, main-thread, input, memory, layer, battery, and mobile-device costs are reviewed"
+    - "geometry, filters, blur, shadows, masks, SVG, canvas, WebGL, video, and animated media have evidence proportional to risk"
+    - "performance is checked under representative loading or main-thread activity"
+    - "will-change and compositor layers are scoped and released"
+  lifecycle:
+    - "animation handles, requestAnimationFrame, timers, observers, listeners, subscriptions, and pointer capture are cleaned up"
+    - "offscreen, hidden, backgrounded, canceled, and unmounted work stops when appropriate"
+    - "SSR, hydration, and initial animation state are deterministic"
+    - "repeated execution does not duplicate work or leak resources"
+  dependencies_and_compatibility:
+    - "existing repository capabilities are preferred"
+    - "new dependencies have maintenance, size, security, license, compatibility, and ownership review"
+    - "emerging CSS or browser APIs have support and fallback evidence"
+    - "the selected technique matches static, programmatic, gesture-driven, shared-transition, or timeline needs"
+  evidence:
+    - "normal-speed and slow-motion or frame inspection is reported where practical"
+    - "reduced-motion, repeated, interrupted, canceled, and representative input behavior is tested"
+    - "trace, device, browser, layout-stability, console, and lifecycle evidence is reported or marked unavailable"
+    - "smoothness, frame rate, acceleration, accessibility, and performance claims are bounded by actual evidence"
+
+technique_starting_points:
+  - "simple hover, color, opacity, or known state: CSS transition"
+  - "known enter or exit sequence: CSS transition or animation"
+  - "programmatic browser-native control: Web Animations API"
+  - "shared page or route transition: View Transitions when compatible and safe"
+  - "dynamic gesture, drag, or physics: existing approved motion or gesture capability"
+  - "complex timeline: existing approved timeline capability"
+  - "scroll reveal: static-first CSS or observer approach with accessible fallback"
+
+preferred_checks:
+  - "repository-defined browser and component tests"
+  - "browser animation inspector with replay, slowdown, and scrubbing"
+  - "browser performance trace under representative load"
+  - "reduced-motion emulation"
+  - "CPU throttling and representative mobile hardware where risk warrants"
+  - "repeated, interrupted, reversed, canceled, backgrounded, and unmounted interaction tests"
+  - "layout-shift, console, memory, listener, observer, and animation-handle inspection"
+
+agent_constraints:
+  - "do not add motion merely to make the interface look polished"
+  - "do not turn contextual timing, easing, spring, or property preferences into universal laws"
+  - "do not add or replace an animation library without approved dependency scope"
+  - "do not claim smoothness or frame rate from visual inspection alone"
+  - "do not hide essential SEO content or interactive controls until animation completes"

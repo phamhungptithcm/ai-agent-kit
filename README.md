@@ -140,6 +140,7 @@ Team members can ask for a role instead of remembering every skill name:
 | QA Lead | `test-strategy` + `code-quality-review` + `delivery-documentation` |
 | Release Manager | `release-readiness` + `delivery-documentation` + `jira-completion-package` |
 | Tech Lead | `change-impact-plan` + `architecture-review` + `repository-health` |
+| Web Growth Engineer | `start-task` + `design-taste-website` + `animation-design-engineering` + `seo-geo-website` + `implement-feature` + `code-quality-review` + `test-strategy` |
 
 ## Quick Start
 
@@ -160,7 +161,16 @@ npx --yes @hunpeolabs/ai-agent-kit@latest prompts
 npx --yes @hunpeolabs/ai-agent-kit@latest prompt start-task
 npx --yes @hunpeolabs/ai-agent-kit@latest prompt plan-change
 npx --yes @hunpeolabs/ai-agent-kit@latest prompt code-quality-review
+npx --yes @hunpeolabs/ai-agent-kit@latest prompt build-seo-geo-website
+npx --yes @hunpeolabs/ai-agent-kit@latest prompt design-website
+npx --yes @hunpeolabs/ai-agent-kit@latest prompt animate-interface
 ```
+
+For public websites, the kit composes the `web-app`, `frontend-html-css`, and `seo-geo` quality profiles. The `seo-geo-website` skill supports plan, approved implementation, and read-only audit modes while preventing fabricated schema data and unsupported ranking or AI-visibility claims.
+
+For user-facing visual work, the kit adds a context-aware `visual-design` profile and `design-taste-website` skill. It supports direction, approved implementation, audit-first redesign, and read-only review without hard-coding a framework, font, icon set, animation library, or universal aesthetic. Project-owned brand and design-system guidance remains authoritative.
+
+Material motion composes the `animation-motion` profile and `animation-design-engineering` skill. The skill can find opportunities, define direction, implement approved motion, perform strict review, or inventory improvements while requiring purpose, reduced-motion behavior, interruptibility, compatibility, performance, cleanup, and browser or trace evidence.
 
 Preview the planned files without writing anything:
 
