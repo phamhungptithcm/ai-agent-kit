@@ -57,12 +57,14 @@ def required_paths() -> list[str]:
         ".ai/core/risk-model.md",
         ".ai/core/definition-of-done.md",
         ".ai/core/output-contract.md",
+        ".ai/core/governed-runtime.md",
         ".ai/context/architecture.md",
         ".ai/context/glossary.md",
         ".ai/context/repository-map.md",
         ".ai/context/build-test-commands.md",
         ".ai/context/ownership.md",
         ".ai/context/agent-roles.md",
+        ".ai/context/mcp-trust-registry.yaml",
         ".ai/rules/engineering.md",
         ".ai/rules/security.md",
         ".ai/rules/testing.md",
@@ -117,6 +119,8 @@ def required_paths() -> list[str]:
         ".ai/templates/motion-contract.md",
         ".ai/templates/animation-inventory.md",
         ".ai/templates/animation-review.md",
+        ".ai/templates/capability.json",
+        ".ai/templates/evidence-bundle.json",
         ".ai/guards/policy.yaml",
         ".ai/guards/repository-intelligence-gate.yaml",
         ".ai/guards/implementation-approval-gate.yaml",
@@ -126,11 +130,17 @@ def required_paths() -> list[str]:
         ".ai/guards/dependency-policy.yaml",
         ".ai/guards/sensitive-data-policy.yaml",
         ".ai/guards/change-risk-rules.yaml",
+        ".ai/guards/capability-policy.yaml",
+        ".ai/guards/sandbox-and-secrets.yaml",
         ".ai/evals/README.md",
+        ".ai/evals/behavioral-cases.json",
         ".ai/evals/scorecard.yaml",
         ".ai/evals/golden-cases.yaml",
+        ".ai/scripts/enforce_command_policy.py",
+        ".ai/scripts/evaluate_agent_behavior.py",
         ".ai/scripts/sync_agent_assets.py",
         ".ai/scripts/validate_agent_config.py",
+        ".ai/scripts/validate_implementation_approval.py",
         ".ai/scripts/test_agent_policies.py",
         ".ai/scripts/generate_delivery_artifacts.py",
         ".ai/scripts/repository_intelligence_lib.py",
@@ -142,6 +152,7 @@ def required_paths() -> list[str]:
         ".ai/scripts/bootstrap-repository-intelligence.sh",
         ".ai/docs/repository-intelligence-guide.md",
         ".ai/docs/agent-adapter-strategy.md",
+        ".ai/docs/governed-runtime-guide.md",
         ".ai/quality-profiles/universal.yaml",
         ".ai/quality-profiles/go.yaml",
         ".ai/quality-profiles/java.yaml",
@@ -160,6 +171,7 @@ def required_paths() -> list[str]:
         ".ai/quality-profiles/database.yaml",
         ".ai/quality-profiles/concurrency.yaml",
         ".ai/quality-profiles/memory.yaml",
+        ".ai/quality-profiles/governance-maturity.yaml",
         ".mcp.json",
         ".codex/config.toml",
         ".codex/hooks.json",
@@ -213,8 +225,10 @@ def validate_root_links(root: Path, errors: list[str]) -> None:
         ".ai/core/memory-policy.md",
         ".ai/core/risk-model.md",
         ".ai/core/output-contract.md",
+        ".ai/core/governed-runtime.md",
         ".ai/guards/memory-governance.yaml",
         ".ai/guards/code-quality-profile-gate.yaml",
+        ".ai/guards/capability-policy.yaml",
         ".ai/templates/memory-entry.yaml",
         ".ai/quality-profiles/",
         ".ai/context/repository-map.md",
@@ -313,6 +327,10 @@ def validate_hooks(root: Path, errors: list[str]) -> None:
     joined = "\n".join(commands)
     if "bootstrap-repository-intelligence" not in joined and "check-repository-intelligence" not in joined:
         fail(errors, "session hooks do not invoke the Repository Intelligence Gate")
+    if "validate_implementation_approval.py --hook" not in joined:
+        fail(errors, "pre-tool hooks do not enforce tracked implementation approval")
+    if "enforce_command_policy.py --hook" not in joined:
+        fail(errors, "pre-tool hooks do not enforce command policy")
 
 
 def validate_delivery_templates(root: Path, errors: list[str]) -> None:
@@ -331,7 +349,7 @@ def validate_delivery_templates(root: Path, errors: list[str]) -> None:
             "Reason No Other Area Is Changed",
             "Approval Decision Requested",
         ],
-        ".ai/templates/implementation-approval-record.md": ["Repository intelligence gate status", "Indexed analysis reviewed", "Approval status", "Approver", "Approved scope", "Delta approval required"],
+        ".ai/templates/implementation-approval-record.md": ["Repository intelligence gate status", "Indexed analysis reviewed", "Approval status", "Approver", "Approved scope", "Approved paths", "Delta approval required"],
         ".ai/templates/code-quality-review.md": ["Detected Stack", "Application/platform/domain", "Selected Quality Profiles", "Platform/domain profiles", "Quality Checks", "Language/version best practices", "Platform/domain best practices", "Database connection and transaction safety", "Concurrency/deadlock/leak risk", "Heap/resource memory risk", "Release/deployment safety"],
         ".ai/templates/memory-entry.yaml": ["title:", "category:", "scope:", "content:", "source:", "confidence:", "status:", "approver:", "review_date:"],
         ".ai/templates/repository-intelligence-brief.md": ["Gate Status", "Indexed Facts", "Source-Code Verified Facts", "Relevant Modules", "Entry Points And Call Paths", "Potential Impact Areas"],
@@ -836,6 +854,21 @@ def validate_codex_rules_available(root: Path, errors: list[str], quick: bool) -
         fail(errors, f"codex execpolicy check failed: {result.stderr.strip() or result.stdout.strip()}")
 
 
+def validate_governed_runtime(root: Path, errors: list[str]) -> None:
+    runtime = read(root / ".ai" / "core" / "governed-runtime.md")
+    for fragment in ["DISCOVER", "PLAN_READY", "APPROVED", "IMPLEMENTING", "VERIFYING", "REVIEW_READY", "RELEASED", "allow", "ask", "deny"]:
+        if fragment not in runtime:
+            fail(errors, f"governed runtime missing contract fragment: {fragment}")
+    capability = read(root / ".ai" / "guards" / "capability-policy.yaml")
+    for fragment in ["expires_at", "max_actions", "approval_hash", "CRITICAL_AUTONOMOUS_EXECUTION_FORBIDDEN"]:
+        if fragment not in capability:
+            fail(errors, f"capability policy missing fragment: {fragment}")
+    registry = read(root / ".ai" / "context" / "mcp-trust-registry.yaml")
+    for fragment in ["default_trust: deny", "executable_or_image_digest", "review_expires"]:
+        if fragment not in registry:
+            fail(errors, f"MCP trust registry missing fragment: {fragment}")
+
+
 def validate(quick: bool = False) -> int:
     root = repo_root()
     errors: list[str] = []
@@ -855,6 +888,7 @@ def validate(quick: bool = False) -> int:
     validate_secret_like_values(root, errors)
     validate_instruction_budgets(root, errors)
     validate_codex_rules_available(root, errors, quick)
+    validate_governed_runtime(root, errors)
 
     if errors:
         for error in errors:

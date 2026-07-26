@@ -13,6 +13,32 @@
     ]
   },
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .ai/scripts/validate_implementation_approval.py --hook",
+            "commandWindows": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$p='.ai\\scripts\\validate_implementation_approval.py'; if (Get-Command py -ErrorAction SilentlyContinue) { py -3 $p --hook } elseif (Get-Command python -ErrorAction SilentlyContinue) { python $p --hook } elseif (Get-Command uv -ErrorAction SilentlyContinue) { uv run --python 3.11 python $p --hook } else { exit 1 }\"",
+            "timeout": 30,
+            "statusMessage": "Checking tracked implementation approval"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .ai/scripts/enforce_command_policy.py --hook",
+            "commandWindows": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$p='.ai\\scripts\\enforce_command_policy.py'; if (Get-Command py -ErrorAction SilentlyContinue) { py -3 $p --hook } elseif (Get-Command python -ErrorAction SilentlyContinue) { python $p --hook } elseif (Get-Command uv -ErrorAction SilentlyContinue) { uv run --python 3.11 python $p --hook } else { exit 1 }\"",
+            "timeout": 30,
+            "statusMessage": "Checking command policy"
+          }
+        ]
+      }
+    ],
     "SessionStart": [
       {
         "matcher": "startup|resume|clear|compact",

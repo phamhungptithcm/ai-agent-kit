@@ -14,6 +14,10 @@ Approval timestamp or task reference:
 
 Approved scope:
 
+Approved paths:
+
+- `TODO(owner): exact/file/or/approved-prefix/**`
+
 Required constraints:
 
 Explicit exclusions:

@@ -28,6 +28,7 @@ export function gitignoreSection() {
 .cocoindex_code/
 .ai-agent-kit/backups/
 .ai-agent-kit/transactions/
+.ai-agent-kit/runtime/
 `);
 }
 

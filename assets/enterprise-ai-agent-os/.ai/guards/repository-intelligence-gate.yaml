@@ -1,6 +1,7 @@
 version: 1
 name: repository-intelligence-gate
-owner: "TODO(owner): assign platform or architecture owner"
+owner: "repository maintainers"
+escalation: "Escalate blocked gates, policy conflicts, and bypass requests to the repository CODEOWNERS or designated platform/security maintainer."
 mode: fail-closed
 purpose: >
   Require CodeGraph and CocoIndex evidence before brainstorming, planning,

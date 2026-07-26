@@ -6,13 +6,18 @@ import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { loadScaffoldFiles } from "../src/assets.mjs";
 import { bootstrap } from "../src/bootstrap.mjs";
-import { main, parseBootstrapArgs, parseTargetArgs, parseToolArgs } from "../src/cli.mjs";
+import { main, parseBootstrapArgs, parseRuntimeArgs, parseTargetArgs, parseToolArgs } from "../src/cli.mjs";
 import { parseContractManifest } from "../src/contract.mjs";
 import { detectProfile } from "../src/detect.mjs";
 import { verifyOwnership } from "../src/ownership.mjs";
 import { assertAllowedCommand } from "../src/runner.mjs";
 import { installMissingTools, TOOL_SPECS } from "../src/tools.mjs";
 import { getPackageVersion } from "../src/version.mjs";
+import {
+  addContext, approveMemory, createTask, evaluateAction, proposeMemory, queryMemory,
+  revisePlan, scoreTask, transitionTask, verifyEvidence
+} from "../src/governed-runtime.mjs";
+import { generateSbom } from "../scripts/generate-sbom.mjs";
 
 function run(command, args, cwd) {
   const result = spawnSync(command, args, { cwd, encoding: "utf8" });
@@ -112,6 +117,10 @@ test("bootstrap creates local AI-agent files without staging, branch, commit, pu
   assert.ok(fs.existsSync(path.join(root, ".ai", "core", "memory-policy.md")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "guards", "code-quality-profile-gate.yaml")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "guards", "memory-governance.yaml")));
+  assert.ok(fs.existsSync(path.join(root, ".ai", "scripts", "enforce_command_policy.py")));
+  assert.ok(fs.existsSync(path.join(root, ".ai", "scripts", "evaluate_agent_behavior.py")));
+  assert.ok(fs.existsSync(path.join(root, ".ai", "scripts", "validate_implementation_approval.py")));
+  assert.ok(fs.existsSync(path.join(root, ".ai", "evals", "behavioral-cases.json")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "templates", "code-quality-review.md")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "templates", "memory-entry.yaml")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "quality-profiles", "go.yaml")));
@@ -571,4 +580,142 @@ test("runner blocks forbidden Git and remote API operations", () => {
   assert.throws(() => assertAllowedCommand("git", ["push"]), /Forbidden Git operation/);
   assert.throws(() => assertAllowedCommand("curl", ["https://gitlab.com/api/v4/projects"]), /Forbidden remote API/);
   assert.throws(() => assertAllowedCommand("curl", ["https://example.atlassian.net/rest/api/3/issue"]), /Forbidden remote API/);
+});
+
+test("command policy classifies safe, review-required, and forbidden commands", () => {
+  const script = path.resolve("assets/enterprise-ai-agent-os/.ai/scripts/enforce_command_policy.py");
+  const safe = spawnSync("python3", [script, "--command", "npm test", "--json"], { encoding: "utf8" });
+  assert.equal(safe.status, 0);
+  assert.equal(JSON.parse(safe.stdout).decision, "allow");
+
+  const review = spawnSync("python3", [script, "--command", "git push origin main", "--json"], { encoding: "utf8" });
+  assert.equal(review.status, 1);
+  assert.equal(JSON.parse(review.stdout).decision, "ask");
+
+  const forbidden = spawnSync("python3", [script, "--command", "rm -rf build", "--json"], { encoding: "utf8" });
+  assert.equal(forbidden.status, 2);
+  assert.equal(JSON.parse(forbidden.stdout).decision, "deny");
+});
+
+test("approval validator binds approved paths to the actual diff", () => {
+  const root = makeRepo("approval-diff");
+  const script = path.resolve("assets/enterprise-ai-agent-os/.ai/scripts/validate_implementation_approval.py");
+  const record = path.join(root, "approval.md");
+  fs.writeFileSync(
+    record,
+    [
+      "# Implementation Approval Record",
+      "Plan ID/version: TEST-V1",
+      "Repository intelligence gate status: READY",
+      "Approval status: APPROVED",
+      "Approver: Test Owner",
+      "Approval timestamp or task reference: test",
+      "Approved paths:",
+      "- `README.md`",
+      ""
+    ].join("\n")
+  );
+  run("git", ["add", "approval.md"], root);
+  run("git", ["commit", "-m", "track approval"], root);
+  fs.appendFileSync(path.join(root, "README.md"), "approved change\n");
+  const approved = spawnSync(
+    "python3",
+    [script, "--record", record, "--base-ref", "HEAD"],
+    { cwd: root, encoding: "utf8" }
+  );
+  assert.equal(approved.status, 0, approved.stderr);
+
+  fs.writeFileSync(path.join(root, "outside.txt"), "not approved\n");
+  const rejected = spawnSync(
+    "python3",
+    [script, "--record", record, "--base-ref", "HEAD"],
+    { cwd: root, encoding: "utf8" }
+  );
+  assert.equal(rejected.status, 1);
+  assert.match(rejected.stderr, /outside approved scope: outside\.txt/);
+});
+
+test("behavioral evaluation schema is executable without model credentials", () => {
+  const script = path.resolve("assets/enterprise-ai-agent-os/.ai/scripts/evaluate_agent_behavior.py");
+  const result = spawnSync("python3", [script], { encoding: "utf8" });
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /10 cases, schema validation/);
+});
+
+test("governed runtime enforces state, capability, policy, and evidence integrity", () => {
+  const root = makeRepo("governed-runtime");
+  const task = createTask({
+    target: root,
+    id: "TASK-123",
+    goal: "Implement and verify the approved runtime change",
+    acceptanceCriteria: ["Policy decisions are recorded", "Evidence verifies"],
+    approvalHash: "approved-hash",
+    risk: "medium",
+    tools: ["read", "edit", "shell"],
+    paths: ["src/**"],
+    maxActions: 10
+  });
+  assert.equal(task.state, "DISCOVER");
+  assert.throws(() => transitionTask({ target: root, id: task.id, to: "APPROVED", evidence: {} }), /invalid transition/);
+  transitionTask({ target: root, id: task.id, to: "ANALYZE", evidence: {} });
+  addContext({ target: root, id: task.id, kind: "fact", statement: "Runtime source inspected", source: "codegraph://governed-runtime" });
+  revisePlan({ target: root, id: task.id, trigger: "Repository evidence collected", steps: ["Implement runtime", "Run tests"] });
+  transitionTask({ target: root, id: task.id, to: "PLAN_READY", evidence: { repository_intelligence: "READY" } });
+  transitionTask({
+    target: root,
+    id: task.id,
+    to: "APPROVED",
+    evidence: { approval_hash: "approved-hash", approver: "Repository Owner" }
+  });
+  const approved = JSON.parse(fs.readFileSync(path.join(root, ".ai-agent-kit/runtime/tasks/TASK-123.json"), "utf8"));
+  transitionTask({
+    target: root,
+    id: task.id,
+    to: "IMPLEMENTING",
+    evidence: { capability_hash: approved.capability_hash }
+  });
+
+  assert.equal(evaluateAction({ target: root, id: task.id, tool: "edit", path: "src/example.mjs" }).decision, "allow");
+  assert.equal(evaluateAction({ target: root, id: task.id, tool: "edit", path: "docs/example.md" }).reason_code, "PATH_NOT_ALLOWED");
+  assert.equal(
+    evaluateAction({ target: root, id: task.id, tool: "shell", path: "src/example.mjs", command: "terraform destroy" }).reason_code,
+    "CRITICAL_MUTATION_FORBIDDEN"
+  );
+  assert.equal(verifyEvidence({ target: root, id: task.id }).status, "VERIFIED");
+  assert.equal(scoreTask({ target: root, id: task.id }).score, 1);
+
+  const proposed = proposeMemory({
+    target: root, id: task.id, title: "Runtime verification",
+    content: "Verify the evidence ledger before completion.", source: "TASK-123", confidence: 0.9
+  });
+  assert.deepEqual(queryMemory({ target: root, query: "ledger" }), []);
+  approveMemory({ target: root, memoryId: proposed.id, approver: "Repository Owner" });
+  assert.equal(queryMemory({ target: root, query: "ledger" }).length, 1);
+
+  const ledger = path.join(root, ".ai-agent-kit/runtime/evidence/TASK-123.jsonl");
+  fs.appendFileSync(ledger, `${JSON.stringify({ receipt_hash: "tampered", previous_receipt_hash: null })}\n`);
+  assert.equal(verifyEvidence({ target: root, id: task.id }).status, "REJECTED");
+});
+
+test("runtime CLI parser preserves repeated capabilities and evidence", () => {
+  const parsed = parseRuntimeArgs([
+    "task", "create", "--id", "TASK-7", "--tool", "read", "--tool", "edit",
+    "--path", "src/**", "--goal", "Ship safely", "--acceptance", "Tests pass", "--evidence", "tests=passed"
+  ]);
+  assert.deepEqual(parsed.options.tools, ["read", "edit"]);
+  assert.deepEqual(parsed.options.paths, ["src/**"]);
+  assert.equal(parsed.options.evidence.tests, "passed");
+  assert.equal(parsed.options.goal, "Ship safely");
+  assert.deepEqual(parsed.options.acceptanceCriteria, ["Tests pass"]);
+});
+
+test("build SBOM is valid SPDX and contains the package version", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "ai-agent-kit-sbom-"));
+  fs.copyFileSync("package.json", path.join(root, "package.json"));
+  fs.copyFileSync("package-lock.json", path.join(root, "package-lock.json"));
+  const target = generateSbom({ root });
+  const sbom = JSON.parse(fs.readFileSync(target, "utf8"));
+  assert.equal(sbom.spdxVersion, "SPDX-2.3");
+  assert.match(sbom.name, /ai-agent-kit-0\.3\.0/);
+  assert.ok(sbom.packages.length >= 1);
 });

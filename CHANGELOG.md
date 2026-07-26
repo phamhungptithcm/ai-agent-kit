@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 0.3.0 - 2026-07-26
+
+- Added executable approval-to-diff validation, protected-edit and command-policy hooks, offline behavioral safety evaluations, and explicit repository-maintainer governance ownership.
+- Added a deterministic governed runtime with sequential task states, transition evidence, task-scoped capabilities, expiry, action budgets, risk ceilings, and stable policy reason codes.
+- Added privacy-minimized hash-linked action receipts, OpenTelemetry-compatible JSONL spans, independent evidence verification, and evidence export.
+- Added MCP trust registry, sandbox and secret-broker contracts, four governance maturity profiles, capability/evidence templates, and a governed-runtime skill.
+- Added an SPDX 2.3 SBOM to built and published packages and expanded runtime, policy, tamper-detection, and behavioral regression coverage.
+- Added goal contracts, sourced facts, explicit assumptions, adaptive plan revisions, human-approved provenance-aware memory, and deterministic task-intelligence scoring.
+
 ## 0.2.0 - 2026-07-25
 
 - Added an evidence-based SEO/GEO quality profile, mandatory public-web rules, a plan/implement/audit skill, review template, workflow, prompt, and Web Growth Engineer adapters.

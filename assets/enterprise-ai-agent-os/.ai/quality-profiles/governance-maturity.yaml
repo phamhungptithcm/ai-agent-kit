@@ -1,0 +1,16 @@
+version: 1
+profiles:
+  assist:
+    use: prototype_and_local_read_only
+    enforcement: warn
+  governed:
+    use: team_development
+    enforcement: approval_diff_hooks_evidence
+  regulated:
+    use: sensitive_or_compliance_work
+    enforcement: signed_approval_independent_verifier_full_audit
+  autonomous-safe:
+    use: unattended_low_risk_only
+    enforcement: sandbox_capability_budget_automatic_rollback
+    critical_operations: forbidden
+default: governed

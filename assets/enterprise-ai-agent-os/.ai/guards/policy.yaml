@@ -16,6 +16,8 @@ validation:
     - "python .ai/scripts/sync_agent_assets.py --check"
     - "python .ai/scripts/validate_agent_config.py"
     - "python .ai/scripts/test_agent_policies.py"
+    - "python .ai/scripts/evaluate_agent_behavior.py"
+    - "python .ai/scripts/validate_implementation_approval.py --base-ref <approved-base-ref>"
 quality_gates:
   required: true
   statuses:

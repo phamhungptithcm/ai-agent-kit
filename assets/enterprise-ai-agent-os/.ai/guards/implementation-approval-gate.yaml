@@ -29,5 +29,10 @@ evidence_sources:
   - "tracked approval record"
   - "PR/MR metadata"
   - "repository-approved work-item metadata"
+executable_validation:
+  approval_record_default: ".ai/local/implementation-approval.md"
+  target_check: "python .ai/scripts/validate_implementation_approval.py --path <path>"
+  diff_check: "python .ai/scripts/validate_implementation_approval.py --base-ref <approved-base-ref>"
+  hook: "python .ai/scripts/validate_implementation_approval.py --hook"
 not_sufficient:
   - "free-form agent statement that approval occurred"

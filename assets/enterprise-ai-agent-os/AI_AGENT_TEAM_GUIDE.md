@@ -91,6 +91,20 @@ Agents must not access production systems, run datafixes, rotate credentials, di
 
 Existing-system changes require the Repository Intelligence Gate, indexed analysis, multi-agent brainstorming, a concrete impact/implementation plan, and explicit human approval before protected files are edited. Use `.ai/templates/repository-intelligence-brief.md`, `.ai/templates/change-impact-plan.md`, and `.ai/templates/implementation-approval-record.md`. A vague assignment, branch creation, or request like "start working" is not approval.
 
+Store the active record at `.ai/local/implementation-approval.md` or set `AI_AGENT_APPROVAL_RECORD`. Protected edit hooks validate each target path, and the completion gate compares the complete Git diff to the approved paths:
+
+```bash
+python .ai/scripts/validate_implementation_approval.py --base-ref <approved-base-ref>
+```
+
+Repository maintainers own governance policy. Escalate gate failures, policy conflicts, or emergency bypass requests to CODEOWNERS or the designated platform/security maintainer; agents cannot authorize their own bypass.
+
+## Governed Runtime
+
+Protected or unattended work should use the executable state machine and capability policy documented in `.ai/docs/governed-runtime-guide.md`. Every action must remain within its tool/path/domain/risk budget and produce an allow, ask, or deny receipt. Stop on ask/deny. A separate verifier must validate the hash-linked ledger and completion evidence before release readiness is claimed.
+
+Use `assist`, `governed`, `regulated`, or `autonomous-safe` maturity guidance from `.ai/quality-profiles/governance-maturity.yaml`. `autonomous-safe` is restricted to sandboxed low-risk work; critical operations remain human procedures only.
+
 ## Documentation And Traceability
 
 Every implementation should update affected docs, specs, diagrams, runbooks, API contracts, or ADRs in the same change set, or include a specific no-change rationale. Diagrams should be text-based source such as Mermaid when practical.
