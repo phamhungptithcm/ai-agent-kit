@@ -1,7 +1,7 @@
 {
   "name": "@hunpeolabs/ai-agent-kit",
-  "version": "0.3.0",
-  "description": "Bootstrap a repository-scoped AI agent operating system for Claude Code and Codex with CodeGraph and CocoIndex safety gates.",
+  "version": "0.4.0",
+  "description": "Governed AI coding agent workflows for Claude Code and Codex with repository intelligence, quality profiles, approval gates, and evidence.",
   "type": "module",
   "bin": {
     "ai-agent-kit": "./dist/bin/ai-agent-kit.mjs"
@@ -9,12 +9,18 @@
   "keywords": [
     "ai-agent",
     "ai-agents",
+    "ai-coding-agent",
+    "agentic-coding",
     "agent-os",
+    "ai-governance",
+    "engineering-ai",
+    "enterprise-ai",
     "codex",
     "claude-code",
     "codegraph",
     "cocoindex",
     "repository-intelligence",
+    "software-engineering-ai",
     "developer-productivity",
     "qa-automation",
     "code-review",

@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 0.4.0 - 2026-07-26
+
+- Reworked the README for adoption and search discovery with a conversion-first hero, proof-oriented demo asset, outcome-led use cases, shipped-versus-roadmap support, a concise operating-model comparison, and role-based documentation paths.
+- Added complete, provenance-correct release highlights from `0.1.0` through `0.4.0`.
+- Expanded npm package description and keywords for accurate AI coding agent, Claude Code, Codex, repository-intelligence, and AI-governance discovery.
+
 ## 0.3.0 - 2026-07-26
 
 - Added executable approval-to-diff validation, protected-edit and command-policy hooks, offline behavioral safety evaluations, and explicit repository-maintainer governance ownership.

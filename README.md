@@ -1,286 +1,193 @@
-# @hunpeolabs/ai-agent-kit
+# AI Agent Kit — Governed AI Coding Agents for Claude Code and Codex
 
-[![npm version](https://img.shields.io/npm/v/@hunpeolabs/ai-agent-kit.svg)](https://www.npmjs.com/package/@hunpeolabs/ai-agent-kit)
-[![npm downloads](https://img.shields.io/npm/dm/@hunpeolabs/ai-agent-kit.svg)](https://www.npmjs.com/package/@hunpeolabs/ai-agent-kit)
+[![npm version](https://img.shields.io/npm/v/@hunpeolabs/ai-agent-kit?color=cb3837)](https://www.npmjs.com/package/@hunpeolabs/ai-agent-kit)
 [![CI](https://github.com/phamhungptithcm/ai-agent-kit/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/phamhungptithcm/ai-agent-kit/actions/workflows/npm-publish.yml)
+[![MIT license](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+[![Node.js 20+](https://img.shields.io/badge/node-%3E%3D20-43853d)](package.json)
 
-Bootstrap a repository-scoped AI agent operating system for Claude Code and OpenAI Codex, with an adapter strategy for other AI coding agents.
+**Turn Claude Code and OpenAI Codex into a consistent engineering system—not a collection of disconnected prompts.**
 
-It installs shared `.ai/` policy, Claude/Codex adapter files, role skills, safety gates, language-aware code-quality profiles, review handoff templates, prompt catalogs, and local repository-intelligence checks powered by CodeGraph and CocoIndex.
+One command installs shared rules, repository context, quality checks, approval gates, workflows, and reviewable evidence.
 
 ```bash
 npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap
 ```
 
-## Why Teams Use It
+[Quick start](#quick-start) · [How it works](#how-it-works) · [Documentation](#documentation) · [npm](https://www.npmjs.com/package/@hunpeolabs/ai-agent-kit)
 
-Most AI coding setups start with a prompt file. This kit gives a team an operating model:
+![Real AI Agent Kit bootstrap flow](https://raw.githubusercontent.com/phamhungptithcm/ai-agent-kit/main/docs/assets/bootstrap-demo.gif)
 
-- One shared source of truth in `.ai/` for workflow, risk, security, testing, delivery evidence, and approval gates.
-- Claude Code and Codex receive the same team policy through generated platform adapters.
-- The adapter model is designed to expand to other agents without forking team policy.
-- Every task starts with repository intelligence: CodeGraph for structure and CocoIndex for semantic code/document retrieval.
-- Code changes use language/version and platform/domain-aware quality profiles for Go, Java, Python, TypeScript/JavaScript, web apps, mobile apps, desktop apps, infrastructure, DevOps, APIs, databases, concurrency, and memory/resource lifecycle.
-- Existing-system changes stop at an impact plan until a human explicitly approves implementation.
-- Bootstrap is fast and local by default: no tool install, no full reindex, no branch, commit, push, MR, Jira update, deployment, or application source edit.
+## Why It Matters
 
-## How It Works
+AI assistants can drift: one skips tests, another misses repository conventions, and another expands scope without approval.
 
-AI Agent Kit turns a target repository into a governed AI-agent workspace without changing application source code.
+AI Agent Kit gives the team one durable workflow:
 
-```mermaid
-flowchart LR
-  Dev[Developer] --> CLI[npx ai-agent-kit bootstrap]
-  CLI --> Repo[Target Git repository]
-
-  Repo --> AI[.ai shared policy]
-  Repo --> Prompts[.ai/PROMPTS.md]
-  Repo --> Adapters[Claude and Codex adapters]
-  Repo --> Local[.ai-agent-kit local metadata]
-
-  AI --> Workflows[Workflows and skills]
-  AI --> Guards[Safety and approval gates]
-  AI --> Quality[Quality gates and output contract]
-  AI --> Profiles[Code quality profiles]
-  AI --> Memory[Memory governance]
-
-  Prompts --> Agent[AI agent]
-  Adapters --> Agent
-  Agent --> Evidence[Plans, reviews, fixes, validation evidence]
-  Evidence --> Human[Human review, commit, PR/MR, Jira, deploy]
+```text
+Understand → Inspect repository → Plan → Approve → Execute → Verify → Review
 ```
 
-What bootstrap affects in a project:
+- **Developers:** repository-aware plans and reusable workflows.
+- **Tech leads:** explicit assumptions, bounded scope, and review evidence.
+- **QA and security:** consistent profiles, safety rules, and verification.
+- **Managers:** one operating model across supported agents.
 
-| Area | Purpose |
+## Core Capabilities
+
+| Capability | What it changes for the user |
 | --- | --- |
-| `.ai/` | Shared policy, prompt catalog, workflows, skills, guards, scripts, evals, quality gates, and memory governance. |
-| `.ai/quality-profiles/` | Language, platform/domain, and cross-cutting review profiles for clean code, app behavior, API behavior, performance, DB safety, infrastructure, DevOps, concurrency, and memory/resource lifecycle. |
-| `AGENTS.md`, `CLAUDE.md` | Route Codex and Claude Code to the same team rules. |
-| `.codex/`, `.claude/`, `.agents/` | Platform adapters, roles, generated skills, hooks, and command rules. |
-| `.mcp.json` | Local repository-intelligence tool wiring. |
-| `.ai-agent-kit/` | Local backups, install report, and copy-ready handoff drafts. |
-| `.gitignore` | Managed ignores for local AI-agent caches and backups. |
-
-It does not edit application source, stage files, commit, push, open PRs/MRs, update Jira, or deploy.
-
-## Prompt-To-Project Loop
-
-Developers start from a purpose-named prompt, not a blank chat. The agent then follows repository policy before producing output that can safely flow back into the project.
-
-```mermaid
-sequenceDiagram
-  participant Dev as Developer
-  participant Prompt as Prompt Catalog
-  participant Agent as AI Agent
-  participant RI as CodeGraph + CocoIndex
-  participant Policy as .ai Policy
-  participant Quality as Quality Profiles
-  participant Project as Project Files
-  participant Review as Human Review
-
-  Dev->>Prompt: Choose start-task, plan-change, fix-bug, review-pr, etc.
-  Prompt->>Agent: Prompt plus ticket, diff, bug, or incident context
-  Agent->>RI: Run repository intelligence gate
-  RI-->>Agent: Structural impact and semantic evidence
-  Agent->>Policy: Load workflow, risk, guards, quality gates, output contract
-  Agent->>Quality: Select language, API, DB, concurrency, memory profiles
-  Agent->>Project: Read relevant source, tests, docs, and config
-  Agent-->>Dev: Facts, assumptions, risk, plan, findings, or implementation
-
-  alt Existing-system change
-    Agent-->>Review: Change-impact plan and approved scope request
-    Review-->>Agent: Explicit approval
-    Agent->>Project: Implement only approved scope
-  end
-
-  Agent-->>Dev: Validation results, quality gates, code-quality review, handoff text, memory candidates
-  Dev->>Project: Manual review, commit, PR/MR, Jira, deploy
-```
-
-See the full design walkthrough in [High-Level Design](docs/HIGH_LEVEL_DESIGN.md).
-
-## Agent Ecosystem And Roadmap
-
-AI Agent Kit ships concrete adapters for Claude Code and OpenAI Codex today. The broader model is adapter-based: keep `.ai/` as the source of truth, then generate thin adapters for each agent surface.
-
-Common adapter targets teams ask about:
-
-| Agent | Planned Adapter Surface |
-| --- | --- |
-| GitHub Copilot coding agent | Copilot repository instructions, path-specific instructions, `AGENTS.md`. |
-| Cursor | Cursor Rules, `AGENTS.md`, prompt catalog, MCP config. |
-| Windsurf / Devin Desktop Cascade | `.windsurf/skills/`, `AGENTS.md`, `.agents/skills/`. |
-| Gemini CLI / Gemini Code Assist | `GEMINI.md`, `.mcp.json`, prompt catalog. |
-| Amazon Q Developer | `.amazonq/rules/*.md`, prompt catalog, validation commands. |
-| JetBrains Junie | `AGENTS.md`, `.junie/AGENTS.md`, guidelines, skills. |
-| Cline, Devin, Aider, Continue | Agent-specific instructions, playbooks/rules/config, prompt catalog, quality gates. |
-
-See [Agent Adapter Strategy](docs/AGENT_ADAPTER_STRATEGY.md) for the support model, current status, and expansion order.
-
-## Who It Helps
-
-| Audience | What they get |
-| --- | --- |
-| Engineering managers | Consistent AI-assisted delivery rules, safer delegation, clearer review evidence. |
-| Developers | Ready-to-use Claude/Codex skills for planning, implementation, bug fixes, reviews, incidents, and docs. |
-| QA | Risk-aware test strategy, validation evidence, regression thinking, and demo artifact templates. |
-| HR and onboarding leads | A repeatable team working model that new engineers can install into a repository in one command. |
-
-## Persona Bundles
-
-Team members can ask for a role instead of remembering every skill name:
-
-| Persona | Composed skills |
-| --- | --- |
-| Solution Architect | `start-task` + `repository-intelligence` + `design-document` + `architecture-review` |
-| Senior Backend Engineer | `implement-feature` + `database-change` + `code-review` + `code-quality-review` |
-| Production SRE | `production-incident` + `performance-investigation` + `observability-review` |
-| Security Engineer | `security-review` + `threat-model` + `code-review` |
-| QA Lead | `test-strategy` + `code-quality-review` + `delivery-documentation` |
-| Release Manager | `release-readiness` + `delivery-documentation` + `jira-completion-package` |
-| Tech Lead | `change-impact-plan` + `architecture-review` + `repository-health` |
-| Web Growth Engineer | `start-task` + `design-taste-website` + `animation-design-engineering` + `seo-geo-website` + `implement-feature` + `code-quality-review` + `test-strategy` |
+| Shared policy | Claude Code and Codex follow the same rules and workflows. |
+| Repository intelligence | CodeGraph and CocoIndex ground analysis in current code and docs. |
+| Quality profiles | Reviews adapt to stack, domain, security, and runtime risks. |
+| Governed changes | Tracked approval and command policy bound implementation. |
+| Adaptive runtime | Goals, facts, assumptions, plans, capabilities, and budgets stay explicit. |
+| Reviewable evidence | Receipts, verification, approved memory, and evals support review. |
 
 ## Quick Start
 
-Run inside the target Git repository. This is the recommended fast path for team rollout:
+Run inside a Git repository:
 
 ```bash
+# Inspect every planned file first
+npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap --dry-run
+
+# Install the complete governed contract
 npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap --preset governed
 ```
 
-`governed` is the default and preserves the complete quality, approval, repository-intelligence, output, and memory contract. `full` is currently an explicit alias for the same contract. A reduced preset is intentionally not shipped until it can pass the same safety and quality regression suite.
-
-`npx --yes` downloads the package into the npm cache and accepts npm's execution prompt. The bootstrap itself does not install global tools, modify application source, stage files, or perform remote Git operations. For controlled enterprise rollout, replace `@latest` with the exact reviewed package version.
-
-After bootstrap, open `.ai/PROMPTS.md` in the target repository or print copy-ready prompts:
+Then inspect readiness and choose a workflow:
 
 ```bash
-npx --yes @hunpeolabs/ai-agent-kit@latest prompts
-npx --yes @hunpeolabs/ai-agent-kit@latest prompt start-task
-npx --yes @hunpeolabs/ai-agent-kit@latest prompt plan-change
-npx --yes @hunpeolabs/ai-agent-kit@latest prompt code-quality-review
-npx --yes @hunpeolabs/ai-agent-kit@latest prompt build-seo-geo-website
-npx --yes @hunpeolabs/ai-agent-kit@latest prompt design-website
-npx --yes @hunpeolabs/ai-agent-kit@latest prompt animate-interface
-```
-
-For public websites, the kit composes the `web-app`, `frontend-html-css`, and `seo-geo` quality profiles. The `seo-geo-website` skill supports plan, approved implementation, and read-only audit modes while preventing fabricated schema data and unsupported ranking or AI-visibility claims.
-
-For user-facing visual work, the kit adds a context-aware `visual-design` profile and `design-taste-website` skill. It supports direction, approved implementation, audit-first redesign, and read-only review without hard-coding a framework, font, icon set, animation library, or universal aesthetic. Project-owned brand and design-system guidance remains authoritative.
-
-Material motion composes the `animation-motion` profile and `animation-design-engineering` skill. The skill can find opportunities, define direction, implement approved motion, perform strict review, or inventory improvements while requiring purpose, reduced-motion behavior, interruptibility, compatibility, performance, cleanup, and browser or trace evidence.
-
-## Governed Runtime
-
-Version 0.3 adds executable governance beyond natural-language rules:
-
-- sequential task states with evidence-gated transitions;
-- task-scoped capabilities for tools, paths, domains, risk, expiry, and action budgets;
-- stable allow/ask/deny policy decisions;
-- privacy-minimized hash-linked receipts;
-- independent evidence verification and export;
-- sourced facts, explicit assumptions, and trigger-based adaptive plans;
-- human-approved provenance-aware local memory and deterministic task scoring;
-- OpenTelemetry-compatible local JSONL spans;
-- MCP trust, sandbox, secret-broker, and governance-maturity contracts.
-
-```bash
-ai-agent-kit runtime task create --id TASK-123 --goal 'Ship safely' --acceptance 'Tests pass' --approval-hash SHA256 --risk medium --tool read --tool edit --path 'src/**'
-ai-agent-kit runtime task status --id TASK-123
-ai-agent-kit runtime context add --id TASK-123 --kind fact --statement 'Call path inspected' --source codegraph://call-path
-ai-agent-kit runtime plan revise --id TASK-123 --trigger 'Evidence collected' --step 'Implement' --step 'Verify'
-ai-agent-kit runtime policy evaluate --id TASK-123 --tool edit --path src/example.ts
-ai-agent-kit runtime evidence verify --id TASK-123
-ai-agent-kit runtime evidence export --id TASK-123
-ai-agent-kit runtime eval score --id TASK-123
-```
-
-Runtime data stays local under `.ai-agent-kit/runtime/`. The gateway records policy decisions but does not autonomously execute Git, release, infrastructure, database, messaging, or production mutations.
-
-The complete scope and acceptance criteria are in [Governed Runtime V1 Plan](docs/GOVERNED_RUNTIME_V1_PLAN.md).
-
-Preview the planned files without writing anything:
-
-```bash
-npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap --dry-run
-```
-
-Review optional global tool changes before applying them:
-
-```bash
-npx --yes @hunpeolabs/ai-agent-kit@latest tools plan
-npx --yes @hunpeolabs/ai-agent-kit@latest tools install --apply
-npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap --refresh-indexes
-```
-
-`tools plan` is read-only and prints exact pinned packages and commands. `tools install` refuses to run without `--apply`. `bootstrap --deep` remains a convenience alias for refreshing already available indexes; it never installs global tools. For large repositories, bootstrap first, then refresh indexes before risky implementation, impact analysis, or PR review.
-
-Install only one platform adapter:
-
-```bash
-npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap --claude-only
-npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap --codex-only
-```
-
-## Inspect And Maintain An Installation
-
-Read installation and operational readiness separately:
-
-```bash
-npx --yes @hunpeolabs/ai-agent-kit@latest status
 npx --yes @hunpeolabs/ai-agent-kit@latest doctor
-npx --yes @hunpeolabs/ai-agent-kit@latest diff
+npx --yes @hunpeolabs/ai-agent-kit@latest prompts
 ```
 
-`CORE_READY` means every file declared by `.ai/manifest.yaml` exists and its recorded ownership is not drifted. Ownership hashes cover the complete generated file or only the kit-managed marker section, so surrounding human content in `AGENTS.md`, `CLAUDE.md`, and `.gitignore` remains outside kit ownership. Governed implementation remains `BLOCKED` until the selected adapters, CodeGraph, and CocoIndex all report `READY`.
+Bootstrap is local. It does not edit application source, commit, push, open a pull request, update a ticket, or deploy.
 
-Protected edits are also checked against `.ai/local/implementation-approval.md`. Copy the tracked approval template, record the approver and exact approved paths, and validate the final scope with:
+## Use Cases
 
-```bash
-python .ai/scripts/validate_implementation_approval.py --base-ref <approved-base-ref>
-python .ai/scripts/evaluate_agent_behavior.py
-```
+- **Legacy modernization:** inspect impact before editing.
+- **Pull-request review:** apply one quality and security contract.
+- **Feature delivery:** turn repository facts into an approved plan.
+- **Incident investigation:** separate observations, assumptions, and evidence.
+- **Onboarding:** install one shared AI engineering workflow.
+- **Public websites:** compose SEO/GEO, design, accessibility, and motion guidance.
 
-Claude-compatible pre-tool hooks enforce approval on edit/write operations and classify shell commands as allow, ask, or deny. Codex command rules remain the native execution-policy layer for Codex.
+## Works With
 
-Lifecycle changes are preview-only in this release:
+| Status | Agent | Adapter |
+| --- | --- | --- |
+| **Shipped** | Claude Code | `CLAUDE.md`, config, commands, roles, hooks, and generated skills. |
+| **Shipped** | OpenAI Codex | `AGENTS.md`, config, rules, roles, hooks, and generated skills. |
+| **Roadmap** | Copilot, Cursor, Windsurf, Gemini CLI | Thin adapters that preserve the same `.ai/` contract. |
+| **Research** | Amazon Q, Junie, Cline, Devin, Aider, Continue | Candidate instruction, skill, and workflow surfaces. |
 
-```bash
-npx --yes @hunpeolabs/ai-agent-kit@latest update --dry-run
-npx --yes @hunpeolabs/ai-agent-kit@latest uninstall --dry-run
-```
+Roadmap entries are not shipped support. See [Agent Adapter Strategy](docs/AGENT_ADAPTER_STRATEGY.md).
 
-These commands use installation ownership metadata and do not modify files. Applying update or uninstall is intentionally withheld until transactional removal and managed-section restoration have dedicated release-level validation.
+## How It Compares
+
+| Capability | Prompt or tool-specific rules | AI Agent Kit |
+| --- | ---: | ---: |
+| Shared Claude Code/Codex policy | Partial | Built in |
+| Repository-intelligence gate | Manual | Built in |
+| Stack-aware quality profiles | Manual | Included |
+| Approval and action boundaries | Manual | Enforced |
+| Evidence and independent verification | Agent-dependent | Included |
+
+This compares operating models, not model intelligence.
 
 ## What Gets Installed
 
-- `.ai/`: shared policy, workflows, skills source, guards, scripts, prompts, templates, and evals.
-- `.claude/` and `CLAUDE.md`: Claude Code adapter files.
-- `.codex/`, `.agents/`, and `AGENTS.md`: Codex adapter files and generated skills.
-- `AI_AGENT_TEAM_GUIDE.md`: human-readable operating guide for the team.
-- `.ai-agent-kit/`: local installation metadata, backups, transaction reports, and copy-ready review/Jira output.
+```text
+.ai/                    shared source of truth
+├── rules/              engineering, security, testing, SEO/GEO, design
+├── quality-profiles/   language, platform, API, DB, concurrency, memory
+├── skills-src/         reusable engineering skills
+├── workflows/          plan, implement, review, incident, delivery
+├── prompts/            purpose-named task starters
+├── templates/          approval, evidence, review, design, handoff
+├── guards/             policy, risk, capability, dependency, secrets
+└── evals/              golden and behavioral regression cases
 
-The bundled scaffold lives under `assets/enterprise-ai-agent-os/`.
+.claude/                Claude Code adapter
+.codex/ + .agents/      OpenAI Codex adapter
+AGENTS.md + CLAUDE.md   shared-policy entry points
+```
 
-## Safety Model
+## How It Works
 
-The bootstrap command detects dependency manifests and framework versions, safely merges managed sections, installs or refreshes AI-agent config, records ownership checksums, checks CodeGraph and CocoIndex status, validates the setup, prints the local diff, and stops. It never installs global tools. Use `tools plan`, then the explicit `tools install --apply`, before `bootstrap --refresh-indexes` when the team wants full repository-intelligence setup.
+```mermaid
+flowchart LR
+  Human["Developer / reviewer"] --> Intelligence["Repository intelligence"]
+  Intelligence --> Plan["Facts, assumptions, plan"]
+  Plan --> Approval["Tracked approval"]
+  Approval --> Gateway["Capability + policy gateway"]
+  Gateway -->|allow| Action["Agent action"]
+  Gateway -->|ask| Human
+  Gateway -->|deny| Stop["Fail closed"]
+  Action --> Evidence["Evidence ledger"]
+  Evidence --> Verify["Independent verification"]
+  Verify --> Review["Review-ready result"]
+```
 
-`status`, `doctor`, and `diff` are read-only. `update` and `uninstall` require `--dry-run`; they cannot apply repository changes in this release.
+Guidance supports reasoning; deterministic controls authorize protected actions. Runtime data stays local and excludes prompts, raw source/output, secrets, and chain-of-thought.
 
-Managed paths are constrained to the repository root. Bootstrap refuses symbolic-link write targets, and lifecycle inspection flags invalid, oversized, missing, modified, or symbolic-link ownership entries for human review.
+## What Is New In 0.4.0
 
-It does not:
+Version `0.4.0` focuses on adoption and discoverability:
 
-- stage files
-- create commits
-- create branches
-- push to remotes
-- create merge requests
-- call GitLab, GitHub, Jira, or deployment APIs
-- modify application source code
+- a shorter, outcome-led README designed for GitHub and npm readers;
+- a proof-oriented bootstrap demo;
+- clearer shipped-versus-roadmap support;
+- provenance-correct release history;
+- focused package description and search keywords.
+
+The governed runtime and its safety/evidence capabilities arrived in `0.3.0` and remain available.
+
+<details>
+<summary><strong>Release highlights: 0.1.0 → 0.4.0</strong></summary>
+
+### 0.1.0 — Foundation
+
+- Local bootstrap for Claude Code and Codex.
+- Enterprise scaffold, repository-intelligence checks, backups, rollback, and CI publishing.
+
+### 0.2.0 — Quality And Lifecycle
+
+- Stack-aware quality profiles plus SEO/GEO, visual-design, and motion workflows.
+- Read-only lifecycle inspection, ownership protection, adapter isolation, and packed smoke tests.
+
+### 0.3.0 — Governed Agent Runtime
+
+- Approval-to-diff enforcement, protected-edit hooks, and deterministic command policy.
+- Scoped task runtime, adaptive plans, evidence receipts, approved memory, telemetry, evals, and SPDX SBOM.
+
+### 0.4.0 — Adoption And Discoverability
+
+- Conversion-first README, real demo asset, clearer positioning, release provenance, and focused search metadata.
+
+</details>
+
+See the complete [Changelog](CHANGELOG.md).
+
+## Safety By Default
+
+- Critical autonomous operations remain forbidden.
+- Protected actions return `allow`, `ask`, or `deny`.
+- Bootstrap writes only governed configuration and local metadata.
+- Tool installation is separated into read-only planning and explicit apply.
+- Lifecycle update and uninstall remain preview-only.
+- No hosted control plane or model-provider credential is required.
+
+## Documentation
+
+- **Try it with a team:** [Adoption Guide](docs/ADOPTION_GUIDE.md)
+- **Understand the architecture:** [High-Level Design](docs/HIGH_LEVEL_DESIGN.md)
+- **Review runtime boundaries:** [Governed Runtime V1 Plan](docs/GOVERNED_RUNTIME_V1_PLAN.md)
+- **Add another agent:** [Agent Adapter Strategy](docs/AGENT_ADAPTER_STRATEGY.md)
+- **Understand quality selection:** [Code Quality Intelligence](docs/CODE_QUALITY_INTELLIGENCE.md)
+- **Prepare a release:** [Public Launch Checklist](docs/PUBLIC_LAUNCH_CHECKLIST.md)
+- **Report or contribute:** [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md)
 
 ## Local Development
 
@@ -288,32 +195,19 @@ It does not:
 npm ci
 npm run check
 npm run release:dry-run
-npm run smoke:packed
 ```
 
-Useful individual commands:
+## Help Shape The Project
 
-```bash
-npm run lint
-npm run typecheck
-npm test
-npm run build
-```
+If reviewable AI engineering is useful to your team:
 
-## Publishing
+- ⭐ star the repository to follow releases;
+- 💡 open an issue for the workflow or agent surface you need;
+- 🧪 contribute a sanitized failing behavioral case;
+- 🔐 never include proprietary source, credentials, or secrets.
 
-The GitHub Actions workflow in `.github/workflows/npm-publish.yml` validates pull requests and main-branch pushes, then publishes to npm when a matching `v*.*.*` tag points to a commit on `main`. It can also publish from `main` when manually dispatched with `publish=true`.
+The goal is not maximum autonomy. It is dependable AI-assisted engineering: better context, consistent workflows, bounded action, and evidence a human can review.
 
-For the first publish, add a granular npm access token as the GitHub Actions secret `NPM_TOKEN`. Never store npm tokens in repository variables.
+## License
 
-After the package exists on npm, configure npm Trusted Publishing with GitHub owner `phamhungptithcm`, repository `ai-agent-kit`, and workflow `npm-publish.yml`. The workflow already grants the required OIDC permission, so `NPM_TOKEN` can then be removed.
-
-## Learn More
-
-- [High-level design](docs/HIGH_LEVEL_DESIGN.md)
-- [Code Quality Intelligence](docs/CODE_QUALITY_INTELLIGENCE.md)
-- [Agent adapter strategy](docs/AGENT_ADAPTER_STRATEGY.md)
-- [Adoption guide](docs/ADOPTION_GUIDE.md)
-- [Public launch checklist](docs/PUBLIC_LAUNCH_CHECKLIST.md)
-- [Security policy](SECURITY.md)
-- [Changelog](CHANGELOG.md)
+[MIT](LICENSE)

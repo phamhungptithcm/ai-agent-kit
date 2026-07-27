@@ -210,7 +210,7 @@ The loop turns good work into reusable team behavior. The memory policy prevents
 
 ## Governed Runtime Control Plane
 
-Version 0.3 adds a deterministic control plane beneath agent instructions:
+Version 0.4 adds a deterministic control plane beneath agent instructions:
 
 ```mermaid
 flowchart LR
