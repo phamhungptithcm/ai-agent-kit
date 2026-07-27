@@ -1,6 +1,6 @@
 # Governed Runtime V1 Plan
 
-Release target: `0.3.0`
+Release target: `0.4.0`
 
 ## Outcome
 
@@ -27,7 +27,7 @@ Turn AI Agent Kit from instruction-led governance into a local, deterministic, m
 - Critical mutation remains denied and review-required actions return `ask`.
 - Unsourced facts, approval mismatch, capability tampering, and evidence-chain tampering fail closed.
 - Proposed memory cannot be retrieved before human approval.
-- `npm run check` and `npm run release:dry-run` pass for version `0.3.0`.
+- `npm run check` and `npm run release:dry-run` pass for version `0.4.0`.
 
 ## Explicit Exclusions
 

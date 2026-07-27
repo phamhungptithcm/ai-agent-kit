@@ -14,7 +14,7 @@ Approval timestamp or task reference: unified release approval in the active Cod
 
 Approved scope:
 
-- Release every previously proposed governance phase together as `0.3.0`.
+- Release every previously proposed governance phase together as `0.4.0`.
 - Add a deterministic task state machine and transition evidence requirements.
 - Add task-scoped capabilities, policy decisions, reason codes, expiry, risk ceilings, tool/path restrictions, and action budgets.
 - Add a local tool-execution gateway that records allow/ask/deny receipts without autonomously executing protected external operations.
@@ -41,7 +41,7 @@ Approved paths:
 
 Required constraints:
 
-- One release and one tag: `v0.3.0`.
+- One release and one tag: `v0.4.0`.
 - No runtime service, paid-model call, production credential, database migration, or autonomous production mutation.
 - No new runtime dependency unless essential and separately surfaced.
 - Policy evaluation and verification must be deterministic and model-independent.

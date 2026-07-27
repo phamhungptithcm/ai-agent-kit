@@ -716,6 +716,6 @@ test("build SBOM is valid SPDX and contains the package version", () => {
   const target = generateSbom({ root });
   const sbom = JSON.parse(fs.readFileSync(target, "utf8"));
   assert.equal(sbom.spdxVersion, "SPDX-2.3");
-  assert.match(sbom.name, /ai-agent-kit-0\.3\.0/);
+  assert.match(sbom.name, /ai-agent-kit-0\.4\.0/);
   assert.ok(sbom.packages.length >= 1);
 });
