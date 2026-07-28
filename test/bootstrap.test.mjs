@@ -668,9 +668,14 @@ test("repository intelligence excludes its own state without stripping dot-prefi
 
 test("repository intelligence check continues in degraded mode when optional indexes are missing", () => {
   const script = path.resolve("assets/enterprise-ai-agent-os/.ai/scripts/check-repository-intelligence.py");
-  const result = spawnSync("/usr/bin/python3", ["-B", script, "--json"], {
+  const locator = process.platform === "win32"
+    ? spawnSync("where.exe", ["python"], { encoding: "utf8" })
+    : spawnSync("which", ["python3"], { encoding: "utf8" });
+  const pythonCommand = locator.stdout.trim().split(/\r?\n/)[0];
+  assert.ok(pythonCommand, locator.stderr);
+  const result = spawnSync(pythonCommand, ["-B", script, "--json"], {
     encoding: "utf8",
-    env: { ...process.env, PATH: "/usr/bin:/bin" }
+    env: { ...process.env, PATH: path.dirname(pythonCommand) }
   });
   assert.equal(result.status, 0, result.stderr);
   const report = JSON.parse(result.stdout);
