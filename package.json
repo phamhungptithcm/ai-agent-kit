@@ -1,6 +1,6 @@
 {
   "name": "@hunpeolabs/ai-agent-kit",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Governed AI coding agent workflows for Claude Code and Codex with repository intelligence, quality profiles, approval gates, and evidence.",
   "type": "module",
   "bin": {

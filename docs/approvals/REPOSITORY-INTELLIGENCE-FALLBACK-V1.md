@@ -17,6 +17,7 @@ Approved scope:
 - Make missing, stale, unhealthy, or un-installable CodeGraph/CocoIndex report `DEGRADED` without blocking repository work.
 - Define bounded native fallback evidence and preserve human-approval and critical-change gates.
 - Synchronize generated adapter skills, distribution files, documentation, and tests.
+- Release the approved fix as one patch version, `0.4.1`.
 
 Approved paths:
 
@@ -25,6 +26,9 @@ Approved paths:
 - `docs/approvals/REPOSITORY-INTELLIGENCE-FALLBACK-V1.md`
 - `src/templates.mjs`
 - `test/bootstrap.test.mjs`
+- `CHANGELOG.md`
+- `package.json`
+- `package-lock.json`
 
 Required constraints:
 
@@ -32,10 +36,11 @@ Required constraints:
 - Installation and refresh are attempted at most once before fallback.
 - Degraded mode must disclose unavailable evidence and avoid unsupported completeness claims.
 - Human approval, sensitive-data, and critical-change protections remain fail-closed.
-- No dependency, hosted service, production mutation, or release action.
+- No dependency, hosted service, or production mutation.
+- One release and one tag: `v0.4.1`.
 
 Delta approval required when:
 
 - A path outside this record is required.
 - A security or approval gate is weakened.
-- A package version, tag, publish, or deployment action is proposed.
+- A package version other than `0.4.1` or a deployment action is proposed.

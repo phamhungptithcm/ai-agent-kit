@@ -662,13 +662,13 @@ test("repository intelligence excludes its own state without stripping dot-prefi
     "after = worktree_signature(root)",
     "assert before == after, (before, after)"
   ].join("; ");
-  const result = spawnSync("python3", ["-c", program, root], { encoding: "utf8" });
+  const result = spawnSync("python3", ["-B", "-c", program, root], { encoding: "utf8" });
   assert.equal(result.status, 0, result.stderr);
 });
 
 test("repository intelligence check continues in degraded mode when optional indexes are missing", () => {
   const script = path.resolve("assets/enterprise-ai-agent-os/.ai/scripts/check-repository-intelligence.py");
-  const result = spawnSync("/usr/bin/python3", [script, "--json"], {
+  const result = spawnSync("/usr/bin/python3", ["-B", script, "--json"], {
     encoding: "utf8",
     env: { ...process.env, PATH: "/usr/bin:/bin" }
   });
@@ -751,7 +751,8 @@ test("build SBOM is valid SPDX and contains the package version", () => {
   fs.copyFileSync("package-lock.json", path.join(root, "package-lock.json"));
   const target = generateSbom({ root });
   const sbom = JSON.parse(fs.readFileSync(target, "utf8"));
+  const packageData = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
   assert.equal(sbom.spdxVersion, "SPDX-2.3");
-  assert.match(sbom.name, /ai-agent-kit-0\.4\.0/);
+  assert.equal(sbom.name, `@hunpeolabs/ai-agent-kit-${packageData.version}`);
   assert.ok(sbom.packages.length >= 1);
 });
