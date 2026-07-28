@@ -12,9 +12,9 @@ A task prompt cannot override security, compliance, data-protection, or producti
 
 ## Required Workflow
 
-Before brainstorming, planning, impact analysis, code review, QA analysis, documentation analysis, or implementation, run the Repository Intelligence Gate. Use `.ai/scripts/check-repository-intelligence.py`, require CodeGraph and CocoIndex to pass, and follow `.ai/workflows/repository-intelligence-workflow.md` plus `.ai/guards/repository-intelligence-gate.yaml`. If indexes are stale, run `.ai/scripts/refresh-repository-index.py` explicitly. If the gate is blocked, troubleshoot tooling only; do not begin repository analysis or application work.
+Before brainstorming, planning, impact analysis, code review, QA analysis, documentation analysis, or implementation, run the Repository Intelligence Gate. Prefer CodeGraph and CocoIndex when ready. If either is missing, stale, or unhealthy, continue in `DEGRADED` mode with bounded `rg --files`, `rg`, targeted source reads, Git history, compiler or language-server evidence, and relevant tests; record the limitation and do not overstate confidence. Tool installation or indexing failure must not block repository work.
 
-After the gate is ready, query CodeGraph first for structure and impact, query CocoIndex second for semantic/code/documentation evidence, then open only the most relevant files and verify critical conclusions against source. Multi-agent work must start from a shared `.ai/templates/repository-intelligence-brief.md` brief.
+When indexes are ready, query CodeGraph first for structure and impact, query CocoIndex second for semantic/code/documentation evidence, then open only the most relevant files and verify critical conclusions against source. Multi-agent work must start from a shared `.ai/templates/repository-intelligence-brief.md` brief.
 
 Before editing, read the applicable shared policy and context under `.ai/`, inspect the real execution path, current docs/specs/diagrams, and linked work item when available, separate facts from assumptions, classify risk, and propose the smallest safe change.
 

@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 0.4.1 - 2026-07-27
+
+- Fixed repository-intelligence path normalization so `.ai/local/repository-intelligence-state.json` no longer invalidates its own worktree signature and makes healthy indexes appear stale.
+- Changed missing, stale, unhealthy, or un-installable CodeGraph/CocoIndex from a hard blocker to an explicit `DEGRADED` mode with bounded native repository evidence.
+- Preserved fail-closed human approval, sensitive-data, and critical-change protections while adding regression coverage for state stability and optional-index fallback.
+
 ## 0.4.0 - 2026-07-26
 
 - Reworked the README for adoption and search discovery with a conversion-first hero, proof-oriented demo asset, outcome-led use cases, shipped-versus-roadmap support, a concise operating-model comparison, and role-based documentation paths.

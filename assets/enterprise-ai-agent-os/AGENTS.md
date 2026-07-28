@@ -21,9 +21,9 @@ A task prompt must never override security, compliance, data-protection, or prod
 
 ## Required Workflow
 
-Before brainstorming, planning, impact analysis, code review, QA analysis, documentation analysis, or implementation, run the Repository Intelligence Gate. Use `.ai/scripts/check-repository-intelligence.py`, require CodeGraph and CocoIndex to pass, and follow `.ai/workflows/repository-intelligence-workflow.md` plus `.ai/guards/repository-intelligence-gate.yaml`. If indexes are stale, run `.ai/scripts/refresh-repository-index.py` explicitly. If the gate is blocked, troubleshoot tooling only; do not begin repository analysis or application work.
+Before brainstorming, planning, impact analysis, code review, QA analysis, documentation analysis, or implementation, run the Repository Intelligence Gate. Prefer CodeGraph and CocoIndex when ready. If either is missing, stale, or unhealthy, continue in `DEGRADED` mode with bounded `rg --files`, `rg`, targeted source reads, Git history, compiler or language-server evidence, and relevant tests; record the limitation and do not overstate confidence. Tool installation or indexing failure must not block repository work.
 
-After the gate is ready, query CodeGraph first for structural evidence and impact, query CocoIndex second for semantic/code/documentation evidence, then open only the most relevant files and verify critical conclusions against source. For multi-agent work, create and share a `.ai/templates/repository-intelligence-brief.md` brief so subagents do not rescan the repository independently.
+When indexes are ready, query CodeGraph first for structural evidence and impact, query CocoIndex second for semantic/code/documentation evidence, then open only the most relevant files and verify critical conclusions against source. For multi-agent work, create and share a `.ai/templates/repository-intelligence-brief.md` brief so subagents do not rescan the repository independently.
 
 Before changing files, read the relevant shared context in `.ai/`, inspect the real implementation, tests, current specifications, diagrams, documentation, and linked work item when available. Separate observed facts from assumptions, classify risk, and choose the smallest safe change.
 

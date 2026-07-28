@@ -646,13 +646,15 @@ def validate_repository_intelligence(root: Path, errors: list[str], quick: bool)
         "compare_index_metadata_to_current_git_commit",
         "run_codegraph_health_query",
         "run_cocoindex_health_query",
+        "preferred-with-degraded-fallback",
+        "bounded native inspection",
     ]:
         if fragment not in guard_text:
             fail(errors, f"repository intelligence gate missing: {fragment}")
 
     for root_file in ["AGENTS.md", "CLAUDE.md", "AI_AGENT_TEAM_GUIDE.md"]:
         text = read(root / root_file)
-        for fragment in ["Repository Intelligence Gate", "CodeGraph", "CocoIndex"]:
+        for fragment in ["Repository Intelligence Gate", "CodeGraph", "CocoIndex", "DEGRADED"]:
             if fragment not in text:
                 fail(errors, f"{root_file} missing repository intelligence fragment: {fragment}")
 

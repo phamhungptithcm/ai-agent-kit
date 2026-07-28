@@ -2,9 +2,9 @@
 
 ## Phase 1 - Analyze The Existing System; Do Not Edit Code
 
-0. Run the Repository Intelligence Gate and stop all application work if CodeGraph or CocoIndex is missing, stale, unconfigured, or failing health checks.
+0. Run the Repository Intelligence Gate. If CodeGraph or CocoIndex is unavailable, continue in `DEGRADED` mode using bounded native repository evidence and record the limitation.
 1. Restate the business outcome and exact problem to solve.
-2. Query CodeGraph for structural location and impact, then query CocoIndex for related code, requirements, specifications, tests, and documentation.
+2. Query CodeGraph for structural location and impact when ready, then query CocoIndex for related code, requirements, specifications, tests, and documentation when ready. Use `rg --files`, `rg`, targeted reads, Git history, diagnostics, and tests for unavailable evidence.
 3. Inspect only the most relevant code, functions, tests, configuration, documentation, specifications, diagrams, recent related changes, and linked work item sections returned by indexed evidence.
 4. Trace the real current execution path end to end, including callers, downstream consumers, persistence, integrations, error paths, retries, and operational behavior.
 5. Separate indexed facts, source-code verified facts, assumptions, unknowns, and hypotheses.
@@ -53,7 +53,7 @@ Stop after presenting the plan. Do not implement until explicit approval evidenc
 
 ## Phase 3 - Implement Within Approved Scope
 
-1. Confirm the Repository Intelligence Gate is still ready before editing protected files.
+1. Confirm repository evidence is sufficient for the task risk before editing protected files. `DEGRADED` tooling status alone does not block approved work.
 2. Preserve existing behavior unless explicitly changed.
 3. Follow established repository patterns.
 4. Avoid unrelated refactoring.
@@ -75,8 +75,8 @@ Stop after presenting the plan. Do not implement until explicit approval evidenc
 6. Review performance and concurrency implications.
 7. Check compatibility and migration requirements.
 8. Update authoritative documentation, specifications, and diagrams or provide a specific no-change rationale.
-9. Query CodeGraph for changed-symbol impact and refresh CodeGraph/CocoIndex indexes with `.ai/scripts/refresh-repository-index.py`.
-10. Re-run the Repository Intelligence Gate and compare actual diff to approved scope.
+9. Query available indexes for changed-symbol impact and refresh CodeGraph/CocoIndex indexes when available. If unavailable, use native evidence and record the limitation.
+10. Re-run the Repository Intelligence Gate and compare actual diff to approved scope; `DEGRADED` is acceptable when evidence remains sufficient.
 11. Prepare PR/MR evidence when requested or when a change is ready for review.
 12. Prepare a Jira completion package when the task is tied to a work item.
 13. Identify any reusable Memory candidates under `.ai/core/memory-policy.md`, or state `None`.

@@ -126,11 +126,14 @@ def normalize_rel(root: Path, path: Path | str) -> str:
             item = item.relative_to(root)
     except ValueError:
         pass
-    return item.as_posix().lstrip("./")
+    rel = item.as_posix()
+    return rel[2:] if rel.startswith("./") else rel
 
 
 def is_excluded(rel_path: str) -> bool:
-    rel = rel_path.replace("\\", "/").lstrip("./")
+    rel = rel_path.replace("\\", "/")
+    if rel.startswith("./"):
+        rel = rel[2:]
     for pattern in SENSITIVE_EXCLUDE_PATTERNS:
         if fnmatch.fnmatch(rel, pattern) or fnmatch.fnmatch("/" + rel, pattern):
             return True
@@ -393,10 +396,14 @@ def gate_ready(codegraph: ToolStatus, cocoindex: ToolStatus) -> bool:
     )
 
 
+def gate_mode(codegraph: ToolStatus, cocoindex: ToolStatus) -> str:
+    return "READY" if gate_ready(codegraph, cocoindex) else "DEGRADED"
+
+
 def gate_report(root: Path, codegraph: ToolStatus, cocoindex: ToolStatus) -> str:
     state = load_state(root)
     indexed_commit = str(state.get("git_commit") or "unknown")
-    result = "READY" if gate_ready(codegraph, cocoindex) else "BLOCKED"
+    result = gate_mode(codegraph, cocoindex)
     return f"""Repository Intelligence Gate
 
 CodeGraph:
