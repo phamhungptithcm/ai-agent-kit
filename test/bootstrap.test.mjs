@@ -5,11 +5,17 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { loadScaffoldFiles } from "../src/assets.mjs";
+import {
+  findInstalledDependency,
+  renderActivationMenu,
+  renderDependencyCleanup
+} from "../src/activation.mjs";
 import { bootstrap } from "../src/bootstrap.mjs";
 import { main, parseBootstrapArgs, parseRuntimeArgs, parseTargetArgs, parseToolArgs } from "../src/cli.mjs";
 import { parseContractManifest } from "../src/contract.mjs";
 import { detectProfile } from "../src/detect.mjs";
 import { verifyOwnership } from "../src/ownership.mjs";
+import { inspectPostinstall, runPostinstall } from "../src/postinstall.mjs";
 import { assertAllowedCommand } from "../src/runner.mjs";
 import { installMissingTools, TOOL_SPECS } from "../src/tools.mjs";
 import { getPackageVersion } from "../src/version.mjs";
@@ -498,6 +504,114 @@ test("CLI version comes from package.json", async () => {
   const logs = [];
   await main(["--version"], { log: (message = "") => logs.push(String(message)) });
   assert.equal(logs.join("\n"), getPackageVersion());
+});
+
+test("activation menu previews or imports the selected kit preset", async () => {
+  const previewRoot = makeRepo("activation-preview");
+  const previewLogs = [];
+  const previousPreviewCwd = process.cwd();
+  process.chdir(previewRoot);
+  try {
+    await main(
+      [],
+      { log: (message = "") => previewLogs.push(String(message)) },
+      {
+        runner: createMockRunner(),
+        selectActivationAction: async () => "preview",
+        transactionId: "20260728T000000Z-activation-preview",
+        packageVersion: "0.4.2-test"
+      }
+    );
+  } finally {
+    process.chdir(previousPreviewCwd);
+  }
+  assert.match(previewLogs.join("\n"), /Choose how to import/);
+  assert.match(previewLogs.join("\n"), /DRY RUN/);
+  assert.equal(fs.existsSync(path.join(previewRoot, ".ai-agent-kit")), false);
+
+  const governedRoot = makeRepo("activation-governed");
+  fs.writeFileSync(path.join(governedRoot, "package.json"), `${JSON.stringify({
+    devDependencies: { "@hunpeolabs/ai-agent-kit": "^0.4.2" }
+  }, null, 2)}\n`);
+  const governedLogs = [];
+  const previousCwd = process.cwd();
+  process.chdir(governedRoot);
+  try {
+    await main(
+      ["activate"],
+      { log: (message = "") => governedLogs.push(String(message)) },
+      {
+        runner: createMockRunner(),
+        selectActivationAction: async () => "governed",
+        transactionId: "20260728T000001Z-activation-governed",
+        packageVersion: "0.4.2-test"
+      }
+    );
+  } finally {
+    process.chdir(previousCwd);
+  }
+  const installation = JSON.parse(fs.readFileSync(path.join(governedRoot, ".ai-agent-kit", "installation.json"), "utf8"));
+  assert.equal(installation.preset, "governed");
+  assert.match(governedLogs.join("\n"), /npm uninstall @hunpeolabs\/ai-agent-kit/);
+});
+
+test("activation helpers detect persistent npm dependencies and render cleanup guidance", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "ai-agent-kit-dependency-"));
+  fs.writeFileSync(path.join(root, "package.json"), `${JSON.stringify({
+    optionalDependencies: { "@hunpeolabs/ai-agent-kit": "0.4.2" }
+  })}\n`);
+  assert.equal(findInstalledDependency(root), "optionalDependencies");
+  assert.match(renderActivationMenu(), /Preview import/);
+  assert.match(renderDependencyCleanup("optionalDependencies"), /does not need a persistent npm dependency/);
+});
+
+test("postinstall imports governed kit only for a direct project dependency", async () => {
+  const root = makeRepo("postinstall-import");
+  fs.writeFileSync(path.join(root, "package.json"), `${JSON.stringify({
+    dependencies: { "@hunpeolabs/ai-agent-kit": "0.4.2" }
+  }, null, 2)}\n`);
+  const packageRoot = path.join(root, "node_modules", "@hunpeolabs", "ai-agent-kit");
+  const logs = [];
+
+  const inspection = inspectPostinstall({ initCwd: root, packageRoot, env: {} });
+  assert.equal(inspection.action, "import");
+  assert.equal(inspection.dependencyField, "dependencies");
+
+  await runPostinstall({
+    initCwd: root,
+    packageRoot,
+    env: {},
+    io: { log: (message = "") => logs.push(String(message)) },
+    deps: {
+      runner: createMockRunner(),
+      transactionId: "20260728T000002Z-postinstall",
+      packageVersion: "0.4.2-test"
+    }
+  });
+
+  const installation = JSON.parse(fs.readFileSync(path.join(root, ".ai-agent-kit", "installation.json"), "utf8"));
+  assert.equal(installation.preset, "governed");
+  assert.match(logs.join("\n"), /governed kit imported successfully/);
+  assert.equal(inspectPostinstall({ initCwd: root, packageRoot, env: {} }).reason, "already-activated");
+});
+
+test("postinstall skips package development, global, and transient npx installs", () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "ai-agent-kit-postinstall-skip-"));
+  fs.writeFileSync(path.join(root, "package.json"), "{}\n");
+  const packageRoot = path.join(root, "node_modules", "@hunpeolabs", "ai-agent-kit");
+
+  assert.equal(inspectPostinstall({ initCwd: packageRoot, packageRoot, env: {} }).reason, "package-development");
+  assert.equal(inspectPostinstall({
+    initCwd: root,
+    packageRoot,
+    env: { npm_config_global: "true" }
+  }).reason, "global-install");
+  assert.equal(inspectPostinstall({ initCwd: root, packageRoot, env: { npm_command: "exec" } }).reason, "not-a-project-install");
+  assert.equal(inspectPostinstall({
+    initCwd: root,
+    packageRoot,
+    env: { npm_command: "install" }
+  }).action, "import");
 });
 
 test("target argument parser rejects state-changing lifecycle execution", () => {

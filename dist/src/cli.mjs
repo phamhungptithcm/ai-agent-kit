@@ -1,5 +1,12 @@
 import { bootstrap } from "./bootstrap.mjs";
 import {
+  findInstalledDependency,
+  renderActivationMenu,
+  renderDependencyCleanup,
+  renderNonInteractiveActivationHelp,
+  selectActivationAction
+} from "./activation.mjs";
+import {
   inspectInstallation,
   renderDoctor,
   renderManagedDiff,
@@ -32,6 +39,7 @@ function helpText() {
   return `AI Agent Kit
 
 Usage:
+  ai-agent-kit activate
   ai-agent-kit bootstrap [options]
   ai-agent-kit status [--target <path>]
   ai-agent-kit doctor [--target <path>]
@@ -279,7 +287,29 @@ export function parseBootstrapArgs(argv) {
 
 export async function main(argv = process.argv.slice(2), io = console, deps = {}) {
   const command = argv[0];
-  if (!command || command === "--help" || command === "-h") {
+  if (!command || command === "activate") {
+    io.log(renderActivationMenu());
+    const action = deps.selectActivationAction
+      ? await deps.selectActivationAction()
+      : await selectActivationAction(deps.terminal);
+    if (!action) {
+      const nonInteractiveHelp = renderNonInteractiveActivationHelp();
+      io.log(`\n${nonInteractiveHelp.slice(nonInteractiveHelp.indexOf("Interactive input"))}`);
+      return 0;
+    }
+    if (action === "exit") return 0;
+
+    const options = parseBootstrapArgs([
+      ...(action === "preview" ? ["--dry-run"] : ["--preset", action])
+    ]);
+    const result = await bootstrap(options, { io, ...deps });
+    if (action !== "preview") {
+      const dependencyField = findInstalledDependency(options.target);
+      if (dependencyField) io.log(`\n${renderDependencyCleanup(dependencyField)}`);
+    }
+    return result;
+  }
+  if (command === "--help" || command === "-h") {
     io.log(helpText());
     return 0;
   }

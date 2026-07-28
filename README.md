@@ -62,6 +62,20 @@ npx --yes @hunpeolabs/ai-agent-kit@latest doctor
 npx --yes @hunpeolabs/ai-agent-kit@latest prompts
 ```
 
+Run the CLI without a command to choose an activation path interactively:
+
+```bash
+npx --yes @hunpeolabs/ai-agent-kit@latest
+```
+
+The menu can preview the import or install the governed/full preset. If the package
+was accidentally added with `npm install`, the CLI imports the kit first and then
+shows the explicit `npm uninstall @hunpeolabs/ai-agent-kit` cleanup command.
+
+Running `npm install @hunpeolabs/ai-agent-kit` directly also imports the governed
+kit through `postinstall`. In that flow, npm keeps the package as a project
+dependency; use the `npx` command above when no persistent dependency is wanted.
+
 Bootstrap is local. It does not edit application source, commit, push, open a pull request, update a ticket, or deploy.
 
 ## Use Cases
