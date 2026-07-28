@@ -1,6 +1,6 @@
 # Repository Intelligence Guide
 
-This repository requires CodeGraph and CocoIndex before agents begin repository work. The gate prevents broad, duplicate repository scans and makes impact analysis auditable.
+This repository prefers CodeGraph and CocoIndex for efficient, auditable evidence. Neither tool is a single point of failure: missing, stale, unhealthy, or failed installation produces `DEGRADED` mode with a bounded native-inspection fallback.
 
 ## One-Time Bootstrap
 
@@ -71,14 +71,14 @@ Repository commit:
 Indexed commit:
 
 Gate result:
-READY / BLOCKED
+READY / DEGRADED
 ```
 
 ## Agent Behavior
 
-Agents must query CodeGraph first for structure and impact, then CocoIndex for semantic retrieval and documentation, then verify critical facts against source. The Team Lead Orchestrator creates a shared brief before assigning specialist agents. Specialist agents reuse that brief and only query indexes for role-specific gaps.
+Agents query CodeGraph first for structure and impact, then CocoIndex for semantic retrieval and documentation when available, and verify critical facts against source. The Team Lead Orchestrator creates a shared brief before assigning specialist agents. Specialist agents reuse that brief and only query indexes for role-specific gaps.
 
-When the gate is blocked, agents may troubleshoot setup only. They must not analyze tickets, plan changes, review code, perform QA analysis, update docs, or edit application files.
+When the gate is degraded, agents attempt recovery once, then continue with `rg --files`, `rg`, targeted source and documentation reads, Git history, compiler or language-server diagnostics, and relevant tests. They must record missing evidence and avoid unsupported completeness or blast-radius claims. Human approval and critical-change gates remain fail-closed.
 
 ## Sensitive Data Exclusions
 

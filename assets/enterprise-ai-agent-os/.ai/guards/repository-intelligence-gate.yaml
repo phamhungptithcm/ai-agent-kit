@@ -2,10 +2,10 @@ version: 1
 name: repository-intelligence-gate
 owner: "repository maintainers"
 escalation: "Escalate blocked gates, policy conflicts, and bypass requests to the repository CODEOWNERS or designated platform/security maintainer."
-mode: fail-closed
+mode: preferred-with-degraded-fallback
 purpose: >
-  Require CodeGraph and CocoIndex evidence before brainstorming, planning,
-  impact analysis, review, QA analysis, documentation analysis, or implementation.
+  Prefer CodeGraph and CocoIndex evidence, but preserve safe repository work
+  through bounded native inspection when either optional tool is unavailable.
 
 verified_tools:
   codegraph:
@@ -63,31 +63,36 @@ local_state:
 
 blocking_rules:
   - condition: "CodeGraph missing, invalid, stale, or failing health check"
-    allowed_work: "tooling setup and troubleshooting only"
-    blocked_work:
-      - brainstorming
-      - planning
-      - impact analysis
-      - review
-      - QA analysis
-      - documentation analysis
-      - implementation
+    mode: "DEGRADED"
+    allowed_work: "bounded native inspection using rg, rg --files, targeted source reads, Git history, compiler/language-server output, and tests"
+    required_disclosure: "record that structural graph evidence is unavailable and avoid unsupported blast-radius claims"
   - condition: "CocoIndex missing, invalid, stale, or failing health check"
-    allowed_work: "tooling setup and troubleshooting only"
-    blocked_work:
-      - brainstorming
-      - planning
-      - impact analysis
-      - review
-      - QA analysis
-      - documentation analysis
-      - implementation
+    mode: "DEGRADED"
+    allowed_work: "bounded native inspection using rg, rg --files, targeted source and documentation reads, Git history, and tests"
+    required_disclosure: "record that semantic index evidence is unavailable and avoid unsupported completeness claims"
   - condition: "index metadata does not match current commit or worktree signature"
-    allowed_work: "incremental refresh, then re-check"
+    mode: "DEGRADED"
+    allowed_work: "attempt incremental refresh once, then continue with bounded native evidence if refresh fails"
+    required_disclosure: "do not represent stale index results as current"
+  - condition: "available evidence is insufficient for the task risk or protected changes lack approval"
+    mode: "BLOCKED"
+    allowed_work: "gather more evidence or obtain the required approval"
     blocked_work:
       - protected application edits
-      - plan approval claims
-      - review conclusions
+      - unsupported plan approval claims
+      - unsupported review conclusions
+
+degraded_fallback:
+  order:
+    - "Use rg --files to bound the repository surface."
+    - "Use rg for exact symbols, configuration, contracts, tests, and documentation."
+    - "Open only targeted files and trace callers/callees manually."
+    - "Use Git history, compiler or language-server diagnostics, and relevant tests."
+    - "State which index was unavailable and how conclusions were verified."
+  constraints:
+    - "Do not repeatedly retry installation or indexing."
+    - "Do not weaken human approval, sensitive-data, or critical-change gates."
+    - "Do not claim complete impact analysis without sufficient evidence."
 
 retrieval_order:
   - "Query CodeGraph for structure, symbols, callers/callees, dependencies, and impact."

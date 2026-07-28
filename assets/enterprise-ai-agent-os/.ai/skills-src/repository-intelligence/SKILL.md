@@ -37,32 +37,24 @@ Continue.
 
 ---
 
-## STALE
+## DEGRADED
 
-Repository indexes require refresh.
+One or both indexes are missing, stale, unhealthy, or unavailable.
 
-Execute:
+Attempt recovery once when practical:
 
 ```bash
 python .ai/scripts/refresh-repository-index.py
 ```
 
-or report that refresh is required.
+If recovery fails, continue using bounded native evidence:
 
----
+- `rg --files` to bound the repository surface
+- `rg` for exact symbols, contracts, configuration, tests, and documentation
+- targeted source reads and manual caller/callee tracing
+- Git history, compiler or language-server diagnostics, and relevant tests
 
-## BLOCKED
-
-Stop repository work.
-
-Only troubleshoot:
-
-- CodeGraph
-- CocoIndex
-
-or report the exact recovery commands from the gate output.
-
-Never continue repository analysis while blocked.
+Record which index is unavailable and do not claim complete coverage without sufficient evidence. Tool installation or indexing failure alone never blocks repository work.
 
 ---
 
@@ -390,11 +382,10 @@ Index refresh not required.
 
 Immediately stop repository work when:
 
-- Repository Gate reports BLOCKED
-- required indexes are unavailable
 - repository evidence conflicts
 - approval is missing
 - implementation exceeds approved scope
+- evidence remains insufficient for the task risk after bounded fallback inspection
 
 Report the exact blocking reason.
 

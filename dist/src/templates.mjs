@@ -103,7 +103,7 @@ version: 1
 name: human-approval-gate
 mode: fail-closed
 protected_changes_require:
-  - repository-intelligence-gate-ready
+  - repository-evidence-sufficient
   - indexed-impact-analysis
   - detailed-implementation-plan
   - explicit-human-approval
@@ -168,7 +168,7 @@ description: Use CodeGraph and CocoIndex before repository brainstorming, planni
 
 # Repository Intelligence
 
-Run the local gate first. If CodeGraph or CocoIndex is missing, stale, or failing, stop repository work and troubleshoot setup only.
+Run the local gate first. Prefer CodeGraph and CocoIndex when ready. If either is missing, stale, unhealthy, or cannot be installed, continue in DEGRADED mode with bounded rg/rg --files, targeted source reads, Git history, diagnostics, and tests. Record the limitation and do not overstate confidence.
 
 Use CodeGraph for structure and impact. Use CocoIndex for semantic code/document retrieval. Verify critical behavior against source code.
 `);

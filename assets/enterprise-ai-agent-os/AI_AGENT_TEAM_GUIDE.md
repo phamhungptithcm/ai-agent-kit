@@ -44,7 +44,7 @@ For full repository intelligence, first run `npx --yes @hunpeolabs/ai-agent-kit@
 
 ## Starting Work
 
-Every repository task starts with the Repository Intelligence Gate. Run `.ai/scripts/check-repository-intelligence.py`; CodeGraph and CocoIndex must both be installed, configured, indexed for the current checkout, and health-checked before brainstorming, planning, review, QA analysis, documentation analysis, or implementation. Use `.ai/scripts/refresh-repository-index.py` explicitly when the gate reports stale indexes.
+Every repository task starts with the Repository Intelligence Gate. Run `.ai/scripts/check-repository-intelligence.py`. Use CodeGraph and CocoIndex when ready; if either is missing, stale, unhealthy, or cannot be installed, continue in `DEGRADED` mode with bounded native evidence. Attempt recovery once, record the limitation, and do not overstate confidence. Tooling failure alone does not block work.
 
 Use CodeGraph first for structural evidence and impact. Use CocoIndex second for semantic retrieval across code, specs, docs, runbooks, tests, ADRs, and similar implementations. For multi-agent work, the Team Lead Orchestrator creates a shared `.ai/templates/repository-intelligence-brief.md` brief before assigning specialists.
 
@@ -89,7 +89,7 @@ Agents must not access production systems, run datafixes, rotate credentials, di
 
 ## Approval Gate
 
-Existing-system changes require the Repository Intelligence Gate, indexed analysis, multi-agent brainstorming, a concrete impact/implementation plan, and explicit human approval before protected files are edited. Use `.ai/templates/repository-intelligence-brief.md`, `.ai/templates/change-impact-plan.md`, and `.ai/templates/implementation-approval-record.md`. A vague assignment, branch creation, or request like "start working" is not approval.
+Existing-system changes require sufficient repository evidence, multi-agent brainstorming when applicable, a concrete impact/implementation plan, and explicit human approval before protected files are edited. Indexed evidence is preferred; bounded native evidence is valid in `DEGRADED` mode. Use `.ai/templates/repository-intelligence-brief.md`, `.ai/templates/change-impact-plan.md`, and `.ai/templates/implementation-approval-record.md`. A vague assignment, branch creation, or request like "start working" is not approval.
 
 Store the active record at `.ai/local/implementation-approval.md` or set `AI_AGENT_APPROVAL_RECORD`. Protected edit hooks validate each target path, and the completion gate compares the complete Git diff to the approved paths:
 

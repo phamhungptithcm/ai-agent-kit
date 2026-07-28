@@ -14,6 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from repository_intelligence_lib import (
     check_cocoindex,
     check_codegraph,
+    gate_mode,
     gate_ready,
     gate_report,
     load_state,
@@ -46,21 +47,24 @@ def maybe_refresh(root: Path, quiet: bool) -> None:
 def hook_output(report: str, ready: bool) -> str:
     context = (
         report
-        + "\nAll repository analysis must use the repository-intelligence skill, query CodeGraph first, "
-        + "query CocoIndex second, then verify critical conclusions against source."
+        + (
+            "\nUse CodeGraph first and CocoIndex second when they are ready, then verify critical conclusions against source."
+            if ready
+            else "\nRepository intelligence is DEGRADED. Continue with targeted source reads, rg/rg --files, Git history, "
+            "compiler or language-server output, and tests. Record the unavailable index evidence and do not overstate confidence."
+        )
     )
     payload: dict[str, object] = {
-        "continue": ready,
+        "continue": True,
         "hookSpecificOutput": {
             "hookEventName": "SessionStart",
             "additionalContext": context,
         },
     }
     if not ready:
-        payload["stopReason"] = "Repository Intelligence Gate BLOCKED"
         payload["systemMessage"] = (
-            "Repository Intelligence Gate is BLOCKED. Troubleshoot CodeGraph/CocoIndex setup only; "
-            "do not begin repository analysis, planning, review, QA, documentation analysis, or implementation."
+            "Repository intelligence is DEGRADED, not blocked. Continue with bounded native repository inspection, "
+            "state the evidence limitation, and preserve approval and risk gates."
         )
     return json.dumps(payload)
 
@@ -88,6 +92,7 @@ def main() -> int:
             json.dumps(
                 {
                     "ready": ready,
+                    "mode": gate_mode(codegraph, cocoindex),
                     "codegraph": codegraph.as_dict(),
                     "cocoindex": cocoindex.as_dict(),
                     "manual_commands": manual_commands(codegraph, cocoindex),
@@ -101,11 +106,11 @@ def main() -> int:
     elif not args.quiet or not ready:
         print(report)
         if not ready:
-            print("Manual verification commands:")
+            print("Optional recovery commands (work may continue with native repository evidence):")
             for command in manual_commands(codegraph, cocoindex):
                 print(f"- {command}")
 
-    return 0 if ready else 1
+    return 0
 
 
 if __name__ == "__main__":

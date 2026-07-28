@@ -2,7 +2,7 @@
 
 `.ai/` is the shared source of truth for repository-scoped AI agent behavior. Root files and platform adapters should route here instead of duplicating policy.
 
-Every repository task must pass the Repository Intelligence Gate before brainstorming, planning, review, QA analysis, documentation analysis, or implementation. Run `.ai/scripts/check-repository-intelligence.py`; use CodeGraph first for structural evidence and CocoIndex second for semantic/code/document retrieval. If indexes are stale, run `.ai/scripts/refresh-repository-index.py` explicitly. See `.ai/workflows/repository-intelligence-workflow.md` and `.ai/guards/repository-intelligence-gate.yaml`.
+Every repository task starts with the Repository Intelligence Gate. Use CodeGraph first for structural evidence and CocoIndex second for semantic/code/document retrieval when ready. Missing, stale, unhealthy, or un-installable tools produce `DEGRADED` mode rather than blocking work; continue with bounded native repository evidence and report the limitation. See `.ai/workflows/repository-intelligence-workflow.md` and `.ai/guards/repository-intelligence-gate.yaml`.
 
 Bootstrap is fast by default and does not install tools or refresh large indexes unless requested. Use `npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap --deep` or `.ai/scripts/index-repository.py` when full repository intelligence is needed.
 

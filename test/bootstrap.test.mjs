@@ -642,6 +642,42 @@ test("behavioral evaluation schema is executable without model credentials", () 
   assert.match(result.stdout, /10 cases, schema validation/);
 });
 
+test("repository intelligence excludes its own state without stripping dot-prefixed paths", () => {
+  const root = makeRepo("repository-intelligence-state");
+  const local = path.join(root, ".ai", "local");
+  fs.mkdirSync(local, { recursive: true });
+  const state = path.join(local, "repository-intelligence-state.json");
+  const libraryDirectory = path.resolve("assets/enterprise-ai-agent-os/.ai/scripts");
+  const program = [
+    "import sys",
+    `sys.path.insert(0, ${JSON.stringify(libraryDirectory)})`,
+    "from repository_intelligence_lib import is_excluded, worktree_signature",
+    "from pathlib import Path",
+    "root = Path(sys.argv[1])",
+    "state = root / '.ai/local/repository-intelligence-state.json'",
+    "assert is_excluded('.ai/local/repository-intelligence-state.json')",
+    "assert is_excluded('./.ai/local/repository-intelligence-state.json')",
+    "before = worktree_signature(root)",
+    "state.write_text('{\"changed\": true}\\n', encoding='utf-8')",
+    "after = worktree_signature(root)",
+    "assert before == after, (before, after)"
+  ].join("; ");
+  const result = spawnSync("python3", ["-c", program, root], { encoding: "utf8" });
+  assert.equal(result.status, 0, result.stderr);
+});
+
+test("repository intelligence check continues in degraded mode when optional indexes are missing", () => {
+  const script = path.resolve("assets/enterprise-ai-agent-os/.ai/scripts/check-repository-intelligence.py");
+  const result = spawnSync("/usr/bin/python3", [script, "--json"], {
+    encoding: "utf8",
+    env: { ...process.env, PATH: "/usr/bin:/bin" }
+  });
+  assert.equal(result.status, 0, result.stderr);
+  const report = JSON.parse(result.stdout);
+  assert.equal(report.mode, "DEGRADED");
+  assert.equal(report.ready, false);
+});
+
 test("governed runtime enforces state, capability, policy, and evidence integrity", () => {
   const root = makeRepo("governed-runtime");
   const task = createTask({
