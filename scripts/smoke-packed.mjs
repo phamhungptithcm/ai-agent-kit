@@ -41,6 +41,12 @@ try {
   const versionOutput = `${versionResult.stdout}${versionResult.stderr}`;
   assert.match(versionOutput, new RegExp(packageData.version.replaceAll(".", "\\.")));
 
+  const activationResult = execute(npxCommand, ["--yes", packageOption, "ai-agent-kit"], fixture);
+  const activationOutput = `${activationResult.stdout}${activationResult.stderr}`;
+  assert.match(activationOutput, /Choose how to import the kit into this project/);
+  assert.match(activationOutput, /Interactive input is unavailable/);
+  assert.equal(fs.existsSync(path.join(fixture, ".ai-agent-kit")), false);
+
   const dryRunResult = execute(
     npxCommand,
     ["--yes", packageOption, "ai-agent-kit", "bootstrap", "--dry-run"],
@@ -68,6 +74,27 @@ try {
   );
   assert.match(runtimeStatus.stdout, /"goal": "Verify packaged runtime"/);
   assert.ok(fs.existsSync(path.join(fixture, ".ai-agent-kit", "runtime", "tasks", "SMOKE-001.json")));
+
+  const installFixture = path.join(temporaryRoot, "install-fixture");
+  fs.mkdirSync(installFixture);
+  execute("git", ["init"], installFixture);
+  fs.writeFileSync(path.join(installFixture, "package.json"), `${JSON.stringify({
+    name: "ai-agent-kit-install-fixture",
+    private: true
+  }, null, 2)}\n`);
+  const installResult = execute(
+    npmCommand,
+    ["install", tarball, "--foreground-scripts"],
+    installFixture
+  );
+  assert.match(`${installResult.stdout}${installResult.stderr}`, /governed kit imported successfully/);
+  const installedContract = JSON.parse(
+    fs.readFileSync(path.join(installFixture, ".ai-agent-kit", "installation.json"), "utf8")
+  );
+  assert.equal(installedContract.preset, "governed");
+  assert.ok(fs.existsSync(path.join(installFixture, "node_modules", "@hunpeolabs", "ai-agent-kit")));
+  const installedPackage = JSON.parse(fs.readFileSync(path.join(installFixture, "package.json"), "utf8"));
+  assert.ok(installedPackage.dependencies?.["@hunpeolabs/ai-agent-kit"]);
   console.log("packed npx smoke test passed");
 } finally {
   fs.rmSync(temporaryRoot, { recursive: true, force: true });

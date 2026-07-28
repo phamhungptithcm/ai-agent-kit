@@ -1,6 +1,6 @@
 {
   "name": "@hunpeolabs/ai-agent-kit",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Governed AI coding agent workflows for Claude Code and Codex with repository intelligence, quality profiles, approval gates, and evidence.",
   "type": "module",
   "bin": {
@@ -55,6 +55,7 @@
     "smoke:packed": "node scripts/smoke-packed.mjs",
     "release:dry-run": "npm pack --dry-run",
     "security:supply-chain": "node scripts/supply-chain-check.mjs",
+    "postinstall": "node dist/bin/postinstall.mjs",
     "prepack": "npm run build"
   },
   "engines": {

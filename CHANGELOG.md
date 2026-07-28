@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 0.4.2 - 2026-07-28
+
+- Added an interactive activation menu for previewing or importing the governed/full kit, with non-interactive command guidance and cleanup instructions for persistent npm installs.
+- Added top-level project `postinstall` activation so `npm install @hunpeolabs/ai-agent-kit` imports the governed kit while transient `npx`, global, and repeated installs remain bounded.
+
 ## 0.4.1 - 2026-07-27
 
 - Fixed repository-intelligence path normalization so `.ai/local/repository-intelligence-state.json` no longer invalidates its own worktree signature and makes healthy indexes appear stale.
