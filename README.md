@@ -1,13 +1,26 @@
-# AI Agent Kit — Governed AI Coding Agents for Claude Code and Codex
+# AI Agent Kit — One Governed Workflow Across AI Coding Agents
 
 [![npm version](https://img.shields.io/npm/v/@hunpeolabs/ai-agent-kit?color=cb3837)](https://www.npmjs.com/package/@hunpeolabs/ai-agent-kit)
 [![CI](https://github.com/phamhungptithcm/ai-agent-kit/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/phamhungptithcm/ai-agent-kit/actions/workflows/npm-publish.yml)
 [![MIT license](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Node.js 20+](https://img.shields.io/badge/node-%3E%3D20-43853d)](package.json)
 
-**Turn Claude Code and OpenAI Codex into a consistent engineering system—not a collection of disconnected prompts.**
+**Give AI coding agents one consistent engineering system—not a collection of disconnected prompts.**
 
 One command installs shared rules, repository context, quality checks, approval gates, workflows, and reviewable evidence.
+
+The unreleased `0.5.0` source also adds migration-safe local updates and
+deterministic task context packs:
+
+```bash
+ai-agent-kit update --dry-run
+ai-agent-kit update --apply
+ai-agent-kit context compile --id TASK-123 --budget 12000
+ai-agent-kit context inspect --id TASK-123
+```
+
+`update --apply` never performs Git operations. Conflicting local edits are
+preserved with review evidence under `.ai-agent-kit/conflicts/`.
 
 ```bash
 npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap
@@ -36,7 +49,7 @@ Understand → Inspect repository → Plan → Approve → Execute → Verify �
 
 | Capability | What it changes for the user |
 | --- | --- |
-| Shared policy | Claude Code and Codex follow the same rules and workflows. |
+| Shared policy | Supported agents follow the same rules and workflows. |
 | Repository intelligence | CodeGraph and CocoIndex ground analysis in current code and docs. |
 | Quality profiles | Reviews adapt to stack, domain, security, and runtime risks. |
 | Governed changes | Tracked approval and command policy bound implementation. |
@@ -93,16 +106,16 @@ Bootstrap is local. It does not edit application source, commit, push, open a pu
 | --- | --- | --- |
 | **Shipped** | Claude Code | `CLAUDE.md`, config, commands, roles, hooks, and generated skills. |
 | **Shipped** | OpenAI Codex | `AGENTS.md`, config, rules, roles, hooks, and generated skills. |
-| **Roadmap** | Copilot, Cursor, Windsurf, Gemini CLI | Thin adapters that preserve the same `.ai/` contract. |
-| **Research** | Amazon Q, Junie, Cline, Devin, Aider, Continue | Candidate instruction, skill, and workflow surfaces. |
+| **Next release (unreleased)** | GitHub Copilot, Cursor, Windsurf/Cascade, Gemini CLI | Native instructions plus shared or native skills that preserve the same `.ai/` contract. |
+| **Next release (unreleased)** | Amazon Q, Junie, Cline, Devin, Aider, Continue | Native rules, conventions, `AGENTS.md`, and skill surfaces where supported. |
 
-Roadmap entries are not shipped support. See [Agent Adapter Strategy](docs/AGENT_ADAPTER_STRATEGY.md).
+The next-release adapters are implemented in the current source but are not published in `0.4.2`. See [Agent Adapter Strategy](docs/AGENT_ADAPTER_STRATEGY.md).
 
 ## How It Compares
 
 | Capability | Prompt or tool-specific rules | AI Agent Kit |
 | --- | ---: | ---: |
-| Shared Claude Code/Codex policy | Partial | Built in |
+| Shared cross-agent policy | Partial | Built in |
 | Repository-intelligence gate | Manual | Built in |
 | Stack-aware quality profiles | Manual | Included |
 | Approval and action boundaries | Manual | Enforced |
@@ -125,8 +138,25 @@ This compares operating models, not model intelligence.
 
 .claude/                Claude Code adapter
 .codex/ + .agents/      OpenAI Codex adapter
-AGENTS.md + CLAUDE.md   shared-policy entry points
+.github/ + .cursor/     Copilot and Cursor adapters
+.windsurf/ + .cline/    Windsurf/Cascade and Cline skills
+.amazonq/ + .junie/     Amazon Q and Junie adapters
+.continue/              Continue rules
+AGENTS.md               shared open-agent entry point
+CLAUDE.md + GEMINI.md   Claude Code and Gemini CLI entry points
+CONVENTIONS.md          Aider conventions
 ```
+
+Install every adapter (the default), or select a subset:
+
+```bash
+npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap --agents all
+npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap --agents codex,copilot,cursor
+```
+
+Migration-safe updates preserve the adapters already installed. Re-run bootstrap with
+`--agents all` or an explicit list when a reviewed existing installation should adopt
+additional agents.
 
 ## How It Works
 
@@ -145,6 +175,14 @@ flowchart LR
 ```
 
 Guidance supports reasoning; deterministic controls authorize protected actions. Runtime data stays local and excludes prompts, raw source/output, secrets, and chain-of-thought.
+
+## Next Release: 0.5.0 (Unreleased)
+
+- Registry-driven adapters for 12 AI coding agents with default-all or reviewed subset selection.
+- Native instruction and skill surfaces that preserve one `.ai/` policy contract.
+- Migration-safe local updates and task-aware context compilation.
+
+The source version is prepared locally. No npm publish, Git tag, or GitHub release is implied by this section.
 
 ## What Is New In 0.4.0
 

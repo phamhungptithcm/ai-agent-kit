@@ -38,7 +38,13 @@ def is_generated(text: str) -> bool:
 def sync(check: bool = False) -> int:
     root = repo_root()
     skills = canonical_skills(root)
-    destinations = [root / ".agents" / "skills", root / ".claude" / "skills"]
+    destinations = [
+        root / ".agents" / "skills",
+        root / ".claude" / "skills",
+        root / ".cursor" / "skills",
+        root / ".windsurf" / "skills",
+        root / ".cline" / "skills",
+    ]
     failures: list[str] = []
 
     for dest_root in destinations:

@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { ADAPTERS, ADAPTER_IDS, adapterOwnsPath } from "./adapters.mjs";
 import { verifyContract } from "./contract.mjs";
 import { getManagedDiff, getStatus, requireGitRoot } from "./git.mjs";
 import { hasSymlinkComponent, isApprovedConfigPath } from "./paths.mjs";
@@ -50,18 +51,20 @@ function selectedAdapterStatus(ownership, enabled, predicate) {
 
 function adapterStatus(root, installation, ownership) {
   if (!installation?.adapters) return legacyAdapterStatus(root);
-  return {
-    claude: selectedAdapterStatus(
+  return Object.fromEntries(ADAPTER_IDS.map((id) => [
+    id,
+    selectedAdapterStatus(
       ownership,
-      installation.adapters.claude,
-      (relPath) => relPath === "CLAUDE.md" || relPath.startsWith(".claude/")
-    ),
-    codex: selectedAdapterStatus(
-      ownership,
-      installation.adapters.codex,
-      (relPath) => relPath === "AGENTS.md" || relPath.startsWith(".agents/") || relPath.startsWith(".codex/")
+      Boolean(installation.adapters[id]),
+      (relPath) => adapterOwnsPath(id, relPath)
     )
-  };
+  ]));
+}
+
+function renderAdapterStatus(adapters) {
+  return Object.entries(adapters)
+    .map(([id, state]) => `${ADAPTERS[id]?.label ?? id} adapter: ${state}`)
+    .join("\n");
 }
 
 function intelligenceStatus(codegraph, cocoindex) {
@@ -153,8 +156,7 @@ Preset: ${status.preset}
 
 Core policy: ${status.core}
 Ownership: ${status.ownershipStatus} (${ownershipSummary(status.ownership)})
-Claude adapter: ${status.adapters.claude}
-Codex adapter: ${status.adapters.codex}
+${renderAdapterStatus(status.adapters)}
 CodeGraph: ${status.codegraph.status}
 CocoIndex: ${status.cocoindex.status}
 Repository Intelligence: ${status.repositoryIntelligence}

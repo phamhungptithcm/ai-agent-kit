@@ -1,4 +1,5 @@
 import { bootstrap } from "./bootstrap.mjs";
+import { ADAPTER_IDS, resolveAdapterIds } from "./adapters.mjs";
 import {
   findInstalledDependency,
   renderActivationMenu,
@@ -11,12 +12,13 @@ import {
   renderDoctor,
   renderManagedDiff,
   renderStatus,
-  renderUninstallPreview,
-  renderUpdatePreview
+  renderUninstallPreview
 } from "./inspection.mjs";
 import { renderNamedPrompt, renderPromptCatalog, renderPromptList } from "./prompt-catalog.mjs";
 import { applyToolPlan, inspectToolPlan, renderToolInstall, renderToolPlan } from "./tool-lifecycle.mjs";
 import { getPackageVersion } from "./version.mjs";
+import { applyUpdate, planUpdate, renderUpdatePlan } from "./update.mjs";
+import { compileContext, inspectContextPack } from "./context-compiler.mjs";
 import {
   addContext,
   approveMemory,
@@ -44,7 +46,8 @@ Usage:
   ai-agent-kit status [--target <path>]
   ai-agent-kit doctor [--target <path>]
   ai-agent-kit diff [--target <path>]
-  ai-agent-kit update --dry-run [--target <path>]
+  ai-agent-kit update (--dry-run | --apply) [--target <path>]
+  ai-agent-kit context compile|inspect --id <task-id> [--budget <tokens>] [--target <path>]
   ai-agent-kit uninstall --dry-run [--target <path>]
   ai-agent-kit tools plan [--target <path>]
   ai-agent-kit tools install --apply [--target <path>]
@@ -68,8 +71,10 @@ Options:
   --refresh-indexes        Refresh CodeGraph/CocoIndex indexes during bootstrap.
   --no-refresh-indexes     Skip index refresh during bootstrap.
   --deep                   Refresh ready indexes; never installs global tools.
-  --claude-only            Install Claude Code adapter files only.
-  --codex-only             Install Codex adapter files only.
+  --agents <list|all>      Install comma-separated adapters. Defaults to all.
+                           Available: ${ADAPTER_IDS.join(", ")}.
+  --claude-only            Legacy alias for --agents claude.
+  --codex-only             Legacy alias for --agents codex.
   --yes                    Reserved for non-interactive automation.
   --verbose                Reserved for detailed diagnostics.
   -h, --help               Show this help.
@@ -201,6 +206,37 @@ export function parseTargetArgs(argv, { requireDryRun = false } = {}) {
   return options;
 }
 
+export function parseUpdateArgs(argv) {
+  const options = { target: process.cwd(), dryRun: false, apply: false };
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = argv[index];
+    if (arg === "--target") {
+      options.target = argv[++index];
+      if (!options.target) throw new Error("--target requires a path");
+    } else if (arg === "--dry-run") options.dryRun = true;
+    else if (arg === "--apply") options.apply = true;
+    else throw new Error(`Unknown update option: ${arg}`);
+  }
+  if (options.dryRun === options.apply) throw new Error("update requires exactly one of --dry-run or --apply");
+  return options;
+}
+
+export function parseContextArgs(argv) {
+  const action = argv[0];
+  if (!["compile", "inspect"].includes(action)) throw new Error("context requires compile or inspect");
+  const options = { target: process.cwd(), budget: 12_000 };
+  for (let index = 1; index < argv.length; index += 1) {
+    const arg = argv[index];
+    if (arg === "--target") options.target = argv[++index];
+    else if (arg === "--id") options.id = argv[++index];
+    else if (arg === "--budget") options.budget = Number(argv[++index]);
+    else throw new Error(`Unknown context option: ${arg}`);
+    if (options[arg.slice(2)] === undefined || options[arg.slice(2)] === "") throw new Error(`${arg} requires a value`);
+  }
+  if (!options.id) throw new Error("context command requires --id");
+  return { action, options };
+}
+
 export function parseBootstrapArgs(argv) {
   const options = {
     target: process.cwd(),
@@ -210,6 +246,7 @@ export function parseBootstrapArgs(argv) {
     yes: false,
     installTools: false,
     refreshIndexes: false,
+    agents: null,
     claudeOnly: false,
     codexOnly: false,
     dryRun: false,
@@ -260,6 +297,10 @@ export function parseBootstrapArgs(argv) {
         options.installTools = false;
         options.refreshIndexes = true;
         break;
+      case "--agents":
+        options.agents = argv[++index];
+        if (!options.agents) throw new Error("--agents requires a comma-separated list or all");
+        break;
       case "--claude-only":
         options.claudeOnly = true;
         break;
@@ -282,6 +323,10 @@ export function parseBootstrapArgs(argv) {
   if (options.claudeOnly && options.codexOnly) {
     throw new Error("--claude-only and --codex-only cannot be used together");
   }
+  if (options.agents && (options.claudeOnly || options.codexOnly)) {
+    throw new Error("--agents cannot be combined with --claude-only or --codex-only");
+  }
+  resolveAdapterIds(options);
   return options;
 }
 
@@ -346,8 +391,15 @@ export async function main(argv = process.argv.slice(2), io = console, deps = {}
     return 0;
   }
   if (command === "update") {
-    const options = parseTargetArgs(argv.slice(1), { requireDryRun: true });
-    io.log(renderUpdatePreview(options, deps));
+    const options = parseUpdateArgs(argv.slice(1));
+    const result = options.apply ? applyUpdate(options, deps) : planUpdate(options, deps);
+    io.log(renderUpdatePlan(result, options.apply ? result.status : "DRY RUN"));
+    return 0;
+  }
+  if (command === "context") {
+    const { action, options } = parseContextArgs(argv.slice(1));
+    const result = action === "compile" ? compileContext(options, deps) : inspectContextPack(options);
+    io.log(JSON.stringify(result, null, 2));
     return 0;
   }
   if (command === "uninstall") {

@@ -5,7 +5,7 @@ AI Agent Kit installs a repository-scoped operating model for AI-assisted engine
 ## Design Goals
 
 - Make AI-agent setup a one-command local install.
-- Give Claude Code and Codex the same repository policy.
+- Give supported AI coding agents the same repository policy.
 - Keep application source code untouched during bootstrap.
 - Force repository intelligence before planning, review, QA, documentation analysis, or implementation.
 - Apply language/version and platform/domain-aware code-quality profiles before implementation handoff or PR review.
@@ -23,6 +23,7 @@ flowchart LR
   TargetRepo --> AI[.ai shared policy]
   TargetRepo --> Claude[Claude adapter]
   TargetRepo --> Codex[Codex adapter]
+  TargetRepo --> Other[Next-release adapters]
   TargetRepo --> LocalState[.ai-agent-kit local state]
   LocalState --> Ownership[Ownership checksums]
 
@@ -36,31 +37,48 @@ flowchart LR
 
   Claude --> ClaudeCode[Claude Code]
   Codex --> CodexAgent[OpenAI Codex]
+  Other --> OtherAgents[Copilot, Cursor, Windsurf, Gemini, Amazon Q, Junie, Cline, Devin, Aider, Continue]
 
   ClaudeCode --> AI
   CodexAgent --> AI
+  OtherAgents --> AI
 ```
 
 The package owns the scaffold. The target repository receives generated policy and adapters. Developers still review, stage, commit, push, open PRs/MRs, update Jira, and deploy manually.
+
+## Safe Lifecycle and Context Compilation
+
+`update --apply` compares the installed base, project-local content, and
+incoming scaffold. Unchanged files update automatically, non-overlapping edits
+merge, and overlapping edits preserve local content while emitting base/local/
+incoming evidence. Every write is journaled, backed up, path checked, and
+rollback-capable.
+
+The task-aware context compiler combines mandatory core policy with
+intent-matched rules, profiles, skills, task facts, and approved memory. Its
+JSON and Markdown outputs carry provenance, reasons, repository commit, policy
+revision, token estimates, exclusions, and a deterministic content hash.
+Missing or stale repository intelligence can produce a usable `DEGRADED` pack,
+but never a `READY` pack.
 
 ## Agent Adapter Model
 
 ```mermaid
 flowchart LR
   Source[.ai source of truth] --> Contract[Adapter contract]
-  Contract --> Shipped[Shipped adapters]
-  Contract --> Future[Future adapters]
+  Contract --> Published[Published adapters]
+  Contract --> Next[Next-release adapters]
 
-  Shipped --> Claude[Claude Code]
-  Shipped --> Codex[OpenAI Codex]
+  Published --> Claude[Claude Code]
+  Published --> Codex[OpenAI Codex]
 
-  Future --> Copilot[GitHub Copilot]
-  Future --> Cursor[Cursor]
-  Future --> Windsurf[Windsurf/Cascade]
-  Future --> Gemini[Gemini CLI]
-  Future --> AmazonQ[Amazon Q Developer]
-  Future --> Junie[JetBrains Junie]
-  Future --> OSS[Cline, Devin, Aider, Continue]
+  Next --> Copilot[GitHub Copilot]
+  Next --> Cursor[Cursor]
+  Next --> Windsurf[Windsurf/Cascade]
+  Next --> Gemini[Gemini CLI]
+  Next --> AmazonQ[Amazon Q Developer]
+  Next --> Junie[JetBrains Junie]
+  Next --> OSS[Cline, Devin, Aider, Continue]
 
   Claude --> Behavior[Same team behavior]
   Codex --> Behavior
@@ -73,7 +91,7 @@ flowchart LR
   OSS --> Behavior
 ```
 
-The adapter rule is: route each tool back to `.ai/` instead of copying policy into every platform format. See [Agent Adapter Strategy](AGENT_ADAPTER_STRATEGY.md) for the roadmap.
+The adapter rule is: route each tool back to `.ai/` instead of copying policy into every platform format. See [Agent Adapter Strategy](AGENT_ADAPTER_STRATEGY.md) for the implemented matrix and release gates.
 
 ## Code Quality Intelligence Layer
 
@@ -119,7 +137,7 @@ flowchart TD
   Start[Run bootstrap in target git repo] --> Detect[Detect repo profile and current git state]
   Detect --> Copy[Copy AI-agent scaffold]
   Copy --> Policy[.ai policy, workflows, guards, evals, scripts]
-  Copy --> Adapters[AGENTS.md, CLAUDE.md, .codex, .claude, .agents]
+  Copy --> Adapters[Root instructions, native rules, configs, and generated skills]
   Copy --> Prompts[.ai/PROMPTS.md]
   Copy --> Metadata[.ai-agent-kit backups, report, MR/Jira handoff drafts]
   Copy --> Gitignore[Managed .gitignore entries]
@@ -142,8 +160,8 @@ flowchart TD
 | Installed Area | Purpose | Application Source Impact |
 | --- | --- | --- |
 | `.ai/` | Shared policy, workflows, prompts, skills, guards, scripts, evals, quality gates, memory governance. | No app source change. |
-| `AGENTS.md` and `CLAUDE.md` | Route Codex and Claude Code to the same team policy. | Managed sections only. |
-| `.codex/`, `.claude/`, `.agents/` | Platform adapters, agent roles, generated skills, hooks, and rules. | No app source change. |
+| Root instruction files | Route agents to the same team policy through `AGENTS.md`, `CLAUDE.md`, `GEMINI.md`, or `CONVENTIONS.md`. | Managed sections only. |
+| Adapter directories | Native rules, config, roles, generated skills, hooks, and instructions for selected agents. | No app source change. |
 | `.mcp.json` | Local MCP wiring for repository intelligence tools. | No app source change. |
 | `.ai-agent-kit/` | Local backups, transaction report, ownership checksums, detected manifests/versions, and copy-ready handoff drafts. | Local metadata only. |
 | `.gitignore` | Ignores local AI-agent caches and backup folders. | Managed section only. |
@@ -241,14 +259,14 @@ Runtime state is stored under ignored `.ai-agent-kit/runtime/`. Evidence contain
 | `investigate-incident` | Build an incident timeline, impact, evidence, and prevention plan. |
 | `prepare-handoff` | Prepare PR/MR, Jira, quality gates, validation, and memory-candidate handoff. |
 
-## Adapter Roadmap
+## Adapter Delivery
 
-Shipped today:
+Published in `0.4.2`:
 
 - Claude Code
 - OpenAI Codex
 
-Adapter-ready targets:
+Implemented for the next release:
 
 - GitHub Copilot coding agent
 - Cursor

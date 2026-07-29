@@ -24,6 +24,26 @@ Retrieved: 2026-07-15
 | Sandboxing | https://learn.chatgpt.com/docs/sandboxing | Common modes are `read-only`, `workspace-write`, and `danger-full-access`; lower-risk local automation is `workspace-write` with `on-request`. |
 | Approvals and security | https://learn.chatgpt.com/docs/agent-approvals-security | Approval requests should guard boundary crossings; full access without approvals is elevated risk and not recommended. |
 
+## Official Cross-Agent Adapter Documentation
+
+Retrieved: 2026-07-29
+
+| Agent | URL | Repository surface used |
+| --- | --- | --- |
+| GitHub Copilot | https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/add-custom-instructions/add-repository-instructions | `.github/copilot-instructions.md` and `AGENTS.md` |
+| GitHub Copilot skills | https://docs.github.com/en/copilot/concepts/agents/about-agent-skills | `.agents/skills/<name>/SKILL.md` |
+| Cursor | https://docs.cursor.com/context/rules | `.cursor/rules/*.mdc` |
+| Windsurf / Cascade | https://docs.devin.ai/desktop/cascade/skills | `.windsurf/skills/<name>/SKILL.md` |
+| Gemini CLI | https://google-gemini.github.io/gemini-cli/docs/cli/gemini-md.html | `GEMINI.md` and native `@file` imports |
+| Amazon Q Developer | https://docs.aws.amazon.com/amazonq/latest/qdeveloper-ug/context-project-rules.html | `.amazonq/rules/*.md` |
+| JetBrains Junie | https://junie.jetbrains.com/docs/guidelines-and-memory.html | `AGENTS.md` and `.junie/AGENTS.md` |
+| Cline rules | https://docs.cline.bot/customization/cline-rules | `.clinerules/*.md` |
+| Cline skills | https://docs.cline.bot/customization/skills | `.cline/skills/<name>/SKILL.md` |
+| Devin | https://docs.devin.ai/onboard-devin/agents-md | `AGENTS.md` |
+| Devin skills | https://docs.devin.ai/product-guides/skills | `.agents/skills/<name>/SKILL.md` |
+| Aider | https://aider.chat/docs/usage/conventions.html | `CONVENTIONS.md` loaded through `.aider.conf.yml` |
+| Continue | https://docs.continue.dev/customize/deep-dives/rules | `.continue/rules/*.md` |
+
 ## Repository Context Sources
 
 - `codegraph status .` on 2026-07-15: 3,780 indexed files, 76,443 nodes, 71,878 edges, mostly Java with XML/properties/YAML.

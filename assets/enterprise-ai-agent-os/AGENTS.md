@@ -1,4 +1,4 @@
-# Codex Repository Instructions
+# Repository Instructions For AI Coding Agents
 
 ## Mission
 

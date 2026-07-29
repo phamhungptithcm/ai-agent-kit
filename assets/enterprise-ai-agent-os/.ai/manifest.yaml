@@ -1,10 +1,13 @@
-version: 2
+version: 3
 owner: "repository maintainers"
 retrieved_on: "2026-07-15"
 canonical_skill_root: ".ai/skills-src"
 generated_skill_roots:
   - ".agents/skills"
   - ".claude/skills"
+  - ".cursor/skills"
+  - ".windsurf/skills"
+  - ".cline/skills"
 repository_docs:
   - ".ai/README.md"
   - ".ai/references.md"
@@ -32,6 +35,7 @@ core:
   - ".ai/core/definition-of-done.md"
   - ".ai/core/output-contract.md"
   - ".ai/core/governed-runtime.md"
+  - ".ai/core/context-compiler.md"
 context:
   - ".ai/context/architecture.md"
   - ".ai/context/glossary.md"
@@ -69,6 +73,7 @@ workflows:
   - ".ai/workflows/synchronize-work-item.md"
   - ".ai/workflows/prepare-jira-completion-package.md"
   - ".ai/workflows/build-public-website.md"
+  - ".ai/workflows/compile-task-context.md"
 guards:
   - ".ai/guards/repository-intelligence-gate.yaml"
   - ".ai/guards/implementation-approval-gate.yaml"
@@ -153,6 +158,7 @@ skills:
   - ".ai/skills-src/design-taste-website/SKILL.md"
   - ".ai/skills-src/animation-design-engineering/SKILL.md"
   - ".ai/skills-src/governed-agent-runtime/SKILL.md"
+  - ".ai/skills-src/compile-task-context/SKILL.md"
 quality_profiles:
   - ".ai/quality-profiles/universal.yaml"
   - ".ai/quality-profiles/go.yaml"

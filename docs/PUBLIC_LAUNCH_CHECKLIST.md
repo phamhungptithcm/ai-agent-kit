@@ -28,7 +28,7 @@ Use this before promoting the package on npm, GitHub, LinkedIn, or internal engi
 
 Suggested short description:
 
-> A one-command AI agent operating system for Claude Code and Codex: shared team policy, repository intelligence gates, review evidence, and local-only bootstrap safety.
+> A one-command operating system for AI coding agents: shared team policy, repository intelligence gates, review evidence, and local-only bootstrap safety.
 
 Suggested audience framing:
 

@@ -92,6 +92,25 @@ try {
     fs.readFileSync(path.join(installFixture, ".ai-agent-kit", "installation.json"), "utf8")
   );
   assert.equal(installedContract.preset, "governed");
+  assert.equal(installedContract.contractVersion, 3);
+  assert.equal(Object.keys(installedContract.adapters).length, 12);
+  assert.ok(Object.values(installedContract.adapters).every(Boolean));
+  for (const relPath of [
+    ".github/copilot-instructions.md",
+    ".cursor/rules/ai-agent-kit.mdc",
+    ".cursor/skills/start-task/SKILL.md",
+    ".windsurf/skills/start-task/SKILL.md",
+    "GEMINI.md",
+    ".amazonq/rules/ai-agent-kit.md",
+    ".junie/AGENTS.md",
+    ".clinerules/ai-agent-kit.md",
+    ".cline/skills/start-task/SKILL.md",
+    "CONVENTIONS.md",
+    ".aider.conf.yml",
+    ".continue/rules/ai-agent-kit.md"
+  ]) {
+    assert.ok(fs.existsSync(path.join(installFixture, relPath)), `packed bootstrap missing ${relPath}`);
+  }
   assert.ok(fs.existsSync(path.join(installFixture, "node_modules", "@hunpeolabs", "ai-agent-kit")));
   const installedPackage = JSON.parse(fs.readFileSync(path.join(installFixture, "package.json"), "utf8"));
   assert.ok(installedPackage.dependencies?.["@hunpeolabs/ai-agent-kit"]);

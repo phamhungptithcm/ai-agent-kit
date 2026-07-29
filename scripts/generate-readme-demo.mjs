@@ -132,8 +132,12 @@ const installed = [
   ".claude/",
   ".codex/",
   ".agents/",
+  ".github/",
+  ".cursor/",
+  ".windsurf/",
   "AGENTS.md",
   "CLAUDE.md",
+  "GEMINI.md",
   "AI_AGENT_TEAM_GUIDE.md"
 ].filter((entry) => fs.existsSync(path.join(demoRepository, entry.replace(/\/$/, ""))));
 
@@ -176,7 +180,7 @@ const frames = [
   [
     "ONE REPOSITORY. ONE ENGINEERING CONTRACT.",
     "",
-    "Claude Code + OpenAI Codex",
+    "One contract across supported agents",
     "Repository intelligence",
     "Approval boundaries",
     "Reviewable evidence",

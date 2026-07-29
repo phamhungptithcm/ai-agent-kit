@@ -4,12 +4,12 @@ Use this guide when introducing AI Agent Kit to a team, manager, QA lead, or onb
 
 ## The Pitch
 
-AI Agent Kit turns ad hoc AI coding into a repeatable repository operating model. It gives Claude Code and Codex the same durable instructions, forces repository intelligence before edits, and creates review-ready evidence without letting the tool perform remote Git or ticketing actions.
+AI Agent Kit turns ad hoc AI coding into a repeatable repository operating model. It gives supported coding agents the same durable instructions, forces repository intelligence before edits, and creates review-ready evidence without letting the tool perform remote Git or ticketing actions.
 
 ## Recommended Rollout
 
 1. Run `bootstrap --dry-run` in a representative repository.
-2. Review the proposed `.ai/`, `.claude/`, `.codex/`, `AGENTS.md`, `CLAUDE.md`, and `AI_AGENT_TEAM_GUIDE.md` files.
+2. Review the proposed `.ai/`, selected adapter directories, root instruction files, and `AI_AGENT_TEAM_GUIDE.md`.
 3. Run the real bootstrap locally using the complete `governed` preset.
 4. Run `status` and `doctor` to distinguish installed policy from operational repository-intelligence readiness.
 5. Review `diff` and the copy-ready MR/Jira output under `.ai-agent-kit/output/`.
@@ -28,7 +28,7 @@ Show three moments:
 - `status`, `doctor`, and `diff` to show that readiness and repository changes are observable without writing files.
 - `update --dry-run` and `uninstall --dry-run` to show lifecycle transparency without applying changes.
 - The high-level design diagrams in `docs/HIGH_LEVEL_DESIGN.md` to show what files are affected and how prompts flow into agent output.
-- The adapter roadmap in `docs/AGENT_ADAPTER_STRATEGY.md` to show how the model can expand beyond Claude Code and Codex.
+- The adapter matrix in `docs/AGENT_ADAPTER_STRATEGY.md` to show how one contract reaches each supported agent.
 - A sample agent task using the Repository Intelligence Gate before any implementation.
 
 ## What To Emphasize

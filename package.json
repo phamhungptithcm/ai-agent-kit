@@ -1,7 +1,7 @@
 {
   "name": "@hunpeolabs/ai-agent-kit",
-  "version": "0.4.2",
-  "description": "Governed AI coding agent workflows for Claude Code and Codex with repository intelligence, quality profiles, approval gates, and evidence.",
+  "version": "0.5.0",
+  "description": "Governed cross-agent coding workflows with repository intelligence, quality profiles, approval gates, and evidence.",
   "type": "module",
   "bin": {
     "ai-agent-kit": "./dist/bin/ai-agent-kit.mjs"
@@ -17,6 +17,16 @@
     "enterprise-ai",
     "codex",
     "claude-code",
+    "github-copilot",
+    "cursor",
+    "windsurf",
+    "gemini-cli",
+    "amazon-q",
+    "junie",
+    "cline",
+    "devin",
+    "aider",
+    "continue",
     "codegraph",
     "cocoindex",
     "repository-intelligence",

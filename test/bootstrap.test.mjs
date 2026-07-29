@@ -1,9 +1,11 @@
 import assert from "node:assert/strict";
+import crypto from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
+import { ADAPTER_IDS } from "../src/adapters.mjs";
 import { loadScaffoldFiles } from "../src/assets.mjs";
 import {
   findInstalledDependency,
@@ -11,7 +13,9 @@ import {
   renderDependencyCleanup
 } from "../src/activation.mjs";
 import { bootstrap } from "../src/bootstrap.mjs";
-import { main, parseBootstrapArgs, parseRuntimeArgs, parseTargetArgs, parseToolArgs } from "../src/cli.mjs";
+import {
+  main, parseBootstrapArgs, parseContextArgs, parseRuntimeArgs, parseTargetArgs, parseToolArgs, parseUpdateArgs
+} from "../src/cli.mjs";
 import { parseContractManifest } from "../src/contract.mjs";
 import { detectProfile } from "../src/detect.mjs";
 import { verifyOwnership } from "../src/ownership.mjs";
@@ -24,6 +28,8 @@ import {
   revisePlan, scoreTask, transitionTask, verifyEvidence
 } from "../src/governed-runtime.mjs";
 import { generateSbom } from "../scripts/generate-sbom.mjs";
+import { applyUpdate, mergeThreeWay, planUpdate } from "../src/update.mjs";
+import { compileContext } from "../src/context-compiler.mjs";
 
 function run(command, args, cwd) {
   const result = spawnSync(command, args, { cwd, encoding: "utf8" });
@@ -96,7 +102,7 @@ async function runBootstrap(root, extra = {}) {
     {
       runner,
       transactionId: extra.transactionId ?? "20260715T000000Z-test",
-      packageVersion: "0.1.0-test",
+      packageVersion: extra.packageVersion ?? "0.1.0-test",
       io: { log: (message = "") => logs.push(String(message)) },
       failStep: extra.failStep
     }
@@ -159,6 +165,18 @@ test("bootstrap creates local AI-agent files without staging, branch, commit, pu
   assert.ok(fs.existsSync(path.join(root, ".claude", "skills", "design-taste-website", "SKILL.md")));
   assert.ok(fs.existsSync(path.join(root, ".agents", "skills", "animation-design-engineering", "SKILL.md")));
   assert.ok(fs.existsSync(path.join(root, ".claude", "skills", "animation-design-engineering", "SKILL.md")));
+  assert.ok(fs.existsSync(path.join(root, ".cursor", "skills", "start-task", "SKILL.md")));
+  assert.ok(fs.existsSync(path.join(root, ".windsurf", "skills", "start-task", "SKILL.md")));
+  assert.ok(fs.existsSync(path.join(root, ".cline", "skills", "start-task", "SKILL.md")));
+  assert.ok(fs.existsSync(path.join(root, ".github", "copilot-instructions.md")));
+  assert.ok(fs.existsSync(path.join(root, ".cursor", "rules", "ai-agent-kit.mdc")));
+  assert.ok(fs.existsSync(path.join(root, "GEMINI.md")));
+  assert.ok(fs.existsSync(path.join(root, ".amazonq", "rules", "ai-agent-kit.md")));
+  assert.ok(fs.existsSync(path.join(root, ".junie", "AGENTS.md")));
+  assert.ok(fs.existsSync(path.join(root, ".clinerules", "ai-agent-kit.md")));
+  assert.ok(fs.existsSync(path.join(root, "CONVENTIONS.md")));
+  assert.ok(fs.existsSync(path.join(root, ".aider.conf.yml")));
+  assert.ok(fs.existsSync(path.join(root, ".continue", "rules", "ai-agent-kit.md")));
   assert.ok(fs.existsSync(path.join(root, ".mcp.json")));
   assert.ok(fs.existsSync(path.join(root, ".claude", "settings.json")));
   assert.ok(fs.existsSync(path.join(root, ".codex", "config.toml")));
@@ -180,8 +198,9 @@ test("bootstrap creates local AI-agent files without staging, branch, commit, pu
   assert.ok(fs.existsSync(path.join(root, ".ai-agent-kit", "output", "jira-update.md")));
   const installation = JSON.parse(fs.readFileSync(path.join(root, ".ai-agent-kit", "installation.json"), "utf8"));
   assert.equal(installation.preset, "governed");
-  assert.equal(installation.contractVersion, 2);
-  assert.deepEqual(installation.adapters, { claude: true, codex: true });
+  assert.equal(installation.contractVersion, 3);
+  assert.deepEqual(Object.keys(installation.adapters), [...ADAPTER_IDS]);
+  assert.ok(Object.values(installation.adapters).every(Boolean));
   assert.ok(installation.managedFiles.some((entry) => entry.path === ".ai/core/quality-gates.md"));
   assert.ok(installation.managedFiles.some((entry) => entry.path === "AGENTS.md" && entry.mode === "managed-section"));
   assert.ok(installation.managedFiles.every((entry) => /^[a-f0-9]{64}$/.test(entry.installedSha256)));
@@ -260,6 +279,7 @@ test("bootstrap defaults to fast policy-only mode unless deep setup is requested
   assert.equal(defaults.preset, "governed");
   assert.equal(defaults.installTools, false);
   assert.equal(defaults.refreshIndexes, false);
+  assert.equal(defaults.agents, null);
 
   const deep = parseBootstrapArgs(["--deep"]);
   assert.equal(deep.installTools, false);
@@ -269,6 +289,10 @@ test("bootstrap defaults to fast policy-only mode unless deep setup is requested
   assert.equal(refreshOnly.installTools, false);
   assert.equal(refreshOnly.refreshIndexes, true);
   assert.throws(() => parseBootstrapArgs(["--install-tools"]), /tools install --apply/);
+  assert.equal(parseBootstrapArgs(["--agents", "codex,copilot,cursor"]).agents, "codex,copilot,cursor");
+  assert.throws(() => parseBootstrapArgs(["--agents", "unknown"]), /Unsupported AI agent adapter/);
+  assert.throws(() => parseBootstrapArgs(["--agents", "all,codex"]), /cannot be combined/);
+  assert.throws(() => parseBootstrapArgs(["--agents", "codex", "--claude-only"]), /cannot be combined/);
 });
 
 test("governed and full presets preserve the same quality contract", async () => {
@@ -318,6 +342,27 @@ test("single-adapter bootstrap does not generate the excluded adapter skills", a
   assert.ok(fs.existsSync(path.join(claudeRoot, ".claude", "skills", "start-task", "SKILL.md")));
 });
 
+test("multi-adapter selection installs only requested native surfaces", async () => {
+  const root = makeRepo("selected-adapters");
+  await runBootstrap(root, { options: { agents: "copilot,cursor,gemini" } });
+  const installation = JSON.parse(fs.readFileSync(path.join(root, ".ai-agent-kit", "installation.json"), "utf8"));
+
+  assert.equal(installation.adapters.copilot, true);
+  assert.equal(installation.adapters.cursor, true);
+  assert.equal(installation.adapters.gemini, true);
+  assert.equal(installation.adapters.claude, false);
+  assert.equal(installation.adapters.codex, false);
+  assert.ok(fs.existsSync(path.join(root, ".github", "copilot-instructions.md")));
+  assert.ok(fs.existsSync(path.join(root, ".cursor", "rules", "ai-agent-kit.mdc")));
+  assert.ok(fs.existsSync(path.join(root, ".cursor", "skills", "start-task", "SKILL.md")));
+  assert.ok(fs.existsSync(path.join(root, "GEMINI.md")));
+  assert.ok(fs.existsSync(path.join(root, "AGENTS.md")));
+  assert.equal(fs.existsSync(path.join(root, ".claude")), false);
+  assert.equal(fs.existsSync(path.join(root, ".codex")), false);
+  assert.equal(fs.existsSync(path.join(root, ".amazonq")), false);
+  assert.equal(fs.existsSync(path.join(root, ".windsurf")), false);
+});
+
 test("status, doctor, and diff are read-only", async () => {
   const root = makeRepo("inspection");
   await runBootstrap(root);
@@ -339,7 +384,7 @@ test("status, doctor, and diff are read-only", async () => {
   assert.match(logs.join("\n"), /No files were modified/);
 });
 
-test("update and uninstall lifecycle commands require dry-run and modify nothing", async () => {
+test("update requires an explicit mode while uninstall remains preview-only", async () => {
   const root = makeRepo("lifecycle-preview");
   await runBootstrap(root);
   const before = status(root);
@@ -348,7 +393,7 @@ test("update and uninstall lifecycle commands require dry-run and modify nothing
   const io = { log: (message = "") => logs.push(String(message)) };
   const deps = { runner, packageVersion: "0.2.0-test" };
 
-  await assert.rejects(() => main(["update", "--target", root], io, deps), /preview-only/);
+  await assert.rejects(() => main(["update", "--target", root], io, deps), /exactly one/);
   await assert.rejects(() => main(["uninstall", "--target", root], io, deps), /preview-only/);
   await main(["update", "--dry-run", "--target", root], io, deps);
   await main(["uninstall", "--dry-run", "--target", root], io, deps);
@@ -797,6 +842,13 @@ test("repository intelligence check continues in degraded mode when optional ind
   assert.equal(report.ready, false);
 });
 
+test("full agent configuration validation accepts optional-index degraded mode", () => {
+  const script = path.resolve("assets/enterprise-ai-agent-os/.ai/scripts/validate_agent_config.py");
+  const result = spawnSync("python3", ["-B", script], { encoding: "utf8" });
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /agent configuration validation passed/);
+});
+
 test("governed runtime enforces state, capability, policy, and evidence integrity", () => {
   const root = makeRepo("governed-runtime");
   const task = createTask({
@@ -862,6 +914,177 @@ test("runtime CLI parser preserves repeated capabilities and evidence", () => {
   assert.equal(parsed.options.evidence.tests, "passed");
   assert.equal(parsed.options.goal, "Ship safely");
   assert.deepEqual(parsed.options.acceptanceCriteria, ["Tests pass"]);
+});
+
+test("v0.5 lifecycle and context parsers require explicit, bounded commands", () => {
+  assert.equal(parseUpdateArgs(["--dry-run", "--target", "/tmp/example"]).dryRun, true);
+  assert.equal(parseUpdateArgs(["--apply", "--target", "/tmp/example"]).apply, true);
+  assert.throws(() => parseUpdateArgs([]), /exactly one/);
+  assert.throws(() => parseUpdateArgs(["--dry-run", "--apply"]), /exactly one/);
+  assert.deepEqual(
+    parseContextArgs(["compile", "--id", "TASK-5", "--budget", "24000"]).options,
+    { target: process.cwd(), id: "TASK-5", budget: 24000 }
+  );
+  assert.throws(() => parseContextArgs(["compile"]), /requires --id/);
+});
+
+test("three-way update merges non-overlapping edits and preserves dry-run decisions", async () => {
+  const root = makeRepo("update-merge");
+  await runBootstrap(root, { packageVersion: "0.4.2" });
+  const scaffold = loadScaffoldFiles();
+  const rel = ".ai/core/mission.md";
+  const base = fs.readFileSync(path.join(root, rel), "utf8");
+  const localLines = base.split("\n");
+  const incomingLines = base.split("\n");
+  localLines[1] = `${localLines[1]} Local project clarification.`;
+  incomingLines[3] = `${incomingLines[3]} Incoming kit clarification.`;
+  fs.writeFileSync(path.join(root, rel), localLines.join("\n"));
+  scaffold.set(rel, incomingLines.join("\n"));
+
+  const deps = {
+    runner: createMockRunner(),
+    packageVersion: "0.5.0",
+    transactionId: "20260729T000000Z-merge",
+    scaffoldFiles: scaffold
+  };
+  const dryRun = planUpdate({ target: root, dryRun: true }, deps);
+  const planned = dryRun.decisions.find((entry) => entry.path === rel);
+  assert.equal(planned.action, "MERGE");
+
+  const applied = applyUpdate({ target: root, apply: true }, deps);
+  const actual = fs.readFileSync(path.join(root, rel), "utf8");
+  assert.match(actual, /Local project clarification/);
+  assert.match(actual, /Incoming kit clarification/);
+  assert.deepEqual(
+    applied.decisions.map(({ path: itemPath, action }) => [itemPath, action]),
+    dryRun.decisions.map(({ path: itemPath, action }) => [itemPath, action])
+  );
+  assert.equal(JSON.parse(fs.readFileSync(path.join(root, ".ai-agent-kit/installation.json"), "utf8")).version, "0.5.0");
+});
+
+test("overlapping update edits preserve local content and emit review artifacts", async () => {
+  const root = makeRepo("update-conflict");
+  await runBootstrap(root, { packageVersion: "0.4.2" });
+  const scaffold = loadScaffoldFiles();
+  const rel = ".ai/core/mission.md";
+  const base = fs.readFileSync(path.join(root, rel), "utf8");
+  const localLines = base.split("\n");
+  const incomingLines = base.split("\n");
+  localLines[1] = "Local owner wording.";
+  incomingLines[1] = "Incoming kit wording.";
+  const local = localLines.join("\n");
+  fs.writeFileSync(path.join(root, rel), local);
+  scaffold.set(rel, incomingLines.join("\n"));
+
+  const report = applyUpdate(
+    { target: root, apply: true },
+    {
+      runner: createMockRunner(),
+      packageVersion: "0.5.0",
+      transactionId: "20260729T000001Z-conflict",
+      scaffoldFiles: scaffold
+    }
+  );
+  assert.equal(report.status, "NEEDS_REVIEW");
+  assert.equal(fs.readFileSync(path.join(root, rel), "utf8"), local);
+  const evidenceRoot = path.join(root, ".ai-agent-kit/conflicts/20260729T000001Z-conflict", rel);
+  for (const name of ["base.txt", "local.txt", "incoming.txt", "metadata.json"]) {
+    assert.ok(fs.existsSync(path.join(evidenceRoot, name)), name);
+  }
+});
+
+test("update fault injection rolls back managed files and installation metadata", async () => {
+  for (const failAfterWrites of [1, 2, 3, 5]) {
+    const root = makeRepo(`update-rollback-${failAfterWrites}`);
+    await runBootstrap(root, { packageVersion: "0.4.2" });
+    const scaffold = loadScaffoldFiles();
+    const rel = ".ai/core/mission.md";
+    scaffold.set(rel, `${scaffold.get(rel)}\nIncoming ${failAfterWrites}.\n`);
+    const beforeFile = fs.readFileSync(path.join(root, rel), "utf8");
+    const beforeInstallation = fs.readFileSync(path.join(root, ".ai-agent-kit/installation.json"), "utf8");
+    assert.throws(
+      () => applyUpdate(
+        { target: root, apply: true },
+        {
+          runner: createMockRunner(),
+          packageVersion: "0.5.0",
+          transactionId: `20260729T00000${failAfterWrites}Z-rollback`,
+          scaffoldFiles: scaffold,
+          failAfterWrites
+        }
+      ),
+      /Injected update failure/
+    );
+    assert.equal(fs.readFileSync(path.join(root, rel), "utf8"), beforeFile);
+    assert.equal(fs.readFileSync(path.join(root, ".ai-agent-kit/installation.json"), "utf8"), beforeInstallation);
+    const journal = JSON.parse(fs.readFileSync(
+      path.join(root, `.ai-agent-kit/transactions/20260729T00000${failAfterWrites}Z-rollback/journal.json`),
+      "utf8"
+    ));
+    assert.equal(journal.status, "ROLLED_BACK");
+  }
+});
+
+test("legacy v0.1.0 through v0.4.0 ownership fixtures update unchanged files safely", async () => {
+  for (const version of ["0.1.0", "0.2.0", "0.3.0", "0.4.0"]) {
+    const root = makeRepo(`legacy-${version}`);
+    await runBootstrap(root, { packageVersion: version });
+    const installationPath = path.join(root, ".ai-agent-kit/installation.json");
+    const installation = JSON.parse(fs.readFileSync(installationPath, "utf8"));
+    installation.contractVersion = 2;
+    installation.managedFiles = installation.managedFiles.map(({ baseSnapshot, baseSha256, ...entry }) => entry);
+    fs.writeFileSync(installationPath, `${JSON.stringify(installation, null, 2)}\n`);
+    const scaffold = loadScaffoldFiles();
+    scaffold.set(".ai/core/mission.md", `${scaffold.get(".ai/core/mission.md")}\nSafe migration from ${version}.\n`);
+    const plan = planUpdate(
+      { target: root, dryRun: true },
+      { runner: createMockRunner(), packageVersion: "0.5.0", scaffoldFiles: scaffold }
+    );
+    assert.equal(plan.decisions.find((entry) => entry.path === ".ai/core/mission.md").action, "UPDATE");
+    assert.equal(plan.summary.NEEDS_REVIEW ?? 0, 0);
+  }
+});
+
+test("task-aware context compiler is deterministic, provenance-rich, and never READY when stale", async () => {
+  const root = makeRepo("context-compiler");
+  await runBootstrap(root, { packageVersion: "0.5.0" });
+  run("git", ["add", "."], root);
+  run("git", ["commit", "-m", "install governed kit"], root);
+  createTask({
+    target: root,
+    id: "CTX-5",
+    goal: "Review security quality rules for a web application",
+    acceptanceCriteria: ["Selected sources have provenance"],
+    tools: ["read"],
+    paths: [".ai/**"]
+  });
+  const commit = run("git", ["rev-parse", "HEAD"], root);
+  const statePath = path.join(root, ".ai/local/repository-intelligence-state.json");
+  fs.mkdirSync(path.dirname(statePath), { recursive: true });
+  fs.writeFileSync(statePath, `${JSON.stringify({
+    git_commit: commit,
+    worktree_signature: crypto.createHash("sha256").update(commit).digest("hex"),
+    codegraph: { version: "1.5.0" },
+    cocoindex: { version: "0.2.39" }
+  })}\n`);
+  const options = { target: root, id: "CTX-5", budget: 100_000 };
+  const first = compileContext(options, { runner: createMockRunner() });
+  const second = compileContext(options, { runner: createMockRunner() });
+  assert.equal(first.pack.status, "READY");
+  assert.equal(second.pack.contentHash, first.pack.contentHash);
+  assert.ok(first.pack.items.every((item) => item.provenance && item.selectionReason && item.contentSha256));
+  assert.ok(first.pack.items.some((item) => item.path === ".ai/core/required-workflow.md"));
+  assert.ok(first.pack.exclusions.length > 0);
+  assert.ok(fs.existsSync(first.jsonPath));
+  assert.ok(fs.existsSync(first.markdownPath));
+
+  fs.writeFileSync(statePath, `${JSON.stringify({
+    git_commit: "stale",
+    worktree_signature: "stale"
+  })}\n`);
+  const stale = compileContext(options, { runner: createMockRunner() });
+  assert.equal(stale.pack.status, "DEGRADED");
+  assert.notEqual(stale.pack.status, "READY");
 });
 
 test("build SBOM is valid SPDX and contains the package version", () => {
