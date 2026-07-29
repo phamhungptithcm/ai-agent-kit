@@ -1,48 +1,35 @@
 # Agent Adapter Strategy
 
-This repository currently has generated adapters for Claude Code and OpenAI Codex. The shared `.ai/` directory is intentionally agent-neutral so the same team policy can be routed into other AI coding agents over time.
+The published package supports Claude Code and OpenAI Codex. This next-release scaffold adds thin adapters for GitHub Copilot, Cursor, Windsurf/Cascade, Gemini CLI, Amazon Q Developer, JetBrains Junie, Cline, Devin, Aider, and Continue without forking the shared policy in `.ai/`.
 
-## Shipped Adapters
+## Adapter Surfaces
 
 | Agent | Adapter Files |
 | --- | --- |
 | Claude Code | `CLAUDE.md`, `.claude/`, `.claude/skills/` |
 | OpenAI Codex | `AGENTS.md`, `.codex/`, `.agents/skills/` |
-
-## Adapter-Ready Targets
-
-This is not a strict ranking. It is a practical list of common or enterprise-relevant AI coding agents with repository instruction, rule, skill, MCP, workflow, or prompt surfaces that can map back to `.ai/`.
-
-| Target Agent | Likely Adapter Surface |
-| --- | --- |
-| GitHub Copilot coding agent | `.github/copilot-instructions.md`, `.github/instructions/*.instructions.md`, `AGENTS.md` |
-| Cursor | Cursor Rules, `AGENTS.md`, prompt catalog, MCP config |
-| Windsurf / Devin Desktop Cascade | `.windsurf/skills/`, `AGENTS.md`, `.agents/skills/`, workflow docs |
-| Google Gemini CLI / Gemini Code Assist | `GEMINI.md`, `.mcp.json`, prompt catalog |
-| Amazon Q Developer | `.amazonq/rules/*.md`, prompt catalog, validation commands |
-| JetBrains Junie | `AGENTS.md`, `.junie/AGENTS.md`, guidelines, skills |
-| Cline | AGENTS.md-style project rules, MCP config, prompt catalog, approval guidance |
-| Devin | `AGENTS.md`, playbook templates, memory/governance mapping |
-| Aider | Repo instructions, prompt catalog, quality-gate commands |
-| Continue | Rules/config, prompt catalog, validation commands |
+| GitHub Copilot | `.github/copilot-instructions.md`, `AGENTS.md`, `.agents/skills/` |
+| Cursor | `.cursor/rules/ai-agent-kit.mdc`, `AGENTS.md`, `.cursor/skills/` |
+| Windsurf / Cascade | `AGENTS.md`, `.windsurf/skills/` |
+| Gemini CLI | `GEMINI.md` |
+| Amazon Q Developer | `.amazonq/rules/ai-agent-kit.md` |
+| JetBrains Junie | `AGENTS.md`, `.junie/AGENTS.md` |
+| Cline | `.clinerules/ai-agent-kit.md`, `AGENTS.md`, `.cline/skills/` |
+| Devin | `AGENTS.md`, `.agents/skills/` |
+| Aider | `CONVENTIONS.md`, `.aider.conf.yml` |
+| Continue | `.continue/rules/ai-agent-kit.md` |
 
 ## Adapter Contract
 
-Every future adapter must:
+Every adapter must:
 
 1. Route the agent to `.ai/` as the durable source of truth.
 2. Point users to `.ai/PROMPTS.md`.
-3. Reuse `.ai/skills-src/` when the target supports `SKILL.md` style skills.
+3. Reuse `.ai/skills-src/` when the target supports `SKILL.md` skills.
 4. Preserve repository intelligence, approval, quality-gate, output-contract, and memory-governance requirements.
 5. Keep bootstrap local-only: no automatic branch, commit, push, PR/MR, Jira update, deploy, or application source edit.
-6. Add validator checks for generated adapter drift.
+6. Participate in ownership, drift, selection, and validation checks.
 
-## Recommended Expansion Order
+Use `bootstrap --agents all` for every adapter or `bootstrap --agents codex,copilot,cursor` for a reviewed subset.
 
-1. GitHub Copilot
-2. Cursor
-3. Windsurf/Cascade
-4. Gemini CLI
-5. Amazon Q Developer
-6. JetBrains Junie
-7. Cline, Aider, Continue, and similar open-source terminal/editor agents
+Migration-safe updates preserve the current adapter selection. Re-run bootstrap with a reviewed `--agents` list to add adapters to an existing installation.

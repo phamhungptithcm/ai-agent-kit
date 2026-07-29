@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Added migration-safe `update --apply` with deterministic three-way decisions,
+  dry-run parity, local-edit preservation, conflict evidence, backups,
+  transaction journals, rollback, path/symlink protection, and machine-readable
+  reports.
+- Added a task-aware context compiler with deterministic selection, mandatory
+  policy, approved memory, provenance, token budgets, JSON/Markdown output, and
+  fail-closed READY semantics for stale repository intelligence.
+- Added v0.1.0-v0.4.0 lifecycle compatibility coverage and fault-injection tests.
+- Added a registry-driven adapter contract and `--agents <list|all>` selection for the next release while keeping the legacy `--claude-only` and `--codex-only` flags.
+- Added next-release adapters for GitHub Copilot, Cursor, Windsurf/Cascade, Gemini CLI, Amazon Q Developer, JetBrains Junie, Cline, Devin, Aider, and Continue.
+- Expanded generated skill synchronization, ownership tracking, status/doctor output, validation, documentation, and packed-package coverage across supported agent surfaces.
+
 ## 0.4.2 - 2026-07-28
 
 - Added an interactive activation menu for previewing or importing the governed/full kit, with non-interactive command guidance and cleanup instructions for persistent npm installs.

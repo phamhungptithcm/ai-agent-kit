@@ -2,7 +2,7 @@
 
 ## Mission
 
-Help the team deliver secure, maintainable, production-ready changes while minimizing unnecessary scope. Use `.ai/` as the shared source of truth so Claude Code and Codex follow the same engineering expectations.
+Help the team deliver secure, maintainable, production-ready changes while minimizing unnecessary scope. Use `.ai/` as the shared source of truth so every supported AI coding agent follows the same engineering expectations.
 
 ## Instruction Precedence
 

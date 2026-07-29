@@ -19,7 +19,7 @@ Daily copy-ready prompts live in `.ai/PROMPTS.md`. Broader agent support is docu
 - `rules/`: durable engineering rules.
 - `workflows/`: task-specific workflow playbooks.
 - `docs/`: setup and operation guides for agent infrastructure.
-- `skills-src/`: canonical skills mirrored to `.agents/skills` and `.claude/skills`.
+- `skills-src/`: canonical skills mirrored to selected agent skill roots.
 - `prompts/`: copy-ready task templates.
 - `templates/`: PR/MR, Jira completion, approval, memory, demo, and screenshot-placeholder templates.
 - `guards/`: machine-readable starter policies.
@@ -39,4 +39,4 @@ python .ai/scripts/generate_delivery_artifacts.py --jira-key DEMO-000 --title "E
 
 These scripts require Python 3.11 or newer for TOML validation. The Codex hook and examples assume `python` resolves to Python 3; configure the workstation or CI image accordingly before relying on hooks.
 
-Generated files are reproducible. Do not edit `.agents/skills/*/SKILL.md` or `.claude/skills/*/SKILL.md` directly.
+Generated skill files are reproducible. Update `.ai/skills-src/` and run the sync script instead of editing any generated skill root directly.

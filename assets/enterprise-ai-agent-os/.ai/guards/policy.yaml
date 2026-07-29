@@ -11,6 +11,9 @@ generated_files:
   generated_skill_roots:
     - ".agents/skills"
     - ".claude/skills"
+    - ".cursor/skills"
+    - ".windsurf/skills"
+    - ".cline/skills"
 validation:
   required_commands:
     - "python .ai/scripts/sync_agent_assets.py --check"

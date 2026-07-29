@@ -1,12 +1,21 @@
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
+import {
+  ADAPTERS,
+  ALL_SKILL_ROOTS,
+  adapterFlags,
+  adapterLabels,
+  resolveAdapterIds,
+  selectedSkillRoots,
+  shouldIncludeScaffoldPath
+} from "./adapters.mjs";
 import { loadScaffoldFiles } from "./assets.mjs";
 import { detectProfile } from "./detect.mjs";
 import { createTransaction, rollback, writeConfigFile, writeTransactionReport } from "./file-ops.mjs";
 import { getBranch, getCommit, getManagedDiff, getStatus, requireGitRoot, statusToObject } from "./git.mjs";
 import { isApprovedConfigPath, isProtectedApplicationPath } from "./paths.mjs";
-import { createOwnershipPlan, finalizeOwnership } from "./ownership.mjs";
+import { createOwnershipPlan, finalizeOwnership, ownedContent } from "./ownership.mjs";
 import { createRunner } from "./runner.mjs";
 import {
   gitignoreSection,
@@ -26,9 +35,10 @@ function transactionId(now = new Date()) {
   return `${stamp}-${crypto.randomBytes(3).toString("hex")}`;
 }
 
-function syncSkills(root, transaction, dryRun, { includeClaude, includeCodex }) {
+function syncSkills(root, transaction, dryRun, selectedAdapters) {
   const srcRoot = path.join(root, ".ai", "skills-src");
   if (!fs.existsSync(srcRoot) || dryRun) return;
+  const destinations = selectedSkillRoots(selectedAdapters);
   for (const entry of fs.readdirSync(srcRoot, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue;
     const source = path.join(srcRoot, entry.name, "SKILL.md");
@@ -36,29 +46,20 @@ function syncSkills(root, transaction, dryRun, { includeClaude, includeCodex }) 
     const text = fs.readFileSync(source, "utf8");
     const sourceRel = path.relative(root, source).replaceAll("\\", "/");
     const generated = `${GENERATED_PREFIX}${sourceRel}${GENERATED_SUFFIX}\n\n${text}`;
-    if (includeCodex) {
-      writeConfigFile(root, transaction, `.agents/skills/${entry.name}/SKILL.md`, generated, { generatedOnly: true });
-    }
-    if (includeClaude) {
-      writeConfigFile(root, transaction, `.claude/skills/${entry.name}/SKILL.md`, generated, { generatedOnly: true });
+    for (const destination of destinations) {
+      writeConfigFile(root, transaction, `${destination}/${entry.name}/SKILL.md`, generated, { generatedOnly: true });
     }
   }
 }
 
-function installationFiles({ includeClaude, includeCodex }) {
+function installationFiles(selectedAdapters) {
   const files = loadScaffoldFiles();
   for (const rel of [...files.keys()]) {
-    if (rel.startsWith(".claude/skills/")) files.delete(rel);
-  }
-  if (!includeClaude) {
-    for (const rel of [...files.keys()]) {
-      if (rel.startsWith(".claude/") || rel === "CLAUDE.md") files.delete(rel);
+    if (ALL_SKILL_ROOTS.some((root) => rel.startsWith(`${root}/`))) {
+      files.delete(rel);
+      continue;
     }
-  }
-  if (!includeCodex) {
-    for (const rel of [...files.keys()]) {
-      if (rel.startsWith(".codex/") || rel.startsWith(".agents/") || rel === "AGENTS.md") files.delete(rel);
-    }
+    if (!shouldIncludeScaffoldPath(rel, selectedAdapters)) files.delete(rel);
   }
   return files;
 }
@@ -83,19 +84,18 @@ function renderSummary({
   root,
   packageVersion,
   preset,
-  includeClaude,
-  includeCodex,
+  selectedAdapters,
   detection,
   transaction,
   toolStatus,
   validationPassed
 }) {
   const indexSummary = transaction.indexResults.join(" ") || "No index action recorded.";
+  const adapterSummary = selectedAdapters.map((id) => `${ADAPTERS[id].label}: READY`).join("\n");
   if (alreadyCurrent) {
     return `AI Agent Kit Bootstrap: ALREADY CURRENT
 
-Claude: ${includeClaude ? "READY" : "NOT_INSTALLED"}
-Codex: ${includeCodex ? "READY" : "NOT_INSTALLED"}
+${adapterSummary}
 CodeGraph: ${toolStatus.codegraph}
 CocoIndex: ${toolStatus.cocoindex}
 Index refresh: ${indexSummary}
@@ -114,8 +114,7 @@ Detected profile: ${detection.profile}
 Transaction: ${transaction.transactionId}
 Backup location: ${path.relative(root, transaction.backupRoot).replaceAll("\\", "/")}
 
-Claude: ${includeClaude ? "READY" : "NOT_INSTALLED"}
-Codex: ${includeCodex ? "READY" : "NOT_INSTALLED"}
+${adapterSummary}
 CodeGraph: ${toolStatus.codegraph}
 CocoIndex: ${toolStatus.cocoindex}
 Index refresh: ${indexSummary}
@@ -142,11 +141,11 @@ function reviewCommands() {
   return `Developer review commands:
 
 git status
-git diff -- AGENTS.md CLAUDE.md AI_AGENT_TEAM_GUIDE.md .ai .agents .claude .codex .ai-agent-kit .mcp.json .gitignore
+git diff -- AGENTS.md CLAUDE.md GEMINI.md CONVENTIONS.md .aider.conf.yml AI_AGENT_TEAM_GUIDE.md .ai .agents .claude .codex .github .cursor .windsurf .amazonq .junie .cline .clinerules .continue .ai-agent-kit .mcp.json .gitignore
 
 Recommended staging command:
 
-git add AGENTS.md CLAUDE.md AI_AGENT_TEAM_GUIDE.md .ai .agents .claude .codex .ai-agent-kit .mcp.json .gitignore
+git add AGENTS.md CLAUDE.md GEMINI.md CONVENTIONS.md .aider.conf.yml AI_AGENT_TEAM_GUIDE.md .ai .agents .claude .codex .github .cursor .windsurf .amazonq .junie .cline .clinerules .continue .ai-agent-kit .mcp.json .gitignore
 
 Recommended commit message:
 
@@ -179,6 +178,7 @@ export async function bootstrap(options, deps = {}) {
   const gitInfo = { branch: getBranch(runner, root), commit: getCommit(runner, root) };
   const initialStatus = getStatus(runner, root);
   const detection = detectProfile(root, options.profile);
+  const selectedAdapters = resolveAdapterIds(options);
   const txId = deps.transactionId ?? transactionId(deps.now ?? new Date());
   const transaction = createTransaction(
     root,
@@ -189,22 +189,20 @@ export async function bootstrap(options, deps = {}) {
     gitInfo,
     { createDirectories: !options.dryRun }
   );
-  const includeClaude = !options.codexOnly;
-  const includeCodex = !options.claudeOnly;
   let finalToolStatus = { codegraph: "BLOCKED", cocoindex: "BLOCKED" };
 
   try {
     if (options.dryRun) {
-      const planned = installationFiles({ includeClaude, includeCodex });
+      const planned = installationFiles(selectedAdapters);
       io.log(`AI Agent Kit Bootstrap: DRY RUN
 
 Repository: ${root}
 Preset: ${preset}
 Detected profile: ${detection.profile}
+Selected adapters: ${adapterLabels(selectedAdapters).join(", ")}
 Planned file operations:
 ${[...planned.keys()].map((file) => `- ${file}`).join("\n")}
-- AGENTS.md managed section
-- CLAUDE.md managed section
+- Selected root instruction files use managed sections
 - AI_AGENT_TEAM_GUIDE.md
 - .gitignore managed section
 
@@ -215,20 +213,19 @@ No Git operations were performed.`);
       return { status: "dry-run", root, detection, transaction };
     }
 
-    const scaffoldFiles = installationFiles({ includeClaude, includeCodex });
-    const ownershipPlan = createOwnershipPlan(scaffoldFiles, { includeClaude, includeCodex });
+    const scaffoldFiles = installationFiles(selectedAdapters);
+    const ownershipPlan = createOwnershipPlan(scaffoldFiles, { selectedAdapters });
     for (const [rel, content] of scaffoldFiles) {
-      if (rel === "AGENTS.md" || rel === "CLAUDE.md") continue;
+      if (["AGENTS.md", "CLAUDE.md", "GEMINI.md", "CONVENTIONS.md"].includes(rel)) continue;
       writeConfigFile(root, transaction, rel, content, { generatedOnly: true });
     }
-    if (scaffoldFiles.has("AGENTS.md")) {
-      writeConfigFile(root, transaction, "AGENTS.md", managedSection(scaffoldFiles.get("AGENTS.md")), { mode: "managed-section" });
-    }
-    if (scaffoldFiles.has("CLAUDE.md")) {
-      writeConfigFile(root, transaction, "CLAUDE.md", managedSection(scaffoldFiles.get("CLAUDE.md")), { mode: "managed-section" });
+    for (const rel of ["AGENTS.md", "CLAUDE.md", "GEMINI.md", "CONVENTIONS.md"]) {
+      if (scaffoldFiles.has(rel)) {
+        writeConfigFile(root, transaction, rel, managedSection(scaffoldFiles.get(rel)), { mode: "managed-section" });
+      }
     }
     writeConfigFile(root, transaction, ".gitignore", gitignoreSection(), { mode: "managed-section" });
-    syncSkills(root, transaction, options.dryRun, { includeClaude, includeCodex });
+    syncSkills(root, transaction, options.dryRun, selectedAdapters);
 
     writeConfigFile(root, transaction, ".ai-agent-kit/project.yaml", renderProjectYaml({ detection }));
 
@@ -258,10 +255,16 @@ No Git operations were performed.`);
     }));
     writeConfigFile(root, transaction, ".ai-agent-kit/output/jira-update.md", renderJiraTemplate({ result: resultForTemplates }));
 
+    const managedFiles = finalizeOwnership(root, ownershipPlan, packageVersion).map((entry) => {
+      const baseSnapshot = `.ai-agent-kit/baselines/${packageVersion}/${entry.path}`;
+      const content = ownedContent(root, entry);
+      writeConfigFile(root, transaction, baseSnapshot, content);
+      return { ...entry, baseSnapshot, baseSha256: crypto.createHash("sha256").update(content, "utf8").digest("hex") };
+    });
     const installation = {
       package: "@hunpeolabs/ai-agent-kit",
       version: packageVersion,
-      contractVersion: 2,
+      contractVersion: 3,
       preset,
       repositoryRoot: root,
       repositoryCommit: gitInfo.commit,
@@ -269,9 +272,9 @@ No Git operations were performed.`);
       technologies: detection.technologies,
       detectedVersions: detection.versions,
       detectedManifests: detection.manifests,
-      adapters: { claude: includeClaude, codex: includeCodex },
+      adapters: adapterFlags(selectedAdapters),
       localOnly: true,
-      managedFiles: finalizeOwnership(root, ownershipPlan, packageVersion)
+      managedFiles
     };
     writeConfigFile(root, transaction, ".ai-agent-kit/installation.json", `${JSON.stringify(installation, null, 2)}\n`);
 
@@ -297,8 +300,7 @@ No Git operations were performed.`);
       root,
       packageVersion,
       preset,
-      includeClaude,
-      includeCodex,
+      selectedAdapters,
       detection,
       transaction,
       toolStatus: finalToolStatus,

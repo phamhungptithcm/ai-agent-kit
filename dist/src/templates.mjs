@@ -10,7 +10,7 @@ export function rootInstructions(productName) {
   return managedSection(`
 ## AI Agent Operating System
 
-This repository uses \`@hunpeolabs/ai-agent-kit\` for local Claude Code and Codex setup.
+This repository uses \`@hunpeolabs/ai-agent-kit\` for local, cross-agent coding setup.
 
 - Run repository intelligence before planning, review, QA, documentation analysis, or implementation.
 - Use CodeGraph for structural impact and CocoIndex for semantic/code/document retrieval.
@@ -18,7 +18,7 @@ This repository uses \`@hunpeolabs/ai-agent-kit\` for local Claude Code and Code
 - Complete quality gates and report memory candidates under shared `.ai/` policy before handoff.
 - Keep all bootstrap work local. Developers manually review, stage, commit, push, create MRs, and update Jira.
 
-Shared policy lives under \`.ai/\`. ${productName} adapters live under \`.claude/\` and \`.agents/\`.
+Shared policy lives under \`.ai/\`. ${productName} adapters remain thin, local, and ownership-tracked.
 `);
 }
 
@@ -26,7 +26,10 @@ export function gitignoreSection() {
   return managedSection(`
 .codegraph/
 .cocoindex_code/
+.ai/local/
 .ai-agent-kit/backups/
+.ai-agent-kit/conflicts/
+.ai-agent-kit/context/
 .ai-agent-kit/transactions/
 .ai-agent-kit/runtime/
 `);

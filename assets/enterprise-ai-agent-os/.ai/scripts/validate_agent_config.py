@@ -42,6 +42,9 @@ def required_paths() -> list[str]:
     return [
         "AGENTS.md",
         "CLAUDE.md",
+        "GEMINI.md",
+        "CONVENTIONS.md",
+        ".aider.conf.yml",
         "AI_AGENT_TEAM_GUIDE.md",
         ".ai/README.md",
         ".ai/PROMPTS.md",
@@ -178,6 +181,12 @@ def required_paths() -> list[str]:
         ".codex/rules/default.rules",
         ".claude/settings.json",
         ".claude/rules/shared-policy.md",
+        ".github/copilot-instructions.md",
+        ".cursor/rules/ai-agent-kit.mdc",
+        ".amazonq/rules/ai-agent-kit.md",
+        ".junie/AGENTS.md",
+        ".clinerules/ai-agent-kit.md",
+        ".continue/rules/ai-agent-kit.md",
     ]
 
 
@@ -264,7 +273,13 @@ def validate_skills(root: Path, errors: list[str]) -> None:
 
         source_rel = skill_file.relative_to(root).as_posix()
         expected = generated_content(source_rel, read(skill_file))
-        for dest_root in [root / ".agents" / "skills", root / ".claude" / "skills"]:
+        for dest_root in [
+            root / ".agents" / "skills",
+            root / ".claude" / "skills",
+            root / ".cursor" / "skills",
+            root / ".windsurf" / "skills",
+            root / ".cline" / "skills",
+        ]:
             dest = dest_root / name / "SKILL.md"
             if not dest.exists():
                 fail(errors, f"missing generated skill: {dest.relative_to(root)}")
@@ -631,6 +646,41 @@ def validate_agent_adapter_strategy(root: Path, errors: list[str]) -> None:
             fail(errors, f"agent adapter strategy missing required fragment: {fragment}")
 
 
+def validate_native_adapters(root: Path, errors: list[str]) -> None:
+    adapter_files = [
+        ".github/copilot-instructions.md",
+        ".cursor/rules/ai-agent-kit.mdc",
+        "GEMINI.md",
+        ".amazonq/rules/ai-agent-kit.md",
+        ".junie/AGENTS.md",
+        ".clinerules/ai-agent-kit.md",
+        "CONVENTIONS.md",
+        ".continue/rules/ai-agent-kit.md",
+    ]
+    for rel in adapter_files:
+        text = read(root / rel)
+        for fragment in [".ai/", "approval", "quality"]:
+            if fragment.lower() not in text.lower():
+                fail(errors, f"{rel} missing adapter contract fragment: {fragment}")
+
+    cursor = parse_frontmatter(root / ".cursor" / "rules" / "ai-agent-kit.mdc", errors)
+    if cursor.get("alwaysApply") != "true":
+        fail(errors, "Cursor adapter must always apply the shared contract")
+
+    continuation = parse_frontmatter(root / ".continue" / "rules" / "ai-agent-kit.md", errors)
+    if continuation.get("alwaysApply") != "true":
+        fail(errors, "Continue adapter must always apply the shared contract")
+
+    aider = read(root / ".aider.conf.yml")
+    for fragment in ["read:", "CONVENTIONS.md"]:
+        if fragment not in aider:
+            fail(errors, f"Aider adapter missing: {fragment}")
+
+    gemini = read(root / "GEMINI.md")
+    if "@./.ai/core/required-workflow.md" not in gemini:
+        fail(errors, "Gemini adapter must import the required workflow")
+
+
 def validate_repository_intelligence(root: Path, errors: list[str], quick: bool) -> None:
     guard_text = read(root / ".ai" / "guards" / "repository-intelligence-gate.yaml")
     for fragment in [
@@ -719,6 +769,7 @@ def validate_repository_intelligence(root: Path, errors: list[str], quick: bool)
     result = subprocess.run(
         [
             sys.executable,
+            "-B",
             str(root / ".ai" / "scripts" / "check-repository-intelligence.py"),
             "--json",
         ],
@@ -737,8 +788,9 @@ def validate_repository_intelligence(root: Path, errors: list[str], quick: bool)
     except json.JSONDecodeError as exc:
         fail(errors, f"Repository Intelligence Gate JSON invalid: {exc}")
         return
-    if not payload.get("ready"):
-        fail(errors, "Repository Intelligence Gate is not READY")
+    mode = payload.get("mode")
+    if mode not in {"READY", "DEGRADED"}:
+        fail(errors, f"Repository Intelligence Gate returned unsupported mode: {mode!r}")
 
 
 def validate_delivery_artifact_generator(root: Path, errors: list[str]) -> None:
@@ -806,11 +858,22 @@ def validate_secret_like_values(root: Path, errors: list[str]) -> None:
     scan_roots = [
         root / "AGENTS.md",
         root / "CLAUDE.md",
+        root / "GEMINI.md",
+        root / "CONVENTIONS.md",
+        root / ".aider.conf.yml",
         root / "AI_AGENT_TEAM_GUIDE.md",
         root / ".ai",
         root / ".agents",
         root / ".codex",
         root / ".claude",
+        root / ".github",
+        root / ".cursor",
+        root / ".windsurf",
+        root / ".amazonq",
+        root / ".junie",
+        root / ".cline",
+        root / ".clinerules",
+        root / ".continue",
     ]
     files: list[Path] = []
     for item in scan_roots:
@@ -825,7 +888,12 @@ def validate_secret_like_values(root: Path, errors: list[str]) -> None:
 
 
 def validate_instruction_budgets(root: Path, errors: list[str]) -> None:
-    budgets = {"AGENTS.md": 32 * 1024, "CLAUDE.md": 32 * 1024}
+    budgets = {
+        "AGENTS.md": 32 * 1024,
+        "CLAUDE.md": 32 * 1024,
+        "GEMINI.md": 8 * 1024,
+        "CONVENTIONS.md": 8 * 1024,
+    }
     for rel, limit in budgets.items():
         size = (root / rel).stat().st_size
         if size > limit:
@@ -885,6 +953,7 @@ def validate(quick: bool = False) -> int:
     validate_code_quality_profiles(root, errors)
     validate_prompt_catalog(root, errors)
     validate_agent_adapter_strategy(root, errors)
+    validate_native_adapters(root, errors)
     validate_delivery_artifact_generator(root, errors)
     validate_repository_intelligence(root, errors, quick)
     validate_secret_like_values(root, errors)

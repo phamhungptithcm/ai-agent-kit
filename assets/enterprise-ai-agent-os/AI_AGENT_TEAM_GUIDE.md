@@ -1,6 +1,6 @@
 # AI Agent Team Guide
 
-This repository uses a shared AI agent operating model for Claude Code and OpenAI Codex. The durable policy lives in `.ai/`; platform-specific files are thin adapters.
+This repository uses one shared operating model across supported AI coding agents. The durable policy lives in `.ai/`; platform-specific files are thin adapters.
 
 ## What Is Shared
 
@@ -17,10 +17,14 @@ This repository uses a shared AI agent operating model for Claude Code and OpenA
 
 ## Platform-Specific Files
 
-- `AGENTS.md` routes Codex to shared policy.
+- `AGENTS.md` routes Codex, Copilot, Cursor, Windsurf/Cascade, Junie, Cline, and Devin to shared policy.
 - `CLAUDE.md` routes Claude Code to shared policy.
-- `.agents/skills/` contains generated Codex skill copies.
+- `GEMINI.md` routes Gemini CLI to shared policy.
+- `.github/copilot-instructions.md`, `.cursor/rules/`, `.amazonq/rules/`, `.junie/`, `.clinerules/`, and `.continue/rules/` provide native instruction adapters.
+- `CONVENTIONS.md` and `.aider.conf.yml` provide the Aider adapter.
+- `.agents/skills/` contains generated shared skill copies used by Codex, Copilot, and Devin.
 - `.claude/skills/` contains generated Claude skill copies.
+- `.cursor/skills/`, `.windsurf/skills/`, and `.cline/skills/` contain generated native skill copies.
 - `.codex/` contains Codex project config, custom agents, command rules, and hooks.
 - `.claude/` contains Claude commands, rules, agents, settings, and generated skills.
 

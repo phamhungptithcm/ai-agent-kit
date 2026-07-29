@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { hasSymlinkComponent, normalizeRelPath } from "./paths.mjs";
 import { MANAGED_BEGIN, MANAGED_END } from "./templates.mjs";
+import { selectedSkillRoots } from "./adapters.mjs";
 
 const MAX_OWNED_FILE_BYTES = 10_000_000;
 
@@ -26,20 +27,23 @@ export function ownedContent(root, entry) {
   return entry.mode === "managed-section" ? managedSection(text) : text;
 }
 
-export function createOwnershipPlan(files, { includeClaude, includeCodex }) {
+export function createOwnershipPlan(files, { selectedAdapters }) {
   const entries = new Map();
   const add = (filePath, mode, generatedFrom) => entries.set(filePath, { path: filePath, mode, generatedFrom });
 
   for (const relPath of files.keys()) {
-    const mode = relPath === "AGENTS.md" || relPath === "CLAUDE.md" ? "managed-section" : "generated-file";
+    const mode = ["AGENTS.md", "CLAUDE.md", "GEMINI.md", "CONVENTIONS.md"].includes(relPath)
+      ? "managed-section"
+      : "generated-file";
     add(relPath, mode, `package:assets/enterprise-ai-agent-os/${relPath}`);
   }
   for (const relPath of files.keys()) {
     const match = relPath.match(/^\.ai\/skills-src\/([^/]+)\/SKILL\.md$/);
     if (!match) continue;
     const generatedFrom = `.ai/skills-src/${match[1]}/SKILL.md`;
-    if (includeCodex) add(`.agents/skills/${match[1]}/SKILL.md`, "generated-file", generatedFrom);
-    if (includeClaude) add(`.claude/skills/${match[1]}/SKILL.md`, "generated-file", generatedFrom);
+    for (const skillRoot of selectedSkillRoots(selectedAdapters)) {
+      add(`${skillRoot}/${match[1]}/SKILL.md`, "generated-file", generatedFrom);
+    }
   }
   add(".gitignore", "managed-section", "bootstrap:gitignore-section");
   add(".ai-agent-kit/project.yaml", "generated-file", "bootstrap:project-profile");
