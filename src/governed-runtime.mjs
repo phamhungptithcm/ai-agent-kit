@@ -1,6 +1,13 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
+import {
+  actionDigest,
+  assessAction,
+  normalizeActionEnvelope,
+  privacyMinimizedAction
+} from "./action-gateway.mjs";
 
 const STATES = ["DISCOVER", "ANALYZE", "PLAN_READY", "APPROVED", "IMPLEMENTING", "VERIFYING", "REVIEW_READY", "RELEASED"];
 const NEXT_STATE = new Map(STATES.slice(0, -1).map((state, index) => [state, STATES[index + 1]]));
@@ -13,7 +20,6 @@ const REQUIRED_EVIDENCE = {
   REVIEW_READY: ["tests", "independent_verifier"],
   RELEASED: ["release_reference"]
 };
-const RISK_ORDER = ["low", "medium", "high", "critical"];
 
 function stable(value) {
   if (Array.isArray(value)) return value.map(stable);
@@ -54,6 +60,23 @@ function telemetryPath(root) {
 
 function memoryPath(root) {
   return path.join(runtimeRoot(root), "memory", "entries.jsonl");
+}
+
+function currentRepositoryCommit(root) {
+  const result = spawnSync("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8", timeout: 30000 });
+  return result.status === 0 ? result.stdout.trim() : null;
+}
+
+function currentPolicyRevision(root) {
+  const paths = [
+    ".ai/guards/policy.yaml",
+    ".ai/guards/capability-policy.yaml",
+    ".ai/guards/sandbox-and-secrets.yaml"
+  ];
+  return digest(paths.map((relPath) => {
+    const file = path.join(root, relPath);
+    return [relPath, fs.existsSync(file) ? fs.readFileSync(file, "utf8") : null];
+  }));
 }
 
 function atomicWrite(file, value) {
@@ -101,26 +124,6 @@ function appendReceipt(root, id, type, data) {
   return receipt;
 }
 
-function matchesPath(candidate, patterns) {
-  const normalized = candidate.replaceAll("\\", "/").replace(/^\.\//, "");
-  return patterns.some((pattern) => {
-    const clean = pattern.replaceAll("\\", "/").replace(/^\.\//, "");
-    if (clean.endsWith("/**")) return normalized === clean.slice(0, -3) || normalized.startsWith(clean.slice(0, -2));
-    return normalized === clean;
-  });
-}
-
-function commandDecision(command) {
-  const value = (command ?? "").toLowerCase();
-  if (/\b(terraform\s+(apply|destroy)|kubectl\s+(apply|delete|create)|git\s+reset\s+--hard|rm\s+-[a-z]*r)/.test(value)) {
-    return ["deny", "CRITICAL_MUTATION_FORBIDDEN"];
-  }
-  if (/\b(git\s+(add|commit|push|tag|merge|rebase)|npm\s+(install|publish)|curl|wget|aws|az|gcloud|psql|mysql)\b/.test(value)) {
-    return ["ask", "HUMAN_CONFIRMATION_REQUIRED"];
-  }
-  return ["allow", "POLICY_ALLOW"];
-}
-
 export function createTask(options) {
   const root = rootFor(options.target);
   const id = safeId(options.id);
@@ -134,8 +137,8 @@ export function createTask(options) {
     max_actions: Number(options.maxActions ?? 100),
     expires_at: options.expiresAt ?? new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString(),
     approval_hash: options.approvalHash ?? null,
-    repository_commit: options.repositoryCommit ?? null,
-    policy_revision: options.policyRevision ?? "governed-runtime-v1",
+    repository_commit: options.repositoryCommit ?? currentRepositoryCommit(root),
+    policy_revision: options.policyRevision ?? currentPolicyRevision(root),
     agent_adapter: options.adapter ?? "unknown"
   };
   const task = {
@@ -230,32 +233,141 @@ export function transitionTask(options) {
   return task;
 }
 
-export function evaluateAction(options) {
+export function authorizeAction(options) {
   const root = rootFor(options.target);
   const task = readTask(root, options.id);
-  let decision = "allow";
-  let reasonCode = "CAPABILITY_MATCH";
-  if (!["IMPLEMENTING", "VERIFYING"].includes(task.state)) [decision, reasonCode] = ["deny", "TASK_STATE_NOT_EXECUTABLE"];
-  else if (new Date(task.capability.expires_at).getTime() <= Date.now()) [decision, reasonCode] = ["deny", "CAPABILITY_EXPIRED"];
-  else if (task.action_count >= task.capability.max_actions) [decision, reasonCode] = ["deny", "ACTION_BUDGET_EXHAUSTED"];
-  else if (!task.capability.allowed_tools.includes(options.tool)) [decision, reasonCode] = ["deny", "TOOL_NOT_ALLOWED"];
-  else if (options.path && !matchesPath(options.path, task.capability.allowed_paths)) [decision, reasonCode] = ["deny", "PATH_NOT_ALLOWED"];
-  else if ((options.risk ?? "low") === "critical") [decision, reasonCode] = ["deny", "CRITICAL_AUTONOMOUS_EXECUTION_FORBIDDEN"];
-  else if (RISK_ORDER.indexOf(options.risk ?? "low") > RISK_ORDER.indexOf(task.capability.max_risk)) [decision, reasonCode] = ["deny", "RISK_CEILING_EXCEEDED"];
-  else if (options.domain && !task.capability.network_domains.includes(options.domain)) [decision, reasonCode] = ["deny", "NETWORK_DOMAIN_NOT_ALLOWED"];
-  else if (options.command) [decision, reasonCode] = commandDecision(options.command);
+  const envelope = normalizeActionEnvelope({
+    ...options,
+    approvalHash: options.approvalHash ?? task.capability.approval_hash,
+    repositoryCommit: options.repositoryCommit ?? currentRepositoryCommit(root),
+    policyRevision: options.policyRevision ?? currentPolicyRevision(root),
+    capabilityHash: options.capabilityHash ?? task.capability_hash
+  });
+  const assessment = assessAction({ task, envelope, now: options.now });
   task.action_count += 1;
   task.updated_at = new Date().toISOString();
   atomicWrite(taskPath(root, task.id), `${JSON.stringify(task, null, 2)}\n`);
   const receipt = appendReceipt(root, task.id, "policy.decision", {
-    decision,
-    reason_code: reasonCode,
-    tool: options.tool,
-    resource_hash: digest({ path: options.path ?? null, command: options.command ?? null }),
+    decision: assessment.decision,
+    reason_code: assessment.reason_code,
+    action: privacyMinimizedAction(envelope),
+    envelope_hash: assessment.envelope_hash,
     capability_hash: task.capability_hash,
     action_count: task.action_count
   });
-  return { decision, reason_code: reasonCode, receipt_hash: receipt.receipt_hash };
+  return {
+    decision: assessment.decision,
+    reason_code: assessment.reason_code,
+    envelope_hash: assessment.envelope_hash,
+    receipt_hash: receipt.receipt_hash,
+    decision_token: receipt.receipt_hash
+  };
+}
+
+export function evaluateAction(options) {
+  return authorizeAction(options);
+}
+
+function receiptByHash(root, id, receiptHash) {
+  const file = evidencePath(root, id);
+  if (!fs.existsSync(file)) return null;
+  return fs.readFileSync(file, "utf8").trim().split("\n").filter(Boolean)
+    .map(JSON.parse)
+    .find((receipt) => receipt.receipt_hash === receiptHash) ?? null;
+}
+
+export function executeAuthorizedAction(options, executor) {
+  if (typeof executor !== "function") throw new Error("authorized execution requires an executor");
+  const root = rootFor(options.target);
+  const task = readTask(root, options.id);
+  const envelope = normalizeActionEnvelope({
+    ...options,
+    approvalHash: options.approvalHash ?? task.capability.approval_hash,
+    repositoryCommit: options.repositoryCommit ?? currentRepositoryCommit(root),
+    policyRevision: options.policyRevision ?? currentPolicyRevision(root),
+    capabilityHash: options.capabilityHash ?? task.capability_hash
+  });
+  const decisionReceipt = receiptByHash(root, task.id, options.decisionToken);
+  if (!decisionReceipt || decisionReceipt.type !== "policy.decision") {
+    appendReceipt(root, task.id, "action.execution", {
+      status: "denied",
+      reason_code: "DECISION_NOT_FOUND",
+      envelope_hash: actionDigest(envelope)
+    });
+    return { status: "denied", reason_code: "DECISION_NOT_FOUND" };
+  }
+  if (decisionReceipt.data.decision !== "allow") {
+    appendReceipt(root, task.id, "action.execution", {
+      status: "denied",
+      reason_code: "DECISION_NOT_ALLOW",
+      decision_receipt_hash: decisionReceipt.receipt_hash
+    });
+    return { status: "denied", reason_code: "DECISION_NOT_ALLOW" };
+  }
+  if (decisionReceipt.data.envelope_hash !== actionDigest(envelope)) {
+    appendReceipt(root, task.id, "action.execution", {
+      status: "denied",
+      reason_code: "ACTION_ENVELOPE_CHANGED",
+      decision_receipt_hash: decisionReceipt.receipt_hash
+    });
+    return { status: "denied", reason_code: "ACTION_ENVELOPE_CHANGED" };
+  }
+  const current = assessAction({ task: { ...task, action_count: Math.max(0, task.action_count - 1) }, envelope });
+  if (current.decision !== "allow") {
+    appendReceipt(root, task.id, "action.execution", {
+      status: "denied",
+      reason_code: current.reason_code,
+      decision_receipt_hash: decisionReceipt.receipt_hash
+    });
+    return { status: "denied", reason_code: current.reason_code };
+  }
+  try {
+    const result = executor(envelope);
+    const receipt = appendReceipt(root, task.id, "action.execution", {
+      status: "completed",
+      decision_receipt_hash: decisionReceipt.receipt_hash,
+      envelope_hash: actionDigest(envelope),
+      result_hash: actionDigest(result),
+      exit_code: Number.isInteger(result?.exitCode) ? result.exitCode : null
+    });
+    return { status: "completed", result, receipt_hash: receipt.receipt_hash };
+  } catch (error) {
+    const receipt = appendReceipt(root, task.id, "action.execution", {
+      status: "failed",
+      decision_receipt_hash: decisionReceipt.receipt_hash,
+      envelope_hash: actionDigest(envelope),
+      error_hash: actionDigest(error instanceof Error ? error.message : String(error))
+    });
+    return { status: "failed", receipt_hash: receipt.receipt_hash };
+  }
+}
+
+export function recordActionVerification(options) {
+  const root = rootFor(options.target);
+  const task = readTask(root, options.id);
+  const status = options.status === "verified" ? "verified" : "rejected";
+  const receipt = appendReceipt(root, task.id, "action.verification", {
+    status,
+    execution_receipt_hash: options.executionReceiptHash ?? null,
+    evidence_hash: actionDigest(options.evidence ?? {})
+  });
+  return { status, receipt_hash: receipt.receipt_hash };
+}
+
+export function recordSecurityDecision(options) {
+  const root = rootFor(options.target);
+  const task = readTask(root, options.id);
+  const receipt = appendReceipt(root, task.id, "security.decision", {
+    decision: options.decision,
+    reason_code: options.reasonCode,
+    subject_hash: actionDigest(options.subject ?? {}),
+    details_hash: actionDigest(options.details ?? {})
+  });
+  return {
+    decision: options.decision,
+    reason_code: options.reasonCode,
+    receipt_hash: receipt.receipt_hash
+  };
 }
 
 export function verifyEvidence(options) {

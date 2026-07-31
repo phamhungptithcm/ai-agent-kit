@@ -15,6 +15,18 @@
   "hooks": {
     "PreToolUse": [
       {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "AI_AGENT_KIT_ADAPTER=claude node .ai/scripts/governed_action_gateway.mjs",
+            "commandWindows": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$env:AI_AGENT_KIT_ADAPTER='claude'; node .ai\\scripts\\governed_action_gateway.mjs\"",
+            "timeout": 30,
+            "statusMessage": "Authorizing governed action"
+          }
+        ]
+      },
+      {
         "matcher": "Edit|Write|NotebookEdit",
         "hooks": [
           {
@@ -63,6 +75,20 @@
             "commandWindows": "powershell -NoProfile -ExecutionPolicy Bypass -File .ai\\scripts\\bootstrap-repository-intelligence.ps1 -Hook",
             "timeout": 120,
             "statusMessage": "Checking repository intelligence gate"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "AI_AGENT_KIT_ADAPTER=claude node .ai/scripts/final_task_report.mjs",
+            "commandWindows": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$env:AI_AGENT_KIT_ADAPTER='claude'; node .ai\\scripts\\final_task_report.mjs\"",
+            "timeout": 30,
+            "statusMessage": "Printing final task report"
           }
         ]
       }

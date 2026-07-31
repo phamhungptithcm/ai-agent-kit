@@ -22,9 +22,9 @@ For any existing application, service, module, function, database flow, runtime 
 
 During implementation after approval, preserve existing behavior unless explicitly changed by the approved scope, follow local patterns, keep edits reviewable, protect security and data integrity, and add focused tests or validation evidence. Detect the project language/version/framework/tooling and application/platform/domain, then apply `.ai/core/code-quality-intelligence.md` plus matching `.ai/quality-profiles/`. For database persistence, do not call `repository.save()` inside large loops; use batch or bulk persistence unless an approved exception documents transaction size, flush/clear behavior, locking risk, and retry/idempotency behavior.
 
-Before completion, run relevant checks, complete `.ai/core/quality-gates.md` with evidence, report actual command results, update or provide no-change rationale for docs/specs/diagrams, and cover security, data, performance, deployment, rollback, Jira/MR evidence when applicable, memory candidates under `.ai/core/memory-policy.md`, and remaining risks.
+Before completion, run relevant checks, complete `.ai/core/quality-gates.md` with evidence, report actual command results, update or provide no-change rationale for docs/specs/diagrams, and cover security, data, performance, deployment, rollback, Jira/MR evidence when applicable, memory candidates under `.ai/core/memory-policy.md`, and remaining risks. Record and render `.ai/core/task-completion-report.md`, including progress, remaining work, production readiness, token usage, and cost status.
 
-For protected execution, use `.ai/core/governed-runtime.md` and `.ai/guards/capability-policy.yaml`: bind work to a task capability, evaluate actions before execution, stop on ask/deny, and require independent evidence verification.
+For protected execution, use `.ai/core/governed-runtime.md`, `.ai/core/universal-action-gateway.md`, and `.ai/guards/capability-policy.yaml`: bind work to a task capability, evaluate the normalized action envelope at the execution boundary, stop on ask/deny, and require independent evidence verification. Route MCP startup and requests through `.ai/core/zero-trust-mcp.md`; untrusted or changed servers must not auto-start.
 
 ## Claude Code Resources
 
@@ -49,6 +49,7 @@ Load durable policy from:
 - `.ai/core/risk-model.md`
 - `.ai/core/definition-of-done.md`
 - `.ai/core/output-contract.md`
+- `.ai/core/task-completion-report.md`
 - `.ai/context/repository-map.md`
 - `.ai/guards/repository-intelligence-gate.yaml`
 - `.ai/workflows/plan-existing-system-change.md`

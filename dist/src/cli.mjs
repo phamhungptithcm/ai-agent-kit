@@ -20,19 +20,33 @@ import { getPackageVersion } from "./version.mjs";
 import { applyUpdate, planUpdate, renderUpdatePlan } from "./update.mjs";
 import { compileContext, inspectContextPack } from "./context-compiler.mjs";
 import {
+  authorizeMcpRequest,
+  authorizeMcpStart,
+  inspectMcpTrust
+} from "./mcp-broker.mjs";
+import {
   addContext,
   approveMemory,
+  authorizeAction,
   createTask,
   evaluateAction,
   exportEvidence,
   inspectTask,
   proposeMemory,
   queryMemory,
+  recordActionVerification,
   revisePlan,
   scoreTask,
   transitionTask,
   verifyEvidence
 } from "./governed-runtime.mjs";
+import {
+  buildFinalTaskReport,
+  recordCriterionStatus,
+  recordQualityCheck,
+  renderFinalTaskReport
+} from "./task-report.mjs";
+import { recordUsage, renderUsageSummary, summarizeUsage } from "./usage-ledger.mjs";
 
 const FORBIDDEN_BOOTSTRAP_OPTIONS = new Set(["--commit", "--push", "--create-mr", "--git-mode"]);
 const SUPPORTED_PRESETS = new Set(["governed", "full"]);
@@ -53,9 +67,14 @@ Usage:
   ai-agent-kit tools install --apply [--target <path>]
   ai-agent-kit prompts
   ai-agent-kit prompt <name>
-  ai-agent-kit runtime task create|status|transition [options]
+  ai-agent-kit runtime task create|status|transition|report [options]
+  ai-agent-kit runtime criterion record [options]
+  ai-agent-kit runtime check record [options]
+  ai-agent-kit runtime usage record|summary [options]
   ai-agent-kit runtime context add [options]
   ai-agent-kit runtime plan revise [options]
+  ai-agent-kit runtime gateway authorize|verify [options]
+  ai-agent-kit runtime mcp inspect|start|authorize [options]
   ai-agent-kit runtime policy evaluate [options]
   ai-agent-kit runtime evidence verify|export [options]
   ai-agent-kit runtime memory propose|approve|query [options]
@@ -84,7 +103,10 @@ Governed runtime:
   task create requires --id and accepts --approval-hash, --risk, --tool,
   --path, --domain, --expires-at, --max-actions, and --target.
   task transition requires --id, --to, and transition evidence as --evidence key=value.
-  policy evaluate requires --id and --tool; it records an allow/ask/deny receipt.
+  gateway authorize requires --id and --tool; every decision records a receipt.
+  mcp start|authorize requires --id and an exact JSON --server identity.
+  task report combines completion, quality, Git, production-readiness, token,
+  and API-equivalent cost evidence. Use --format text, compact, or json.
 
 Prompt names:
   start-task, plan-change, implement-approved, fix-bug,
@@ -100,14 +122,31 @@ Safety:
 export function parseRuntimeArgs(argv) {
   const area = argv[0];
   const action = argv[1];
-  const options = { target: process.cwd(), tools: [], paths: [], domains: [], evidence: {}, acceptanceCriteria: [], steps: [] };
+  const options = {
+    target: process.cwd(),
+    tools: [],
+    paths: [],
+    domains: [],
+    evidence: {},
+    acceptanceCriteria: [],
+    steps: [],
+    requiredGates: []
+  };
   const valueFlags = new Set([
     "--target", "--id", "--to", "--approval-hash", "--risk", "--tool", "--path",
     "--domain", "--expires-at", "--max-actions", "--command", "--evidence",
     "--repository-commit", "--policy-revision", "--adapter", "--goal", "--acceptance",
     "--kind", "--statement", "--source", "--confidence", "--trigger", "--step", "--title",
     "--content", "--category", "--scope", "--source-commit", "--memory-id", "--approver",
-    "--review-date", "--query"
+    "--review-date", "--query", "--decision-token", "--execution-receipt-hash", "--status",
+    "--server", "--parameters", "--timeout-ms", "--registry", "--criterion", "--weight",
+    "--gate", "--summary", "--required", "--exit-code", "--format", "--required-gate",
+    "--production-target", "--provider", "--model", "--usage-source", "--aggregation-mode",
+    "--session-id", "--event-id", "--observed-at", "--service-tier", "--inference-geo",
+    "--batch", "--requests", "--input-tokens", "--cached-input-tokens",
+    "--cache-read-input-tokens", "--cache-write-input-tokens",
+    "--cache-write-5m-input-tokens", "--cache-write-1h-input-tokens",
+    "--output-tokens", "--reasoning-tokens"
   ]);
   for (let index = 2; index < argv.length; index += 1) {
     const flag = argv[index];
@@ -119,6 +158,15 @@ export function parseRuntimeArgs(argv) {
     else if (flag === "--domain") options.domains.push(value);
     else if (flag === "--acceptance") options.acceptanceCriteria.push(value);
     else if (flag === "--step") options.steps.push(value);
+    else if (flag === "--required-gate") options.requiredGates.push(value);
+    else if (flag === "--server" || flag === "--parameters") {
+      const key = flag.slice(2);
+      try {
+        options[key] = JSON.parse(value);
+      } catch {
+        throw new Error(`${flag} requires valid JSON`);
+      }
+    }
     else if (flag === "--evidence") {
       const separator = value.indexOf("=");
       if (separator < 1) throw new Error("--evidence requires key=value");
@@ -128,22 +176,60 @@ export function parseRuntimeArgs(argv) {
       options[key] = value;
     }
   }
-  if (!["task", "context", "plan", "policy", "evidence", "memory", "eval"].includes(area)) {
-    throw new Error("runtime area must be task, context, plan, policy, evidence, memory, or eval");
+  if (!["task", "criterion", "check", "usage", "context", "plan", "gateway", "mcp", "policy", "evidence", "memory", "eval"].includes(area)) {
+    throw new Error("runtime area must be task, criterion, check, usage, context, plan, gateway, mcp, policy, evidence, memory, or eval");
   }
-  if (!(area === "memory" && action === "query") && !options.id) throw new Error("runtime command requires --id");
+  if (!((area === "memory" && action === "query") || (area === "mcp" && action === "inspect")) && !options.id) {
+    throw new Error("runtime command requires --id");
+  }
+  if (options.format && !["text", "compact", "json"].includes(options.format)) {
+    throw new Error("--format must be text, compact, or json");
+  }
   return { area, action, options };
 }
 
-function runRuntime(argv) {
+function runRuntime(argv, deps = {}) {
   const { area, action, options } = parseRuntimeArgs(argv);
   if (area === "task" && action === "create") {
     return createTask({ ...options, tools: options.tools, paths: options.paths, domains: options.domains });
   }
   if (area === "task" && action === "status") return inspectTask(options);
   if (area === "task" && action === "transition") return transitionTask(options);
+  if (area === "task" && action === "report") {
+    const report = buildFinalTaskReport(options, deps);
+    if (options.format === "json") return report;
+    return renderFinalTaskReport(report, { compact: options.format === "compact" });
+  }
+  if (area === "criterion" && action === "record") return recordCriterionStatus(options);
+  if (area === "check" && action === "record") return recordQualityCheck({ ...options, deps });
+  if (area === "usage" && action === "record") return recordUsage(options);
+  if (area === "usage" && action === "summary") {
+    const summary = summarizeUsage(options);
+    if (options.format === "json") return summary;
+    return renderUsageSummary(summary, { compact: options.format === "compact" });
+  }
   if (area === "context" && action === "add") return addContext(options);
   if (area === "plan" && action === "revise") return revisePlan(options);
+  if (area === "gateway" && action === "authorize") {
+    return authorizeAction({
+      ...options,
+      tool: options.tools[0],
+      path: options.paths[0],
+      domain: options.domains[0]
+    });
+  }
+  if (area === "gateway" && action === "verify") return recordActionVerification(options);
+  if (area === "mcp" && action === "inspect") return inspectMcpTrust(options);
+  if (area === "mcp" && action === "start") return authorizeMcpStart(options);
+  if (area === "mcp" && action === "authorize") {
+    return authorizeMcpRequest({
+      ...options,
+      path: options.paths[0],
+      domain: options.domains[0],
+      tool: options.tools[0],
+      timeoutMs: options.timeoutMs
+    });
+  }
   if (area === "policy" && action === "evaluate") {
     return evaluateAction({
       ...options,
@@ -417,7 +503,8 @@ export async function main(argv = process.argv.slice(2), io = console, deps = {}
     return 0;
   }
   if (command === "runtime") {
-    io.log(JSON.stringify(runRuntime(argv.slice(1)), null, 2));
+    const result = runRuntime(argv.slice(1), deps);
+    io.log(typeof result === "string" ? result : JSON.stringify(result, null, 2));
     return 0;
   }
   if (command !== "bootstrap") {

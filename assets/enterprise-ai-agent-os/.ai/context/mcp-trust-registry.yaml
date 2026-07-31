@@ -1,5 +1,6 @@
-version: 1
+version: 2
 default_trust: deny
+canonical_machine_registry: ".ai/context/mcp-trust-registry.json"
 required_fields:
   - id
   - owner
@@ -15,4 +16,9 @@ required_fields:
   - approval_requirement
   - last_security_review
   - review_expires
+  - configuration_sha256
+  - filesystem_roots
+  - network_domains
+  - timeout_ms
+  - rate_limit_per_minute
 servers: []

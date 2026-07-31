@@ -4,4 +4,4 @@
 
 Use `.ai/` as the durable source of truth. Follow `.ai/core/required-workflow.md`, `.ai/core/instruction-precedence.md`, and the Repository Intelligence Gate before analysis or implementation.
 
-Existing-system changes require a concrete impact plan and valid approval evidence before protected edits. Use `.ai/PROMPTS.md` for task entry points, apply the matching quality profiles, run `.ai/core/quality-gates.md`, and report actual evidence. Do not commit, push, create a pull request, update a ticket, deploy, access production, or perform destructive work unless the user explicitly authorizes it.
+Existing-system changes require a concrete impact plan and valid approval evidence before protected edits. Use `.ai/PROMPTS.md` for task entry points, apply the matching quality profiles, run `.ai/core/quality-gates.md`, and render `.ai/core/task-completion-report.md` with actual progress, remaining work, production readiness, token usage, cost status, and evidence. Do not commit, push, create a pull request, update a ticket, deploy, access production, or perform destructive work unless the user explicitly authorizes it.

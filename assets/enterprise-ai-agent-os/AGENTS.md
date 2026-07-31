@@ -31,7 +31,7 @@ For any change to an existing application, service, module, function, database f
 
 During implementation after approval, preserve existing behavior unless the approved scope explicitly changes it, follow local patterns, avoid unrelated refactoring, protect authentication, authorization, sensitive data, and transaction integrity, and add tests or validation evidence proportional to risk. Detect the project language/version/framework/tooling and application/platform/domain, then apply `.ai/core/code-quality-intelligence.md` plus matching `.ai/quality-profiles/`. For database persistence, do not call `repository.save()` inside large loops; use batch or bulk persistence unless an approved exception documents transaction size, flush/clear behavior, locking risk, and retry/idempotency behavior.
 
-Before completion, run relevant checks, complete `.ai/core/quality-gates.md` with evidence, review security/data/performance/concurrency impact, update or provide a no-change rationale for docs/specs/diagrams, describe deployment and rollback, and report commands executed with actual observed results. Report memory candidates under `.ai/core/memory-policy.md`, or state `None`. Do not claim a test, MR/PR, Jira update, document, diagram, screenshot, PPTX, or XLSX exists unless verified.
+Before completion, run relevant checks, complete `.ai/core/quality-gates.md` with evidence, review security/data/performance/concurrency impact, update or provide a no-change rationale for docs/specs/diagrams, describe deployment and rollback, and report commands executed with actual observed results. Record and render `.ai/core/task-completion-report.md`, including progress, remaining work, production readiness, token usage, and cost status. Report memory candidates under `.ai/core/memory-policy.md`, or state `None`. Do not claim a test, MR/PR, Jira update, document, diagram, screenshot, PPTX, or XLSX exists unless verified.
 
 ## Non-Negotiables
 
@@ -61,8 +61,11 @@ Before completion, run relevant checks, complete `.ai/core/quality-gates.md` wit
 - Memory policy: `.ai/core/memory-policy.md`
 - Definition of done: `.ai/core/definition-of-done.md`
 - Governed runtime: `.ai/core/governed-runtime.md`
+- Task completion report: `.ai/core/task-completion-report.md`
+- Universal action gateway: `.ai/core/universal-action-gateway.md`
 - Capability policy: `.ai/guards/capability-policy.yaml`
-- MCP trust registry: `.ai/context/mcp-trust-registry.yaml`
+- Zero-trust MCP broker: `.ai/core/zero-trust-mcp.md`
+- MCP trust registry: `.ai/context/mcp-trust-registry.json`
 - Output contract: `.ai/core/output-contract.md`
 - Risk model: `.ai/core/risk-model.md`
 - Existing-system plan gate: `.ai/workflows/plan-existing-system-change.md`

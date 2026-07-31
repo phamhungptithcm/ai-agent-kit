@@ -228,23 +228,71 @@ The loop turns good work into reusable team behavior. The memory policy prevents
 
 ## Governed Runtime Control Plane
 
-Version 0.4 adds a deterministic control plane beneath agent instructions:
+Version 0.6 extends the deterministic control plane beneath agent instructions
+with execution-bound authorization and a zero-trust MCP broker:
 
 ```mermaid
 flowchart LR
   Task[Task state machine] --> Capability[Task capability]
   Capability --> Policy[Allow / ask / deny policy]
-  Policy --> Gateway[Tool gateway]
-  Gateway --> Target[Repository, shell, or MCP]
+  Policy --> Gateway[Universal action gateway]
+  Gateway --> Broker[Zero-trust MCP broker]
+  Gateway --> Target[Repository or shell]
+  Broker --> MCP[MCP server]
   Gateway --> Receipt[Hash-linked receipt]
   Receipt --> Ledger[Local evidence ledger]
   Ledger --> Verify[Independent verifier]
   Gateway --> Telemetry[Privacy-minimized JSONL spans]
 ```
 
-Capabilities bind approval to tools, paths, network domains, risk, expiry, action budget, repository revision, policy revision, and adapter. The gateway records decisions but deliberately does not autonomously execute protected production, infrastructure, database, release, Git, or messaging mutations.
+Capabilities bind approval to tools, paths, network domains, risk, expiry,
+action budget, repository revision, policy revision, and adapter. The gateway
+normalizes and hashes every action, authorizes it immediately before execution,
+rejects stale or mismatched decision tokens, and records decision, execution,
+and verification receipts with stable reason codes.
+
+The MCP broker is deny-by-default. It binds trust to the exact server
+executable and arguments, then constrains tools, filesystem roots, network
+domains, timeouts, and rate limits. Changed or untrusted servers cannot
+auto-start. Credentials are injected only after authorization and are excluded
+from action envelopes, results, receipts, evidence, and telemetry. Offline
+checks reject prompt-injection payloads, SSRF targets, token passthrough, and
+unsafe local startup patterns.
+
+The control plane deliberately does not autonomously execute protected
+production, infrastructure, database, release, Git, or messaging mutations.
 
 Runtime state is stored under ignored `.ai-agent-kit/runtime/`. Evidence contains hashes and decision metadata, not prompts, chain-of-thought, source contents, secrets, or raw command output.
+
+## Final Task Reporting
+
+The final task report is a read model over four local evidence lanes:
+
+```mermaid
+flowchart LR
+  Criteria[Acceptance criterion ledger] --> Report[Final task report]
+  Checks[Commit-bound quality ledger] --> Report
+  Git[Git cleanliness and current commit] --> Report
+  Usage[Privacy-minimized usage ledger] --> Report
+  Pricing[Versioned exact model pricing] --> Usage
+  Report --> Progress[Weighted progress]
+  Report --> Ready[Fail-closed production readiness]
+  Report --> Cost[Estimated or unavailable cost]
+```
+
+Criterion progress is weight-based and counts only verified applicable
+criteria. Quality evidence is stored without raw command output and passing
+records become stale when the repository commit changes. Production readiness
+requires review-ready task state, verified evidence integrity, 100% verified
+criteria, a clean Git worktree, and current evidence for every configured
+required gate.
+
+Usage events normalize provider differences without storing prompts,
+responses, transcripts, credentials, personal identifiers, or chain-of-thought.
+Cumulative session reports use a hashed session identifier and only the latest
+counter, preventing stop hooks from double counting. Cost calculation requires
+an exact provider/model/effective-date match; subscription fees, credits,
+negotiated adjustments, tools, and taxes remain outside the estimate.
 
 ## Daily Prompt Names
 
@@ -261,13 +309,10 @@ Runtime state is stored under ignored `.ai-agent-kit/runtime/`. Evidence contain
 
 ## Adapter Delivery
 
-Published in `0.4.2`:
+Published in `0.5.0`:
 
 - Claude Code
 - OpenAI Codex
-
-Implemented for the next release:
-
 - GitHub Copilot coding agent
 - Cursor
 - Windsurf / Devin Desktop Cascade

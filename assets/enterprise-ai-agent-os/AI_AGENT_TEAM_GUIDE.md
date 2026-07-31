@@ -107,6 +107,8 @@ Repository maintainers own governance policy. Escalate gate failures, policy con
 
 Protected or unattended work should use the executable state machine and capability policy documented in `.ai/docs/governed-runtime-guide.md`. Every action must remain within its tool/path/domain/risk budget and produce an allow, ask, or deny receipt. Stop on ask/deny. A separate verifier must validate the hash-linked ledger and completion evidence before release readiness is claimed.
 
+All supported adapters route protected tool use through `.ai/core/universal-action-gateway.md`. Authorization is bound to the task, adapter, exact action envelope, approval hash, repository commit, policy revision, capability expiry, and action budget; a prior allow cannot be reused after any binding changes. MCP servers additionally use `.ai/core/zero-trust-mcp.md` and the deny-by-default JSON trust registry. Exact server identity, tool scope, filesystem roots, network domains, timeout, rate limit, and credential isolation are enforced before invocation.
+
 Use `assist`, `governed`, `regulated`, or `autonomous-safe` maturity guidance from `.ai/quality-profiles/governance-maturity.yaml`. `autonomous-safe` is restricted to sandboxed low-risk work; critical operations remain human procedures only.
 
 ## Documentation And Traceability

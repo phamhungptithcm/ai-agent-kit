@@ -1,4 +1,4 @@
-version: 1
+version: 2
 mode: fail-closed
 decision_values: [allow, ask, deny]
 required_capability_fields:
@@ -34,3 +34,18 @@ reason_codes:
   - CRITICAL_AUTONOMOUS_EXECUTION_FORBIDDEN
   - CRITICAL_MUTATION_FORBIDDEN
   - HUMAN_CONFIRMATION_REQUIRED
+  - APPROVAL_BINDING_CHANGED
+  - REPOSITORY_COMMIT_CHANGED
+  - POLICY_REVISION_CHANGED
+  - CAPABILITY_HASH_CHANGED
+  - ADAPTER_NOT_ALLOWED
+  - ACTION_ENVELOPE_CHANGED
+  - DECISION_NOT_ALLOW
+  - DECISION_NOT_FOUND
+execution:
+  decision_token_required: true
+  exact_envelope_replay_required: true
+  receipts:
+    - policy.decision
+    - action.execution
+    - action.verification

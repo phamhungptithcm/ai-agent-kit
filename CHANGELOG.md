@@ -4,6 +4,33 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Added an evidence-derived final task report with weighted acceptance progress,
+  completed and remaining work, commit-bound quality gates, Git cleanliness,
+  scoped known-issue language, fail-closed production readiness, and blockers.
+- Added privacy-minimized token usage recording for provider responses, adapter
+  telemetry, cumulative sessions, deduplicated events, OpenAI and Anthropic
+  cache semantics, exact model pricing, and explicit estimated, partial, or
+  unavailable cost states.
+- Added `runtime criterion record`, `runtime check record`, `runtime usage
+  record|summary`, and `runtime task report` text, compact, and JSON surfaces,
+  plus cross-agent completion guidance and fail-open Claude/Codex stop hooks.
+- Added a universal action gateway that normalizes each protected action,
+  enforces capability and policy at the execution boundary, invalidates stale
+  authorization, and records privacy-minimized decision, execution, and
+  verification receipts with stable reason codes.
+- Added a deny-by-default MCP broker with exact server identity, scoped tools,
+  filesystem and network boundaries, timeouts, persistent rate limiting,
+  credential isolation and redaction, registry-drift review, and offline
+  security fixtures for prompt injection, SSRF, token passthrough, and unsafe
+  local startup.
+- Routed Claude Code and Codex tool hooks through the same optional governed
+  gateway while preserving normal bootstrap behavior when no governed task is
+  active.
+- Added runtime and MCP CLI surfaces, canonical workflows and generated skills,
+  adapter guidance, validator coverage, and architecture documentation.
+
+## 0.5.0 - 2026-07-29
+
 - Added migration-safe `update --apply` with deterministic three-way decisions,
   dry-run parity, local-edit preservation, conflict evidence, backups,
   transaction journals, rollback, path/symlink protection, and machine-readable

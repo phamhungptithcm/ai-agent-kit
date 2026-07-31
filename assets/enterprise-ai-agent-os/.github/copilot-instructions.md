@@ -6,4 +6,4 @@ Use `.ai/` as the durable source of truth for repository policy, workflows, guar
 
 Before analysis or implementation, follow `.ai/core/required-workflow.md` and the Repository Intelligence Gate. Existing-system changes must stop after a concrete impact plan until the approval evidence required by `.ai/guards/implementation-approval-gate.yaml` exists.
 
-Use `.ai/PROMPTS.md` for daily entry points and `.agents/skills/` for reusable procedures. Apply `.ai/core/quality-gates.md` before completion and report actual evidence. Do not commit, push, open a pull request, update a ticket, deploy, access production, or perform destructive work unless the user explicitly authorizes that action.
+Use `.ai/PROMPTS.md` for daily entry points and `.agents/skills/` for reusable procedures. Apply `.ai/core/quality-gates.md` before completion, render `.ai/core/task-completion-report.md`, and report actual progress, remaining work, production readiness, token usage, cost status, and validation evidence. Do not commit, push, open a pull request, update a ticket, deploy, access production, or perform destructive work unless the user explicitly authorizes that action.

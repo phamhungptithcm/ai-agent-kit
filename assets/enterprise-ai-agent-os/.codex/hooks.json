@@ -2,6 +2,18 @@
   "hooks": {
     "PreToolUse": [
       {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "AI_AGENT_KIT_ADAPTER=codex node .ai/scripts/governed_action_gateway.mjs",
+            "commandWindows": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$env:AI_AGENT_KIT_ADAPTER='codex'; node .ai\\scripts\\governed_action_gateway.mjs\"",
+            "timeout": 30,
+            "statusMessage": "Authorizing governed action"
+          }
+        ]
+      },
+      {
         "matcher": "Edit|Write|NotebookEdit",
         "hooks": [
           {
@@ -64,6 +76,13 @@
             "commandWindows": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$p='.ai\\scripts\\validate_agent_config.py'; if (Get-Command py -ErrorAction SilentlyContinue) { py -3 $p --quick } elseif (Get-Command python -ErrorAction SilentlyContinue) { python $p --quick } elseif (Get-Command uv -ErrorAction SilentlyContinue) { uv run --python 3.11 python $p --quick } else { exit 1 }\"",
             "timeout": 60,
             "statusMessage": "Validating agent configuration"
+          },
+          {
+            "type": "command",
+            "command": "AI_AGENT_KIT_ADAPTER=codex node .ai/scripts/final_task_report.mjs",
+            "commandWindows": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$env:AI_AGENT_KIT_ADAPTER='codex'; node .ai\\scripts\\final_task_report.mjs\"",
+            "timeout": 30,
+            "statusMessage": "Printing final task report"
           }
         ]
       }

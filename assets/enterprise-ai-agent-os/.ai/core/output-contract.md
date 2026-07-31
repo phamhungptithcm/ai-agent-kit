@@ -15,6 +15,7 @@ Security and performance considerations
 Assumptions
 Remaining risks
 Memory candidates
+Final task report
 ```
 
 ## Section Requirements
@@ -33,5 +34,7 @@ Memory candidates
 - Assumptions: record unverified conditions the reviewer should confirm.
 - Remaining risks: record residual risk and follow-up owners.
 - Memory candidates: propose reusable learnings only; mark each with category, scope, source, confidence, status, and approver need. Use `None` when no durable team memory should be created.
+- Final task report: render `.ai/core/task-completion-report.md` from recorded evidence. Include weighted completion, completed and remaining criteria, quality gates, Git cleanliness, scoped known-issue language, production readiness and blockers, token usage, and cost status.
 
 The agent must not claim a test, MR/PR, Jira update, document, diagram, screenshot, PPTX, or XLSX artifact exists unless it actually verified that evidence.
+The agent must not claim zero usage, zero cost, clean code, no issues, or production readiness when the required evidence is unavailable, stale, failed, or was not run.
