@@ -61,6 +61,8 @@ def required_paths() -> list[str]:
         ".ai/core/definition-of-done.md",
         ".ai/core/output-contract.md",
         ".ai/core/governed-runtime.md",
+        ".ai/core/universal-action-gateway.md",
+        ".ai/core/zero-trust-mcp.md",
         ".ai/context/architecture.md",
         ".ai/context/glossary.md",
         ".ai/context/repository-map.md",
@@ -68,6 +70,7 @@ def required_paths() -> list[str]:
         ".ai/context/ownership.md",
         ".ai/context/agent-roles.md",
         ".ai/context/mcp-trust-registry.yaml",
+        ".ai/context/mcp-trust-registry.json",
         ".ai/rules/engineering.md",
         ".ai/rules/security.md",
         ".ai/rules/testing.md",
@@ -83,6 +86,8 @@ def required_paths() -> list[str]:
         ".ai/rules/visual-design-integrity.md",
         ".ai/rules/animation-integrity.md",
         ".ai/workflows/start-task.md",
+        ".ai/workflows/authorize-governed-action.md",
+        ".ai/workflows/authorize-mcp-request.md",
         ".ai/workflows/repository-intelligence-workflow.md",
         ".ai/workflows/plan-existing-system-change.md",
         ".ai/workflows/implement-feature.md",
@@ -288,7 +293,12 @@ def validate_skills(root: Path, errors: list[str]) -> None:
 
 
 def validate_json_toml(root: Path, errors: list[str]) -> None:
-    for json_file in [root / ".codex" / "hooks.json", root / ".claude" / "settings.json", root / ".mcp.json"]:
+    for json_file in [
+        root / ".codex" / "hooks.json",
+        root / ".claude" / "settings.json",
+        root / ".mcp.json",
+        root / ".ai" / "context" / "mcp-trust-registry.json",
+    ]:
         try:
             json.loads(read(json_file))
         except Exception as exc:  # noqa: BLE001
@@ -334,7 +344,7 @@ def validate_hooks(root: Path, errors: list[str]) -> None:
         lowered = command.lower()
         if any(term in lowered for term in ["curl ", "wget ", "invoke-webrequest", "http://", "https://", "iex "]):
             fail(errors, f"hook command appears to use network or download execution: {command}")
-        match = re.search(r"(\.ai[\\/ ]scripts[\\/][A-Za-z0-9_.-]+\.py)", command)
+        match = re.search(r"(\.ai[\\/ ]scripts[\\/][A-Za-z0-9_.-]+\.(?:py|mjs))", command)
         if match:
             rel = match.group(1).replace(" ", "/").replace("\\", "/")
             if not (root / rel).exists():
@@ -346,6 +356,8 @@ def validate_hooks(root: Path, errors: list[str]) -> None:
         fail(errors, "pre-tool hooks do not enforce tracked implementation approval")
     if "enforce_command_policy.py --hook" not in joined:
         fail(errors, "pre-tool hooks do not enforce command policy")
+    if "governed_action_gateway.mjs" not in joined:
+        fail(errors, "pre-tool hooks do not invoke the universal action gateway")
 
 
 def validate_delivery_templates(root: Path, errors: list[str]) -> None:
@@ -937,6 +949,38 @@ def validate_governed_runtime(root: Path, errors: list[str]) -> None:
     for fragment in ["default_trust: deny", "executable_or_image_digest", "review_expires"]:
         if fragment not in registry:
             fail(errors, f"MCP trust registry missing fragment: {fragment}")
+    gateway = read(root / ".ai" / "core" / "universal-action-gateway.md")
+    gateway_normalized = " ".join(gateway.lower().split())
+    for fragment in ["normalized action envelope", "allow", "ask", "deny", "decision token", "fail closed"]:
+        if fragment.lower() not in gateway_normalized:
+            fail(errors, f"universal action gateway missing contract fragment: {fragment}")
+    broker = read(root / ".ai" / "core" / "zero-trust-mcp.md")
+    broker_normalized = " ".join(broker.lower().split())
+    for fragment in ["exact identity", "credential", "SSRF", "prompt injection", "rate limit"]:
+        if fragment.lower() not in broker_normalized:
+            fail(errors, f"zero-trust MCP contract missing fragment: {fragment}")
+    try:
+        registry_json = json.loads(read(root / ".ai" / "context" / "mcp-trust-registry.json"))
+    except Exception:
+        registry_json = {}
+    if registry_json.get("default_trust") != "deny":
+        fail(errors, "JSON MCP trust registry must be deny-by-default")
+    report = read(root / ".ai" / "core" / "task-completion-report.md")
+    report_normalized = " ".join(report.lower().split())
+    for fragment in [
+        "weighted acceptance-criterion progress",
+        "production readiness",
+        "token usage",
+        "api-equivalent estimated cost",
+        "fail-open",
+        "fail-closed",
+    ]:
+        if fragment.lower() not in report_normalized:
+            fail(errors, f"task completion report missing contract fragment: {fragment}")
+    finalizer = read(root / ".ai" / "scripts" / "final_task_report.mjs")
+    for fragment in ["AI_AGENT_KIT_TASK_ID", "buildFinalTaskReport", "renderFinalTaskReport"]:
+        if fragment not in finalizer:
+            fail(errors, f"final task report hook missing fragment: {fragment}")
 
 
 def validate(quick: bool = False) -> int:

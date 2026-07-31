@@ -9,8 +9,8 @@
 
 One command installs shared rules, repository context, quality checks, approval gates, workflows, and reviewable evidence.
 
-The unreleased `0.5.0` source also adds migration-safe local updates and
-deterministic task context packs:
+Version `0.5.0` adds migration-safe local updates and deterministic task
+context packs:
 
 ```bash
 ai-agent-kit update --dry-run
@@ -55,6 +55,7 @@ Understand → Inspect repository → Plan → Approve → Execute → Verify �
 | Governed changes | Tracked approval and command policy bound implementation. |
 | Adaptive runtime | Goals, facts, assumptions, plans, capabilities, and budgets stay explicit. |
 | Reviewable evidence | Receipts, verification, approved memory, and evals support review. |
+| Final task report | Verified progress, remaining work, quality, production readiness, token usage, and estimated cost print together. |
 
 ## Quick Start
 
@@ -106,10 +107,10 @@ Bootstrap is local. It does not edit application source, commit, push, open a pu
 | --- | --- | --- |
 | **Shipped** | Claude Code | `CLAUDE.md`, config, commands, roles, hooks, and generated skills. |
 | **Shipped** | OpenAI Codex | `AGENTS.md`, config, rules, roles, hooks, and generated skills. |
-| **Next release (unreleased)** | GitHub Copilot, Cursor, Windsurf/Cascade, Gemini CLI | Native instructions plus shared or native skills that preserve the same `.ai/` contract. |
-| **Next release (unreleased)** | Amazon Q, Junie, Cline, Devin, Aider, Continue | Native rules, conventions, `AGENTS.md`, and skill surfaces where supported. |
+| **Shipped** | GitHub Copilot, Cursor, Windsurf/Cascade, Gemini CLI | Native instructions plus shared or native skills that preserve the same `.ai/` contract. |
+| **Shipped** | Amazon Q, Junie, Cline, Devin, Aider, Continue | Native rules, conventions, `AGENTS.md`, and skill surfaces where supported. |
 
-The next-release adapters are implemented in the current source but are not published in `0.4.2`. See [Agent Adapter Strategy](docs/AGENT_ADAPTER_STRATEGY.md).
+All listed adapters ship in `0.5.0`. See [Agent Adapter Strategy](docs/AGENT_ADAPTER_STRATEGY.md).
 
 ## How It Compares
 
@@ -176,25 +177,42 @@ flowchart LR
 
 Guidance supports reasoning; deterministic controls authorize protected actions. Runtime data stays local and excludes prompts, raw source/output, secrets, and chain-of-thought.
 
-## Next Release: 0.5.0 (Unreleased)
+Finish a governed task with an evidence-derived report:
 
-- Registry-driven adapters for 12 AI coding agents with default-all or reviewed subset selection.
-- Native instruction and skill surfaces that preserve one `.ai/` policy contract.
-- Migration-safe local updates and task-aware context compilation.
+```bash
+ai-agent-kit runtime task report --id TASK-123 --format text
+ai-agent-kit runtime task report --id TASK-123 --format compact
+```
 
-The source version is prepared locally. No npm publish, Git tag, or GitHub release is implied by this section.
+The report never treats missing evidence as zero usage, clean code, passed
+quality, or production readiness. Provider-reported tokens remain available
+when exact pricing is unknown; monetary output is labeled as an API-equivalent
+estimate rather than actual billing.
 
-## What Is New In 0.4.0
+## Next Release: 0.6.0 (Local Source)
 
-Version `0.4.0` focuses on adoption and discoverability:
+- A universal action gateway that binds allow/ask/deny decisions to the exact
+  task, adapter, capability, approval, commit, policy revision, and action.
+- Decision, execution, and independent-verification receipts with stable reason
+  codes and privacy-minimized action metadata.
+- A deny-by-default MCP broker with exact server identity, scoped tools,
+  filesystem and network boundaries, timeouts, rate limits, credential
+  isolation, drift review, and offline abuse fixtures.
+- A final task report that combines weighted completion, remaining work,
+  commit-bound quality checks, Git cleanliness, production-readiness blockers,
+  token usage, and versioned API-equivalent cost estimates.
 
-- a shorter, outcome-led README designed for GitHub and npm readers;
-- a proof-oriented bootstrap demo;
-- clearer shipped-versus-roadmap support;
-- provenance-correct release history;
-- focused package description and search keywords.
+This version is implemented as local source only. It has not been committed,
+pushed, tagged, published to npm, or released on GitHub.
 
-The governed runtime and its safety/evidence capabilities arrived in `0.3.0` and remain available.
+## What Is New In 0.5.0
+
+Version `0.5.0` expands the governed workflow across supported agents:
+
+- registry-driven adapters for 12 AI coding agents;
+- native instruction and generated-skill surfaces backed by one `.ai/` contract;
+- migration-safe local updates;
+- deterministic task context compilation.
 
 <details>
 <summary><strong>Release highlights: 0.1.0 → 0.4.0</strong></summary>
@@ -218,6 +236,11 @@ The governed runtime and its safety/evidence capabilities arrived in `0.3.0` and
 
 - Conversion-first README, real demo asset, clearer positioning, release provenance, and focused search metadata.
 
+### 0.5.0 — Multi-Agent Delivery
+
+- Registry-driven adapters for 12 AI coding agents.
+- Migration-safe local updates and deterministic task context compilation.
+
 </details>
 
 See the complete [Changelog](CHANGELOG.md).
@@ -236,6 +259,7 @@ See the complete [Changelog](CHANGELOG.md).
 - **Try it with a team:** [Adoption Guide](docs/ADOPTION_GUIDE.md)
 - **Understand the architecture:** [High-Level Design](docs/HIGH_LEVEL_DESIGN.md)
 - **Review runtime boundaries:** [Governed Runtime V1 Plan](docs/GOVERNED_RUNTIME_V1_PLAN.md)
+- **Review execution and MCP trust:** [Runtime Enforcement And MCP Trust](docs/RUNTIME_ENFORCEMENT_AND_MCP_TRUST.md)
 - **Add another agent:** [Agent Adapter Strategy](docs/AGENT_ADAPTER_STRATEGY.md)
 - **Understand quality selection:** [Code Quality Intelligence](docs/CODE_QUALITY_INTELLIGENCE.md)
 - **Prepare a release:** [Public Launch Checklist](docs/PUBLIC_LAUNCH_CHECKLIST.md)

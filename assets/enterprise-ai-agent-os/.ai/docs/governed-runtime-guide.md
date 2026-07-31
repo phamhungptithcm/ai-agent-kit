@@ -19,6 +19,19 @@ ai-agent-kit runtime memory query --query convention
 
 Runtime state is local under `.ai-agent-kit/runtime/`. Receipts and telemetry are privacy-minimized JSONL. The gateway evaluates and records decisions; it does not autonomously run production, infrastructure, database, release, Git, or messaging mutations.
 
+Before completion, record acceptance, quality, and provider usage evidence, then
+render the final task report:
+
+```bash
+ai-agent-kit runtime criterion record --id TASK-123 --criterion 1 --status verified --source test://acceptance
+ai-agent-kit runtime check record --id TASK-123 --gate tests --status passed --source command://test --exit-code 0
+ai-agent-kit runtime usage record --id TASK-123 --provider openai --model gpt-5.6-terra --usage-source provider_response --input-tokens 1000 --cached-input-tokens 500 --output-tokens 100
+ai-agent-kit runtime task report --id TASK-123 --format text
+```
+
+Token usage and cost reporting are fail-open. Production readiness is
+fail-closed and requires current evidence for every configured required gate.
+
 Treat `ask` as a stop for human confirmation and `deny` as final unless policy or capability is changed through a new reviewed approval.
 
 Facts require sources. Assumptions remain separate. Replanning requires an explicit trigger and produces a hash-linked revision. Memory is append-only and proposed entries remain invisible to queries until a human approver promotes them.

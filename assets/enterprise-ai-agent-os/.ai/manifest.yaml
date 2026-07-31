@@ -35,7 +35,10 @@ core:
   - ".ai/core/definition-of-done.md"
   - ".ai/core/output-contract.md"
   - ".ai/core/governed-runtime.md"
+  - ".ai/core/task-completion-report.md"
   - ".ai/core/context-compiler.md"
+  - ".ai/core/universal-action-gateway.md"
+  - ".ai/core/zero-trust-mcp.md"
 context:
   - ".ai/context/architecture.md"
   - ".ai/context/glossary.md"
@@ -44,6 +47,7 @@ context:
   - ".ai/context/ownership.md"
   - ".ai/context/agent-roles.md"
   - ".ai/context/mcp-trust-registry.yaml"
+  - ".ai/context/mcp-trust-registry.json"
 rules:
   - ".ai/rules/engineering.md"
   - ".ai/rules/security.md"
@@ -74,6 +78,9 @@ workflows:
   - ".ai/workflows/prepare-jira-completion-package.md"
   - ".ai/workflows/build-public-website.md"
   - ".ai/workflows/compile-task-context.md"
+  - ".ai/workflows/authorize-governed-action.md"
+  - ".ai/workflows/authorize-mcp-request.md"
+  - ".ai/workflows/prepare-final-task-report.md"
 guards:
   - ".ai/guards/repository-intelligence-gate.yaml"
   - ".ai/guards/implementation-approval-gate.yaml"
@@ -107,10 +114,12 @@ templates:
   - ".ai/templates/animation-review.md"
   - ".ai/templates/capability.json"
   - ".ai/templates/evidence-bundle.json"
+  - ".ai/templates/model-pricing-registry.json"
 docs:
   - ".ai/docs/repository-intelligence-guide.md"
   - ".ai/docs/agent-adapter-strategy.md"
   - ".ai/docs/governed-runtime-guide.md"
+  - ".ai/docs/task-completion-report-guide.md"
 scripts:
   - ".ai/scripts/bootstrap-repository-intelligence.ps1"
   - ".ai/scripts/bootstrap-repository-intelligence.sh"
@@ -126,6 +135,8 @@ scripts:
   - ".ai/scripts/test_agent_policies.py"
   - ".ai/scripts/validate_agent_config.py"
   - ".ai/scripts/validate_implementation_approval.py"
+  - ".ai/scripts/governed_action_gateway.mjs"
+  - ".ai/scripts/final_task_report.mjs"
 evals:
   - ".ai/evals/README.md"
   - ".ai/evals/behavioral-cases.json"
@@ -159,6 +170,8 @@ skills:
   - ".ai/skills-src/animation-design-engineering/SKILL.md"
   - ".ai/skills-src/governed-agent-runtime/SKILL.md"
   - ".ai/skills-src/compile-task-context/SKILL.md"
+  - ".ai/skills-src/governed-action-gateway/SKILL.md"
+  - ".ai/skills-src/zero-trust-mcp/SKILL.md"
 quality_profiles:
   - ".ai/quality-profiles/universal.yaml"
   - ".ai/quality-profiles/go.yaml"

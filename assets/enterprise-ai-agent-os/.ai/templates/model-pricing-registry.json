@@ -1,0 +1,17 @@
+{
+  "revision": "organization-pricing-YYYY-MM-DD",
+  "entries": [
+    {
+      "provider": "example-provider",
+      "model": "exact-model-id",
+      "effective_from": "2026-01-01",
+      "effective_to": null,
+      "rates_usd_per_million_tokens": {
+        "input": 1,
+        "cached_input": 0.1,
+        "output": 5
+      },
+      "source": "internal-reviewed-pricing-reference"
+    }
+  ]
+}

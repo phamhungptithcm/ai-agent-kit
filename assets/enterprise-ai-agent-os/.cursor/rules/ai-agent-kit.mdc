@@ -8,4 +8,4 @@ alwaysApply: true
 
 Use `.ai/` as the durable source of truth. Start with `.ai/core/required-workflow.md`, use `.ai/PROMPTS.md` or the matching skill in `.cursor/skills/`, and run the Repository Intelligence Gate before analysis or implementation.
 
-For existing-system changes, stop after the impact plan until valid approval evidence exists. Apply the relevant `.ai/quality-profiles/` and `.ai/core/quality-gates.md`, then report actual verification evidence. Never commit, push, create a pull request, update a ticket, deploy, access production, or perform destructive work without explicit user authorization.
+For existing-system changes, stop after the impact plan until valid approval evidence exists. Apply the relevant `.ai/quality-profiles/` and `.ai/core/quality-gates.md`, then render `.ai/core/task-completion-report.md` with actual progress, remaining work, production readiness, token usage, cost status, and verification evidence. Never commit, push, create a pull request, update a ticket, deploy, access production, or perform destructive work without explicit user authorization.
