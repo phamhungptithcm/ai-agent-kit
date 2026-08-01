@@ -1,0 +1,63 @@
+version: 1
+id: marketing-growth
+name: Evidence-Based Marketing Growth Quality Profile
+description: Mandatory truth, measurement, privacy, journey, experimentation, and approval standards for website marketing and conversion work.
+
+applies_when:
+  - "positioning, audience, offer, headline, public copy, proof, CTA, landing page, pricing, conversion path, or funnel changes"
+  - "campaign, launch, email, social, paid media, referral, affiliate, influencer, PR, or outbound content is planned or changed"
+  - "analytics, advertising pixels, attribution, personalization, experimentation, or conversion measurement is introduced or changed"
+  - "marketing localization, market expansion, competitive comparison, case study, testimonial, or public performance claim changes"
+
+compose_with:
+  - ".ai/quality-profiles/universal.yaml"
+  - ".ai/quality-profiles/web-app.yaml"
+  - ".ai/quality-profiles/seo-geo.yaml"
+  - ".ai/quality-profiles/visual-design.yaml"
+  - ".ai/rules/marketing-integrity.md"
+
+detect:
+  files: ["app/**/page.*", "pages/**", "routes/**", "content/**", "marketing/**", "campaigns/**", "analytics/**", "experiments/**", "**/*landing*", "**/*pricing*", "**/*tracking*", "**/*pixel*"]
+  content: ["conversion", "campaign", "experiment", "testimonial", "customer logo", "analytics", "attribution"]
+
+required_review:
+  context_and_journey:
+    - "product, audience, user problem, offer, funnel stage, traffic source, page goal, CTA, market, constraints, and unknowns are explicit"
+    - "message promise, page content, proof, CTA, and next state remain consistent"
+    - "recommendations fit the surface, audience, decision, and available evidence rather than a generic funnel formula"
+  claims_and_proof:
+    - "material claims are verified, assumed, or unknown with reviewable provenance"
+    - "public proof has permission, scope, freshness, and source evidence"
+    - "testimonials, logos, ratings, awards, scarcity, comparisons, prices, savings, and outcomes are not fabricated or implied"
+  user_integrity:
+    - "CTA consequence, offer terms, price, renewal, cancellation, and data use are understandable where applicable"
+    - "no fake urgency, fake scarcity, hidden cost, confirmshaming, obstruction, or other dark pattern is introduced"
+    - "accessibility, privacy, security, performance, content meaning, and user control are not traded for a local conversion metric"
+    - "competitor and campaign research does not copy distinctive copy, creative, identity, data, or protected assets"
+    - "required legal, platform, and subject-matter review is identified without unsupported compliance claims"
+  measurement:
+    - "metric decision, semantics, source of truth, population, time window, consent, retention, owner, and limitations are defined"
+    - "tracking collects only necessary data and excludes secrets, sensitive free text, authentication data, and unnecessary identifiers"
+    - "missing baseline or outcome evidence is reported as NOT_MEASURED rather than zero or success"
+    - "correlation, attribution, estimates, and causal evidence are distinguished"
+  experimentation:
+    - "hypothesis, primary metric, guardrails, eligibility, assignment, baseline, duration, sample limitations, stop rule, rollback, and decision rule are explicit"
+    - "instrumentation is validated before exposure and low-traffic uncertainty is reported"
+    - "results are MEASURED, INCONCLUSIVE, INVALID, or NOT_MEASURED rather than declared winners from directional movement"
+  authorization:
+    - "planning and copy-ready output are separated from publishing, sending, tracking enablement, account mutation, experiment launch, and spend"
+    - "protected external actions have current explicit authorization and governed action evidence"
+
+preferred_evidence:
+  - "verified product and business sources plus marketing claim ledger"
+  - "raw or built website output and representative browser journey checks"
+  - "analytics schema, consent behavior, debug events, and source-of-truth queries"
+  - "predeclared experiment plan, assignment evidence, exposure logs, and bounded result analysis"
+  - "accessibility, performance, SEO/GEO, localization, security, and privacy validation"
+
+agent_constraints:
+  - "do not publish, send, enable tracking, mutate accounts, launch experiments, or spend budget without explicit governed authorization"
+  - "do not fabricate proof, urgency, scarcity, benchmarks, baselines, outcomes, attribution, or experiment success"
+  - "do not add personal-data collection because it may be useful later"
+  - "do not scrape, enrich, upload, match, or retarget an audience without explicit purpose, authority, minimization, and applicable consent or legal review"
+  - "do not treat a marketing plan as permission to change production or an external service"

@@ -1,0 +1,25 @@
+version: 1
+mode: "discover|plan|implement|experiment|measure|audit"
+scope: { surfaces: [], markets: [], exclusions: [] }
+product:
+  value: { value: "TODO", status: "verified|assumption|unknown", source: "TODO" }
+  offer: { value: "TODO", status: "verified|assumption|unknown", source: "TODO" }
+audience:
+  segment: { value: "TODO", status: "verified|assumption|unknown", source: "TODO" }
+  problem: { value: "TODO", status: "verified|assumption|unknown", source: "TODO" }
+  intended_outcome: { value: "TODO", status: "verified|assumption|unknown", source: "TODO" }
+journey:
+  funnel_stage: "TODO"
+  traffic_source: "TODO"
+  source_promise: "TODO"
+  page_goal: "TODO"
+  primary_cta: "TODO"
+  next_state: "TODO"
+brand: { voice: "TODO", verified_assets: [] }
+proof_inventory: []
+baseline: { status: "MEASURED|NOT_MEASURED|UNKNOWN", source: "TODO", period: "TODO" }
+constraints: { privacy: [], compliance: [], accessibility: [], performance: [], localization: [] }
+unknowns: []
+authorization:
+  implementation: "not_requested|pending|approved"
+  external_publish_send_spend_or_account_change: "not_requested|pending|approved"

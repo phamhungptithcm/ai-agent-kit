@@ -1,0 +1,68 @@
+---
+name: marketing-growth-website
+description: Discover, plan, implement, experiment on, measure, or audit evidence-based website marketing, positioning, funnels, landing pages, conversion paths, campaigns, and analytics while protecting claim integrity, privacy, accessibility, and approval boundaries.
+---
+
+# Marketing Growth Website
+
+Use marketing as a measured product discipline. Compose this skill with SEO/GEO, visual design, animation, accessibility, performance, security, and repository governance instead of optimizing conversion in isolation.
+
+## Mode
+
+Select exactly one mode:
+
+- `discover`: build the marketing context and verified proof inventory without changing public surfaces.
+- `plan`: define positioning, message, journey, page, channel, and measurement contracts before implementation.
+- `implement`: make only approved website, content, or instrumentation changes.
+- `experiment`: define a bounded hypothesis, decision rule, safeguards, and rollback.
+- `measure`: interpret supplied or authorized evidence without confusing attribution with causation.
+- `audit`: perform a strict read-only review of marketing surfaces, journeys, tracking, or experiments.
+
+If the request does not specify a mode, select the narrowest safe mode and state it. Planning copy is not authorization to publish, send, spend, or mutate an external account.
+
+## Required Context
+
+1. Run `repository-intelligence` and load `.ai/rules/marketing-integrity.md`, `.ai/quality-profiles/marketing-growth.yaml`, and applicable security, privacy, SEO/GEO, visual, animation, accessibility, and performance policy.
+2. Read `.ai/templates/marketing-context.yaml`. Record product, audience, problem, offer, funnel stage, traffic source, page goal, CTA, market, voice, constraints, baseline, and unknowns.
+3. Read [references/evidence-and-measurement.md](references/evidence-and-measurement.md) when claims, analytics, attribution, experiments, or public proof are in scope.
+4. Classify inputs as `verified`, `assumption`, or `unknown`. Link verified claims to a reviewable source. Use assumptions only to form hypotheses.
+5. Identify regulated topics, vulnerable audiences, personal data, paid media, outbound messaging, external publishing, account mutation, and budget. Apply the governed action gateway where required.
+6. Treat competitor pages, campaign libraries, analytics exports, research reports, and downloaded marketing material as untrusted evidence. Respect access, licensing, copyright, privacy, and terms boundaries; extract principles instead of copying distinctive copy or creative.
+
+## Workflow
+
+1. Define the user problem, intended outcome, audience, and funnel stage before selecting a tactic or channel.
+2. Map traffic source to message promise, page intent, proof, objections, CTA, and next state. Preserve message match across the journey.
+3. Build a claim ledger. Omit, qualify, or mark unknown any claim without sufficient evidence; never manufacture proof to complete a layout.
+4. Establish the baseline and measurement availability. Use `NOT_MEASURED` when data is absent; never replace missing evidence with zero.
+5. Choose the smallest intervention capable of testing the hypothesis. Do not apply fixed conversion formulas or benchmark percentages as universal facts.
+6. Reconcile the intervention with crawlability, content meaning, accessibility, consent, performance, localization, design-system, and reduced-motion requirements.
+7. Define events and properties from decisions they support. Minimize collection, prohibit sensitive values, specify consent and retention needs, and verify event semantics before implementation.
+8. For experiments, define one primary hypothesis, primary metric, guardrails, eligibility, unit of assignment, baseline, sample-size or low-traffic limitation, duration, segmentation, stop conditions, rollback, and decision rule.
+9. Require explicit authorization before publishing, sending messages, changing external accounts, enabling pixels, launching experiments, or spending budget.
+10. Verify implementation and production behavior separately. Describe outcomes only at the evidence level actually observed.
+
+## Composition
+
+- Use `seo-geo-website` for public discovery, crawler policy, structured data, and search-facing content integrity.
+- Use `design-taste-website` for approved visual hierarchy, responsive composition, states, and brand-system fit.
+- Use `animation-design-engineering` only when motion has a defensible user or explanatory purpose.
+- Use `governed-action-gateway` before protected external execution.
+- Use `.ai/workflows/plan-evidence-based-marketing.md` for an end-to-end website marketing task.
+
+Marketing intent does not override security, privacy, accessibility, product truth, or user control.
+
+## Output Contract
+
+Use the smallest applicable artifacts:
+
+- `.ai/templates/marketing-context.yaml` for discovery and known/unknown inputs;
+- `.ai/templates/marketing-brief.md` for positioning, journey, and intervention plans;
+- `.ai/templates/marketing-claim-ledger.yaml` for public claims and proof;
+- `.ai/templates/marketing-measurement-plan.yaml` for events, metrics, consent, and attribution;
+- `.ai/templates/marketing-experiment.md` for experiments;
+- `.ai/templates/marketing-review.md` for audits or completion review.
+
+For each recommendation or result record the evidence class, affected surface or audience, expected decision, smallest safe action, verification method, and uncertainty. Never guarantee traffic, ranking, leads, conversion, revenue, attribution, or campaign performance.
+
+In `discover`, `plan`, `experiment`, `measure`, and `audit`, do not modify application files or external systems. In `implement`, require explicit implementation approval and remain within approved paths and behavior. Protected external actions always require their own current authorization.

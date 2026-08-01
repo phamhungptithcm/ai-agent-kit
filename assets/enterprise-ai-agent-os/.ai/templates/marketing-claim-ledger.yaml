@@ -1,0 +1,12 @@
+version: 1
+claims:
+  - id: "CLAIM-001"
+    text: "TODO"
+    type: "product|customer|performance|comparison|price|availability|credential|regulated|other"
+    status: "verified|assumption|unknown|rejected"
+    source: { reference: "TODO", owner: "TODO", retrieved_or_measured_on: "TODO", scope: "TODO" }
+    permission_to_publish: "yes|no|unknown"
+    allowed_surfaces: []
+    expires_or_review_on: "TODO"
+    limitations: []
+    decision: "publish|qualify|omit|internal-hypothesis-only"

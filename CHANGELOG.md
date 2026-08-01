@@ -2,7 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 0.6.1 - 2026-08-01
+
+- Added a cross-agent `humanize-writing` skill with progressive-disclosure
+  pattern and voice references, meaning-preserving rewrite rules, and a
+  dedicated human-writing quality profile.
+- Extended canonical skill synchronization, bootstrap, validation, and
+  ownership tracking so bundled text references ship with generated skills.
+- Added an original evidence-based website marketing skill with discover, plan,
+  implement, experiment, measure, and audit modes composed with SEO/GEO,
+  design, animation, accessibility, privacy, and governed external actions.
+- Added marketing context, brief, claim ledger, experiment, and review
+  artifacts, plus integrity rules, quality checks, and golden cases for proof,
+  message match, dark patterns, measurement, attribution, consent, low-traffic
+  experiments, localization, and external publish/send/spend boundaries.
+- Hardened canonical skill-resource synchronization against source and
+  destination symlinks, path escape, unsupported resource types, and unbounded
+  file count or size.
+- Fixed malformed Java and frontend HTML/CSS quality-profile YAML and added
+  fail-closed YAML validation with optional full-parser verification.
+
+## 0.6.0 - 2026-07-31
 
 - Added an evidence-derived final task report with weighted acceptance progress,
   completed and remaining work, commit-bound quality gates, Git cleanliness,

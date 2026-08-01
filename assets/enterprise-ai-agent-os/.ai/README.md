@@ -19,9 +19,9 @@ Daily copy-ready prompts live in `.ai/PROMPTS.md`. Broader agent support is docu
 - `rules/`: durable engineering rules.
 - `workflows/`: task-specific workflow playbooks.
 - `docs/`: setup and operation guides for agent infrastructure.
-- `skills-src/`: canonical skills mirrored to selected agent skill roots.
+- `skills-src/`: canonical skills and bundled text references mirrored to selected agent skill roots.
 - `prompts/`: copy-ready task templates.
-- `templates/`: PR/MR, Jira completion, approval, memory, demo, and screenshot-placeholder templates.
+- `templates/`: PR/MR, Jira completion, approval, memory, marketing, demo, and screenshot-placeholder templates.
 - `guards/`: machine-readable starter policies.
 - `evals/`: scorecard and golden cases for measuring consistency.
 - `scripts/`: deterministic sync and validation tools.

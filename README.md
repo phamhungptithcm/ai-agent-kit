@@ -1,271 +1,277 @@
-# AI Agent Kit — One Governed Workflow Across AI Coding Agents
+# AI Agent Kit
 
 [![npm version](https://img.shields.io/npm/v/@hunpeolabs/ai-agent-kit?color=cb3837)](https://www.npmjs.com/package/@hunpeolabs/ai-agent-kit)
+[![npm downloads](https://img.shields.io/npm/dm/@hunpeolabs/ai-agent-kit?label=downloads%2Fmonth&color=2563eb)](https://www.npmjs.com/package/@hunpeolabs/ai-agent-kit)
 [![CI](https://github.com/phamhungptithcm/ai-agent-kit/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/phamhungptithcm/ai-agent-kit/actions/workflows/npm-publish.yml)
 [![MIT license](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Node.js 20+](https://img.shields.io/badge/node-%3E%3D20-43853d)](package.json)
 
-**Give AI coding agents one consistent engineering system—not a collection of disconnected prompts.**
+Give every AI coding agent the same way to understand a repository, plan a
+change, work within approval boundaries, and show what it verified.
 
-One command installs shared rules, repository context, quality checks, approval gates, workflows, and reviewable evidence.
-
-Version `0.5.0` adds migration-safe local updates and deterministic task
-context packs:
-
-```bash
-ai-agent-kit update --dry-run
-ai-agent-kit update --apply
-ai-agent-kit context compile --id TASK-123 --budget 12000
-ai-agent-kit context inspect --id TASK-123
-```
-
-`update --apply` never performs Git operations. Conflicting local edits are
-preserved with review evidence under `.ai-agent-kit/conflicts/`.
+AI Agent Kit brings repository context, quality profiles, governed actions,
+and reviewable evidence to Claude Code, Codex, Copilot, Cursor, and eight other
+coding agents.
 
 ```bash
 npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap
 ```
 
-[Quick start](#quick-start) · [How it works](#how-it-works) · [Documentation](#documentation) · [npm](https://www.npmjs.com/package/@hunpeolabs/ai-agent-kit)
+Bootstrap is local. It does not edit application code, commit, push, open a
+pull request, update a ticket, or deploy.
 
-![Real AI Agent Kit bootstrap flow](https://raw.githubusercontent.com/phamhungptithcm/ai-agent-kit/main/docs/assets/bootstrap-demo.gif)
+[Features](#whats-included) · [Quick start](#quick-start) · [Latest release](#latest-release-v061) · [Supported agents](#supported-agents) · [Documentation](#documentation) · [npm](https://www.npmjs.com/package/@hunpeolabs/ai-agent-kit)
 
-## Why It Matters
+![AI Agent Kit bootstrap flow](https://raw.githubusercontent.com/phamhungptithcm/ai-agent-kit/main/docs/assets/bootstrap-demo.gif)
 
-AI assistants can drift: one skips tests, another misses repository conventions, and another expands scope without approval.
+## Why use it?
 
-AI Agent Kit gives the team one durable workflow:
+Coding agents are useful, but each one can approach the same repository
+differently. Important context gets missed, plans drift from implementation,
+and a confident answer can look more complete than the evidence supports.
+
+AI Agent Kit gives them the same path:
 
 ```text
-Understand → Inspect repository → Plan → Approve → Execute → Verify → Review
+Understand → Inspect → Plan → Approve → Execute → Verify → Report
 ```
 
-- **Developers:** repository-aware plans and reusable workflows.
-- **Tech leads:** explicit assumptions, bounded scope, and review evidence.
-- **QA and security:** consistent profiles, safety rules, and verification.
-- **Managers:** one operating model across supported agents.
-
-## Core Capabilities
-
-| Capability | What it changes for the user |
+| Rules or prompts alone | AI Agent Kit |
 | --- | --- |
-| Shared policy | Supported agents follow the same rules and workflows. |
-| Repository intelligence | CodeGraph and CocoIndex ground analysis in current code and docs. |
-| Quality profiles | Reviews adapt to stack, domain, security, and runtime risks. |
-| Governed changes | Tracked approval and command policy bound implementation. |
-| Adaptive runtime | Goals, facts, assumptions, plans, capabilities, and budgets stay explicit. |
-| Reviewable evidence | Receipts, verification, approved memory, and evals support review. |
-| Final task report | Verified progress, remaining work, quality, production readiness, token usage, and estimated cost print together. |
+| Instructions are available if the agent remembers to use them | The task workflow selects the relevant context, rules, and quality profiles |
+| Approval lives in conversation history | Approval is tied to the task, repository state, scope, and protected action |
+| “Done” may describe intent or local output | Completion reports separate verified work, missing evidence, and remaining risk |
+| Optional indexing can become a blocker | CodeGraph and CocoIndex fall back to bounded `DEGRADED` repository inspection |
 
-## Quick Start
+The kit does not decide what your team should approve. It makes the boundary
+clear, keeps normal work moving, and leaves evidence another person can review.
 
-Run inside a Git repository:
+## What's included
+
+### Repository-aware workflow
+
+- CodeGraph for structure and impact analysis.
+- CocoIndex for semantic search across code and documentation.
+- A bounded `DEGRADED` fallback when either index is unavailable.
+- Task-specific context packs with sources, selection reasons, token budgets,
+  and deterministic hashes.
+- Ready-made workflows for planning, implementation, bug fixes, reviews,
+  incidents, architecture, security, testing, releases, and handoff.
+
+### Code quality
+
+- Profiles for Go, Java, Python, TypeScript/JavaScript, and HTML/CSS.
+- Web, mobile, desktop, infrastructure, and DevOps guidance.
+- API, database, concurrency, memory, security, observability, dependency, and
+  testing checks.
+- Automatic profile selection based on the repository's language, framework,
+  platform, and risk.
+
+### Writing quality
+
+- A `humanize-writing` skill for natural voice editing across posts, blogs,
+  emails, and personal or marketing drafts.
+- Task-local voice mirroring, a model-language pattern dictionary, and
+  meaning-preserving rules for facts, attribution, authorship, and privacy.
+- No fabricated experiences or specificity, and no claims that a rewrite can
+  prove human authorship or bypass AI detectors.
+
+### Website growth, end to end
+
+The kit helps an agent understand what the website needs to say, build it well,
+and measure what happens next.
+
+```text
+Context → Positioning → Page → SEO/GEO → Design & motion → Measure → Improve
+```
+
+- Marketing context, message match, funnels, landing pages, CTAs, attribution,
+  and safe experiments.
+- A claim ledger that keeps assumptions, missing proof, and invented customer
+  stories out of public content.
+- SEO and GEO rules for metadata, canonical URLs, structured data, hreflang,
+  crawl policy, raw HTML, and evidence-backed public claims.
+- Design and animation guidance that works with the existing system and keeps
+  accessibility, performance, reduced motion, and content intact.
+- Measurement plans with clear metrics, consent, privacy, source of truth, and
+  an honest `NOT_MEASURED` result when evidence is missing.
+
+Add the complete workflow to your repository:
 
 ```bash
-# Inspect every planned file first
+npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap
+```
+
+### Governance and safety
+
+- Existing-system changes stop for a reviewed impact plan and explicit approval.
+- Protected edits are checked against the approved paths and current diff.
+- Command policy separates safe, review-required, and forbidden operations.
+- Task capabilities limit tools, paths, domains, risk, expiry, and action count.
+- Protected execution returns `allow`, `ask`, or `deny` with hash-linked evidence.
+- Zero-trust MCP checks server identity, permissions, network access,
+  credentials, timeouts, and rate limits.
+
+### Lifecycle and evidence
+
+- Read-only `status`, `doctor`, and managed `diff` commands.
+- Dry-run bootstrap, update, uninstall, and tool-install planning.
+- Migration-safe `update --apply` with backups, rollback, and conflict evidence.
+- Approved memory with provenance and stale-state handling.
+- Behavioral safety evaluations and an SPDX SBOM.
+- Final task reports covering acceptance progress, checks, remaining work,
+  blockers, Git state, token usage, estimated API-equivalent cost, and
+  fail-closed readiness.
+
+## Quick start
+
+Run these commands inside a Git repository:
+
+```bash
+# See what will be installed
 npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap --dry-run
 
-# Install the complete governed contract
+# Install the governed workflow
 npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap --preset governed
-```
 
-Then inspect readiness and choose a workflow:
-
-```bash
+# Check the installation and view available workflows
 npx --yes @hunpeolabs/ai-agent-kit@latest doctor
 npx --yes @hunpeolabs/ai-agent-kit@latest prompts
 ```
 
-Run the CLI without a command to choose an activation path interactively:
+Run the package without a command to use the interactive menu:
 
 ```bash
 npx --yes @hunpeolabs/ai-agent-kit@latest
 ```
 
-The menu can preview the import or install the governed/full preset. If the package
-was accidentally added with `npm install`, the CLI imports the kit first and then
-shows the explicit `npm uninstall @hunpeolabs/ai-agent-kit` cleanup command.
+Use `npx` if you do not want to keep the package as a dependency. Running
+`npm install @hunpeolabs/ai-agent-kit` also imports the governed workflow, but
+keeps the package in `package.json` and `node_modules`.
 
-Running `npm install @hunpeolabs/ai-agent-kit` directly also imports the governed
-kit through `postinstall`. In that flow, npm keeps the package as a project
-dependency; use the `npx` command above when no persistent dependency is wanted.
+## Latest release: v0.6.1
 
-Bootstrap is local. It does not edit application source, commit, push, open a pull request, update a ticket, or deploy.
+Version `0.6.1` helps agents improve writing and website growth without making
+up proof, flattening the author's voice, or crossing protected publish,
+messaging, tracking, and spend boundaries.
 
-## Use Cases
+### Human writing without invented authenticity
 
-- **Legacy modernization:** inspect impact before editing.
-- **Pull-request review:** apply one quality and security contract.
-- **Feature delivery:** turn repository facts into an approved plan.
-- **Incident investigation:** separate observations, assumptions, and evidence.
-- **Onboarding:** install one shared AI engineering workflow.
-- **Public websites:** compose SEO/GEO, design, accessibility, and motion guidance.
+The new `humanize-writing` skill edits posts, articles, emails, and marketing
+copy while preserving meaning, attribution, authorship, and factual claims. It
+can mirror a task-local voice sample, but it does not invent personal
+experience, promise AI-detector evasion, or claim that text is provably human.
 
-## Works With
+Progressive references keep voice guidance and common model-language patterns
+available without loading them into every task.
 
-| Status | Agent | Adapter |
-| --- | --- | --- |
-| **Shipped** | Claude Code | `CLAUDE.md`, config, commands, roles, hooks, and generated skills. |
-| **Shipped** | OpenAI Codex | `AGENTS.md`, config, rules, roles, hooks, and generated skills. |
-| **Shipped** | GitHub Copilot, Cursor, Windsurf/Cascade, Gemini CLI | Native instructions plus shared or native skills that preserve the same `.ai/` contract. |
-| **Shipped** | Amazon Q, Junie, Cline, Devin, Aider, Continue | Native rules, conventions, `AGENTS.md`, and skill surfaces where supported. |
+### Evidence-based website growth
 
-All listed adapters ship in `0.5.0`. See [Agent Adapter Strategy](docs/AGENT_ADAPTER_STRATEGY.md).
+The new website-growth workflow connects context, positioning, page strategy,
+SEO/GEO, design, motion, measurement, and iteration. Marketing briefs, claim
+ledgers, measurement plans, experiment records, and review artifacts make
+assumptions and missing evidence visible.
 
-## How It Compares
+When a baseline or source of truth is missing, the workflow reports
+`NOT_MEASURED` instead of presenting an estimate as a result. Dark patterns,
+fabricated proof, invasive tracking, and unapproved publish, send, spend, or
+analytics changes remain blocked.
 
-| Capability | Prompt or tool-specific rules | AI Agent Kit |
-| --- | ---: | ---: |
-| Shared cross-agent policy | Partial | Built in |
-| Repository-intelligence gate | Manual | Built in |
-| Stack-aware quality profiles | Manual | Included |
-| Approval and action boundaries | Manual | Enforced |
-| Evidence and independent verification | Agent-dependent | Included |
+### Portable, bounded skill resources
 
-This compares operating models, not model intelligence.
+Canonical skill references now synchronize across Agents, Claude Code, Cursor,
+Windsurf, and Cline alongside each `SKILL.md`. Bootstrap and maintenance
+scripts reject symlink traversal, path escape, unsupported resource types, and
+unbounded resource count or size.
 
-## What Gets Installed
+Quality-profile validation also catches malformed quoted YAML and unsupported
+explicit tags, with full safe-parser validation when PyYAML is available.
 
-```text
-.ai/                    shared source of truth
-├── rules/              engineering, security, testing, SEO/GEO, design
-├── quality-profiles/   language, platform, API, DB, concurrency, memory
-├── skills-src/         reusable engineering skills
-├── workflows/          plan, implement, review, incident, delivery
-├── prompts/            purpose-named task starters
-├── templates/          approval, evidence, review, design, handoff
-├── guards/             policy, risk, capability, dependency, secrets
-└── evals/              golden and behavioral regression cases
+[Read the v0.6.1 release notes](https://github.com/phamhungptithcm/ai-agent-kit/releases/tag/v0.6.1)
+or see the [full changelog](CHANGELOG.md).
 
-.claude/                Claude Code adapter
-.codex/ + .agents/      OpenAI Codex adapter
-.github/ + .cursor/     Copilot and Cursor adapters
-.windsurf/ + .cline/    Windsurf/Cascade and Cline skills
-.amazonq/ + .junie/     Amazon Q and Junie adapters
-.continue/              Continue rules
-AGENTS.md               shared open-agent entry point
-CLAUDE.md + GEMINI.md   Claude Code and Gemini CLI entry points
-CONVENTIONS.md          Aider conventions
+## Daily use
+
+Build a focused context pack for a task:
+
+```bash
+npx --yes @hunpeolabs/ai-agent-kit@latest context compile --id TASK-123 --budget 12000
+npx --yes @hunpeolabs/ai-agent-kit@latest context inspect --id TASK-123
 ```
 
-Install every adapter (the default), or select a subset:
+Review the final task report:
+
+```bash
+npx --yes @hunpeolabs/ai-agent-kit@latest runtime task report --id TASK-123 --format compact
+```
+
+Update an existing installation safely:
+
+```bash
+npx --yes @hunpeolabs/ai-agent-kit@latest update --dry-run
+npx --yes @hunpeolabs/ai-agent-kit@latest update --apply
+```
+
+Local edits are preserved. Non-overlapping changes can merge automatically;
+conflicts stay untouched and are written to `.ai-agent-kit/conflicts/` for
+review. Updates do not run Git commands.
+
+## Supported agents
+
+The kit currently ships adapters for:
+
+- Claude Code and OpenAI Codex
+- GitHub Copilot
+- Cursor and Windsurf/Cascade
+- Gemini CLI and Amazon Q Developer
+- JetBrains Junie
+- Cline, Devin, Aider, and Continue
+
+All adapters share the same `.ai/` policy source. Install all of them, or only
+the ones your team uses:
 
 ```bash
 npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap --agents all
 npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap --agents codex,copilot,cursor
 ```
 
-Migration-safe updates preserve the adapters already installed. Re-run bootstrap with
-`--agents all` or an explicit list when a reviewed existing installation should adopt
-additional agents.
+See [Agent Adapter Strategy](docs/AGENT_ADAPTER_STRATEGY.md) for details.
 
-## How It Works
+## Safety
 
-```mermaid
-flowchart LR
-  Human["Developer / reviewer"] --> Intelligence["Repository intelligence"]
-  Intelligence --> Plan["Facts, assumptions, plan"]
-  Plan --> Approval["Tracked approval"]
-  Approval --> Gateway["Capability + policy gateway"]
-  Gateway -->|allow| Action["Agent action"]
-  Gateway -->|ask| Human
-  Gateway -->|deny| Stop["Fail closed"]
-  Action --> Evidence["Evidence ledger"]
-  Evidence --> Verify["Independent verification"]
-  Verify --> Review["Review-ready result"]
-```
+- Critical operations are never autonomous.
+- Protected actions return `allow`, `ask`, or `deny` with a reason.
+- Production, infrastructure, database, release, Git, messaging, destructive,
+  and secret operations still require explicit human approval.
+- Runtime evidence excludes prompts, responses, source content, raw command
+  output, credentials, secrets, and chain-of-thought.
+- CodeGraph and CocoIndex are optional. If either is unavailable, the kit uses
+  bounded native repository evidence in `DEGRADED` mode instead of blocking
+  work or claiming full indexed coverage.
+- A repository report does not prove that an undeployed system is ready in its
+  live environment.
 
-Guidance supports reasoning; deterministic controls authorize protected actions. Runtime data stays local and excludes prompts, raw source/output, secrets, and chain-of-thought.
+## How the kit evolved
 
-Finish a governed task with an evidence-derived report:
-
-```bash
-ai-agent-kit runtime task report --id TASK-123 --format text
-ai-agent-kit runtime task report --id TASK-123 --format compact
-```
-
-The report never treats missing evidence as zero usage, clean code, passed
-quality, or production readiness. Provider-reported tokens remain available
-when exact pricing is unknown; monetary output is labeled as an API-equivalent
-estimate rather than actual billing.
-
-## Next Release: 0.6.0 (Local Source)
-
-- A universal action gateway that binds allow/ask/deny decisions to the exact
-  task, adapter, capability, approval, commit, policy revision, and action.
-- Decision, execution, and independent-verification receipts with stable reason
-  codes and privacy-minimized action metadata.
-- A deny-by-default MCP broker with exact server identity, scoped tools,
-  filesystem and network boundaries, timeouts, rate limits, credential
-  isolation, drift review, and offline abuse fixtures.
-- A final task report that combines weighted completion, remaining work,
-  commit-bound quality checks, Git cleanliness, production-readiness blockers,
-  token usage, and versioned API-equivalent cost estimates.
-
-This version is implemented as local source only. It has not been committed,
-pushed, tagged, published to npm, or released on GitHub.
-
-## What Is New In 0.5.0
-
-Version `0.5.0` expands the governed workflow across supported agents:
-
-- registry-driven adapters for 12 AI coding agents;
-- native instruction and generated-skill surfaces backed by one `.ai/` contract;
-- migration-safe local updates;
-- deterministic task context compilation.
-
-<details>
-<summary><strong>Release highlights: 0.1.0 → 0.4.0</strong></summary>
-
-### 0.1.0 — Foundation
-
-- Local bootstrap for Claude Code and Codex.
-- Enterprise scaffold, repository-intelligence checks, backups, rollback, and CI publishing.
-
-### 0.2.0 — Quality And Lifecycle
-
-- Stack-aware quality profiles plus SEO/GEO, visual-design, and motion workflows.
-- Read-only lifecycle inspection, ownership protection, adapter isolation, and packed smoke tests.
-
-### 0.3.0 — Governed Agent Runtime
-
-- Approval-to-diff enforcement, protected-edit hooks, and deterministic command policy.
-- Scoped task runtime, adaptive plans, evidence receipts, approved memory, telemetry, evals, and SPDX SBOM.
-
-### 0.4.0 — Adoption And Discoverability
-
-- Conversion-first README, real demo asset, clearer positioning, release provenance, and focused search metadata.
-
-### 0.5.0 — Multi-Agent Delivery
-
-- Registry-driven adapters for 12 AI coding agents.
-- Migration-safe local updates and deterministic task context compilation.
-
-</details>
-
-See the complete [Changelog](CHANGELOG.md).
-
-## Safety By Default
-
-- Critical autonomous operations remain forbidden.
-- Protected actions return `allow`, `ask`, or `deny`.
-- Bootstrap writes only governed configuration and local metadata.
-- Tool installation is separated into read-only planning and explicit apply.
-- Lifecycle update and uninstall remain preview-only.
-- No hosted control plane or model-provider credential is required.
+| Version | Main additions |
+| --- | --- |
+| `0.1.0` | Local bootstrap, Claude and Codex setup, repository intelligence, backups, and validation. |
+| `0.2.0` | Stack-aware quality profiles, SEO/GEO, design taste, animation engineering, lifecycle inspection, ownership protection, and packed smoke tests. |
+| `0.3.0` | Governed runtime, approval-to-diff checks, command policy, capabilities, evidence receipts, approved memory, telemetry, evaluations, MCP trust contracts, and SBOM. |
+| `0.4.x` | Clearer adoption flow, optional-index `DEGRADED` mode, interactive activation, and governed `npm install` import. |
+| `0.5.0` | Migration-safe updates, deterministic task context, and adapters for 12 coding agents. |
+| `0.6.0` | Execution-bound action gateway, zero-trust MCP broker, token/cost usage ledger, and evidence-driven final task reports. |
+| `0.6.1` | Human writing integrity, evidence-based website growth, portable skill references, and hardened resource synchronization. |
 
 ## Documentation
 
-- **Try it with a team:** [Adoption Guide](docs/ADOPTION_GUIDE.md)
-- **Understand the architecture:** [High-Level Design](docs/HIGH_LEVEL_DESIGN.md)
-- **Review runtime boundaries:** [Governed Runtime V1 Plan](docs/GOVERNED_RUNTIME_V1_PLAN.md)
-- **Review execution and MCP trust:** [Runtime Enforcement And MCP Trust](docs/RUNTIME_ENFORCEMENT_AND_MCP_TRUST.md)
-- **Add another agent:** [Agent Adapter Strategy](docs/AGENT_ADAPTER_STRATEGY.md)
-- **Understand quality selection:** [Code Quality Intelligence](docs/CODE_QUALITY_INTELLIGENCE.md)
-- **Prepare a release:** [Public Launch Checklist](docs/PUBLIC_LAUNCH_CHECKLIST.md)
-- **Report or contribute:** [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md)
+- [Adoption Guide](docs/ADOPTION_GUIDE.md)
+- [High-Level Design](docs/HIGH_LEVEL_DESIGN.md)
+- [Runtime Enforcement and MCP Trust](docs/RUNTIME_ENFORCEMENT_AND_MCP_TRUST.md)
+- [Code Quality Intelligence](docs/CODE_QUALITY_INTELLIGENCE.md)
+- [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md)
 
-## Local Development
+## Development
 
 ```bash
 npm ci
@@ -273,16 +279,8 @@ npm run check
 npm run release:dry-run
 ```
 
-## Help Shape The Project
-
-If reviewable AI engineering is useful to your team:
-
-- ⭐ star the repository to follow releases;
-- 💡 open an issue for the workflow or agent surface you need;
-- 🧪 contribute a sanitized failing behavioral case;
-- 🔐 never include proprietary source, credentials, or secrets.
-
-The goal is not maximum autonomy. It is dependable AI-assisted engineering: better context, consistent workflows, bounded action, and evidence a human can review.
+The goal is simple: give AI agents enough context and freedom to be useful,
+while keeping important decisions and risky actions in human hands.
 
 ## License
 

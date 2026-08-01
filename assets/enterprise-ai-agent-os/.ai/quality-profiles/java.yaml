@@ -821,4 +821,4 @@ reject_if:
   - "HTTP client lacks bounded timeouts"
   - "response body or connection can leak"
   - "cache, static collection, queue, buffer, or listener can grow without bound"
-  - "classloader, listener, executor, or
+  - "classloader, listener, executor, or thread context can leak across redeployments"

@@ -13,6 +13,13 @@ import tempfile
 import zipfile
 from pathlib import Path
 
+from sync_agent_assets import skill_files as safe_skill_files
+
+try:
+    import yaml as yaml_parser
+except ModuleNotFoundError:  # Optional full parser; built-in safety checks remain mandatory.
+    yaml_parser = None  # type: ignore[assignment]
+
 try:
     import tomllib
 except ModuleNotFoundError:  # pragma: no cover - Python < 3.11 fallback
@@ -36,6 +43,75 @@ def fail(errors: list[str], message: str) -> None:
 
 def read(path: Path) -> str:
     return path.read_text(encoding="utf-8", errors="replace")
+
+
+def starts_quoted_yaml_scalar(line: str, index: int) -> bool:
+    prefix = line[:index].rstrip()
+    return not prefix or prefix[-1] in "-:,[{"
+
+
+def validate_yaml_text(path: Path, root: Path, errors: list[str]) -> None:
+    try:
+        text = path.read_text(encoding="utf-8")
+    except (OSError, UnicodeError) as exc:
+        fail(errors, f"invalid YAML {path.relative_to(root)}: cannot read UTF-8 text: {exc}")
+        return
+
+    if yaml_parser is not None:
+        try:
+            yaml_parser.safe_load(text)
+        except Exception as exc:  # noqa: BLE001
+            fail(errors, f"invalid YAML {path.relative_to(root)}: parser rejected document: {exc}")
+
+    quoted_from: int | None = None
+    escaped = False
+    for line_number, line in enumerate(text.splitlines(), start=1):
+        index = 0
+        while index < len(line):
+            char = line[index]
+            if quoted_from is not None:
+                if escaped:
+                    escaped = False
+                elif char == "\\":
+                    escaped = True
+                elif char == '"':
+                    quoted_from = None
+                index += 1
+                continue
+
+            if char == "#" and (index == 0 or line[index - 1].isspace()):
+                break
+            if char == '"' and starts_quoted_yaml_scalar(line, index):
+                quoted_from = line_number
+                index += 1
+                continue
+            if char == "!":
+                prefix = line[:index].rstrip()
+                token_boundary = not prefix or prefix[-1] in "-:,[{"
+                if token_boundary and index + 1 < len(line) and not line[index + 1].isspace():
+                    fail(
+                        errors,
+                        f"invalid YAML {path.relative_to(root)}:{line_number}: unsupported explicit tag",
+                    )
+            index += 1
+        escaped = False
+
+    if quoted_from is not None:
+        fail(
+            errors,
+            f"invalid YAML {path.relative_to(root)}:{quoted_from}: unterminated double-quoted scalar",
+        )
+
+
+def validate_yaml_files(root: Path, errors: list[str]) -> None:
+    yaml_files = [root / ".aider.conf.yml"]
+    yaml_files.extend(sorted(path for path in (root / ".ai").rglob("*") if path.suffix in {".yaml", ".yml"}))
+    for path in yaml_files:
+        if path.is_symlink():
+            fail(errors, f"invalid YAML source is a symbolic link: {path.relative_to(root)}")
+            continue
+        if path.is_file():
+            validate_yaml_text(path, root, errors)
 
 
 def required_paths() -> list[str]:
@@ -85,6 +161,8 @@ def required_paths() -> list[str]:
         ".ai/rules/seo-geo.md",
         ".ai/rules/visual-design-integrity.md",
         ".ai/rules/animation-integrity.md",
+        ".ai/rules/human-writing-integrity.md",
+        ".ai/rules/marketing-integrity.md",
         ".ai/workflows/start-task.md",
         ".ai/workflows/authorize-governed-action.md",
         ".ai/workflows/authorize-mcp-request.md",
@@ -100,6 +178,7 @@ def required_paths() -> list[str]:
         ".ai/workflows/synchronize-work-item.md",
         ".ai/workflows/prepare-jira-completion-package.md",
         ".ai/workflows/build-public-website.md",
+        ".ai/workflows/plan-evidence-based-marketing.md",
         ".ai/prompts/task-contract.md",
         ".ai/prompts/existing-system-change-request.md",
         ".ai/prompts/plan-approval-response.md",
@@ -127,6 +206,12 @@ def required_paths() -> list[str]:
         ".ai/templates/motion-contract.md",
         ".ai/templates/animation-inventory.md",
         ".ai/templates/animation-review.md",
+        ".ai/templates/marketing-context.yaml",
+        ".ai/templates/marketing-brief.md",
+        ".ai/templates/marketing-claim-ledger.yaml",
+        ".ai/templates/marketing-measurement-plan.yaml",
+        ".ai/templates/marketing-experiment.md",
+        ".ai/templates/marketing-review.md",
         ".ai/templates/capability.json",
         ".ai/templates/evidence-bundle.json",
         ".ai/guards/policy.yaml",
@@ -180,6 +265,13 @@ def required_paths() -> list[str]:
         ".ai/quality-profiles/concurrency.yaml",
         ".ai/quality-profiles/memory.yaml",
         ".ai/quality-profiles/governance-maturity.yaml",
+        ".ai/quality-profiles/human-writing.yaml",
+        ".ai/quality-profiles/marketing-growth.yaml",
+        ".ai/skills-src/humanize-writing/SKILL.md",
+        ".ai/skills-src/humanize-writing/references/ai-patterns-dictionary.md",
+        ".ai/skills-src/humanize-writing/references/voices.md",
+        ".ai/skills-src/marketing-growth-website/SKILL.md",
+        ".ai/skills-src/marketing-growth-website/references/evidence-and-measurement.md",
         ".mcp.json",
         ".codex/config.toml",
         ".codex/hooks.json",
@@ -261,6 +353,11 @@ def validate_skills(root: Path, errors: list[str]) -> None:
     src_root = root / ".ai" / "skills-src"
     names: set[str] = set()
     for skill_file in sorted(src_root.glob("*/SKILL.md")):
+        try:
+            sources = safe_skill_files(skill_file.parent)
+        except (OSError, ValueError) as exc:
+            fail(errors, f"invalid canonical skill resources for {skill_file.parent.name}: {exc}")
+            continue
         data = parse_frontmatter(skill_file, errors)
         name = data.get("name", "")
         description = data.get("description", "")
@@ -276,20 +373,22 @@ def validate_skills(root: Path, errors: list[str]) -> None:
         if skill_file.parent.name != name:
             fail(errors, f"{skill_file} folder name must match frontmatter name {name}")
 
-        source_rel = skill_file.relative_to(root).as_posix()
-        expected = generated_content(source_rel, read(skill_file))
-        for dest_root in [
-            root / ".agents" / "skills",
-            root / ".claude" / "skills",
-            root / ".cursor" / "skills",
-            root / ".windsurf" / "skills",
-            root / ".cline" / "skills",
-        ]:
-            dest = dest_root / name / "SKILL.md"
-            if not dest.exists():
-                fail(errors, f"missing generated skill: {dest.relative_to(root)}")
-            elif read(dest) != expected:
-                fail(errors, f"generated skill drift: {dest.relative_to(root)}")
+        for source in sources:
+            source_rel = source.relative_to(root).as_posix()
+            expected = generated_content(source_rel, read(source))
+            resource_rel = source.relative_to(skill_file.parent)
+            for dest_root in [
+                root / ".agents" / "skills",
+                root / ".claude" / "skills",
+                root / ".cursor" / "skills",
+                root / ".windsurf" / "skills",
+                root / ".cline" / "skills",
+            ]:
+                dest = dest_root / name / resource_rel
+                if not dest.exists():
+                    fail(errors, f"missing generated skill resource: {dest.relative_to(root)}")
+                elif read(dest) != expected:
+                    fail(errors, f"generated skill resource drift: {dest.relative_to(root)}")
 
 
 def validate_json_toml(root: Path, errors: list[str]) -> None:
@@ -538,12 +637,61 @@ def validate_team_ready_governance(root: Path, errors: list[str]) -> None:
         if fragment not in database_rules:
             fail(errors, f"database rules missing developer correction rule fragment: {fragment}")
 
+    human_writing_rules = read(root / ".ai" / "rules" / "human-writing-integrity.md")
+    for fragment in [
+        "Preserve Substance",
+        "task-scoped data",
+        "Do not promise to evade AI detectors",
+        "Do not remove attribution",
+    ]:
+        if fragment not in human_writing_rules:
+            fail(errors, f"human writing rules missing required fragment: {fragment}")
+
+    marketing_skill = read(root / ".ai" / "skills-src" / "marketing-growth-website" / "SKILL.md")
+    for fragment in [
+        "`discover`",
+        "`plan`",
+        "`implement`",
+        "`experiment`",
+        "`measure`",
+        "`audit`",
+        "NOT_MEASURED",
+        "marketing-measurement-plan.yaml",
+        "Protected external actions",
+    ]:
+        if fragment not in marketing_skill:
+            fail(errors, f"marketing growth skill missing required fragment: {fragment}")
+
+    marketing_rules = read(root / ".ai" / "rules" / "marketing-integrity.md")
+    for fragment in [
+        "Never fabricate",
+        "NOT_MEASURED",
+        "dark patterns",
+        "minimum data",
+        "governed action gateway",
+        "competitor and campaign references",
+    ]:
+        if fragment not in marketing_rules:
+            fail(errors, f"marketing integrity rules missing required fragment: {fragment}")
+
     golden_cases = read(root / ".ai" / "evals" / "golden-cases.yaml")
     for case_id in [
         "repository-save-in-loop",
         "memory-candidate-approval",
         "memory-retrieval-bounded",
         "cross-area-change-without-approval",
+        "humanize-preserves-claims",
+        "humanize-no-fabricated-specificity",
+        "humanize-detector-request",
+        "humanize-voice-sample-privacy",
+        "marketing-context-missing",
+        "fabricated-marketing-proof",
+        "marketing-missing-baseline",
+        "low-traffic-experiment",
+        "invasive-marketing-tracking",
+        "marketing-external-action-boundary",
+        "marketing-dark-pattern",
+        "regulated-marketing-claim",
     ]:
         if case_id not in golden_cases:
             fail(errors, f"golden cases missing required case: {case_id}")
@@ -592,6 +740,8 @@ def validate_code_quality_profiles(root: Path, errors: list[str]) -> None:
         "database.yaml": ["id: database", "connection leaks prevented", "transaction"],
         "concurrency.yaml": ["id: concurrency", "deadlock", "task/thread/goroutine lifecycle"],
         "memory.yaml": ["id: memory", "heap retention", "resource cleanup"],
+        "human-writing.yaml": ["id: human-writing", "meaning_preservation", "voice_fidelity", "authorship"],
+        "marketing-growth.yaml": ["id: marketing-growth", "claims_and_proof", "measurement", "authorization"],
     }
     profile_root = root / ".ai" / "quality-profiles"
     for filename, fragments in profiles.items():
@@ -987,6 +1137,7 @@ def validate(quick: bool = False) -> int:
     root = repo_root()
     errors: list[str] = []
     validate_required_files(root, errors)
+    validate_yaml_files(root, errors)
     validate_root_links(root, errors)
     validate_skills(root, errors)
     validate_json_toml(root, errors)
