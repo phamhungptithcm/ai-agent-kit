@@ -14,7 +14,7 @@ can be used across Claude Code, Codex, Copilot, Cursor, and other supported
 agents.
 
 ```bash
-npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap --dry-run
+npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap
 ```
 
 Bootstrap is local. It does not edit application code, commit, push, open a
