@@ -157,6 +157,10 @@ test("bootstrap creates local AI-agent files without staging, branch, commit, pu
   assert.ok(fs.existsSync(path.join(root, ".ai", "rules", "seo-geo.md")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "rules", "visual-design-integrity.md")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "rules", "animation-integrity.md")));
+  assert.ok(fs.existsSync(path.join(root, ".ai", "rules", "human-writing-integrity.md")));
+  assert.ok(fs.existsSync(path.join(root, ".ai", "quality-profiles", "human-writing.yaml")));
+  assert.ok(fs.existsSync(path.join(root, ".ai", "rules", "marketing-integrity.md")));
+  assert.ok(fs.existsSync(path.join(root, ".ai", "quality-profiles", "marketing-growth.yaml")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "templates", "seo-geo-review.md")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "templates", "design-brief.md")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "templates", "design-direction.md")));
@@ -166,12 +170,21 @@ test("bootstrap creates local AI-agent files without staging, branch, commit, pu
   assert.ok(fs.existsSync(path.join(root, ".ai", "templates", "motion-contract.md")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "templates", "animation-inventory.md")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "templates", "animation-review.md")));
+  assert.ok(fs.existsSync(path.join(root, ".ai", "templates", "marketing-context.yaml")));
+  assert.ok(fs.existsSync(path.join(root, ".ai", "templates", "marketing-claim-ledger.yaml")));
+  assert.ok(fs.existsSync(path.join(root, ".ai", "templates", "marketing-measurement-plan.yaml")));
+  assert.ok(fs.existsSync(path.join(root, ".ai", "templates", "marketing-experiment.md")));
   assert.ok(fs.existsSync(path.join(root, ".agents", "skills", "seo-geo-website", "SKILL.md")));
   assert.ok(fs.existsSync(path.join(root, ".claude", "skills", "seo-geo-website", "SKILL.md")));
   assert.ok(fs.existsSync(path.join(root, ".agents", "skills", "design-taste-website", "SKILL.md")));
   assert.ok(fs.existsSync(path.join(root, ".claude", "skills", "design-taste-website", "SKILL.md")));
   assert.ok(fs.existsSync(path.join(root, ".agents", "skills", "animation-design-engineering", "SKILL.md")));
   assert.ok(fs.existsSync(path.join(root, ".claude", "skills", "animation-design-engineering", "SKILL.md")));
+  assert.ok(fs.existsSync(path.join(root, ".agents", "skills", "humanize-writing", "SKILL.md")));
+  assert.ok(fs.existsSync(path.join(root, ".claude", "skills", "humanize-writing", "references", "ai-patterns-dictionary.md")));
+  assert.ok(fs.existsSync(path.join(root, ".cursor", "skills", "humanize-writing", "references", "voices.md")));
+  assert.ok(fs.existsSync(path.join(root, ".agents", "skills", "marketing-growth-website", "SKILL.md")));
+  assert.ok(fs.existsSync(path.join(root, ".claude", "skills", "marketing-growth-website", "references", "evidence-and-measurement.md")));
   assert.ok(fs.existsSync(path.join(root, ".cursor", "skills", "start-task", "SKILL.md")));
   assert.ok(fs.existsSync(path.join(root, ".windsurf", "skills", "start-task", "SKILL.md")));
   assert.ok(fs.existsSync(path.join(root, ".cline", "skills", "start-task", "SKILL.md")));
@@ -209,6 +222,8 @@ test("bootstrap creates local AI-agent files without staging, branch, commit, pu
   assert.deepEqual(Object.keys(installation.adapters), [...ADAPTER_IDS]);
   assert.ok(Object.values(installation.adapters).every(Boolean));
   assert.ok(installation.managedFiles.some((entry) => entry.path === ".ai/core/quality-gates.md"));
+  assert.ok(installation.managedFiles.some((entry) => entry.path === ".agents/skills/humanize-writing/references/voices.md"));
+  assert.ok(installation.managedFiles.some((entry) => entry.path === ".agents/skills/marketing-growth-website/references/evidence-and-measurement.md"));
   assert.ok(installation.managedFiles.some((entry) => entry.path === "AGENTS.md" && entry.mode === "managed-section"));
   assert.ok(installation.managedFiles.every((entry) => /^[a-f0-9]{64}$/.test(entry.installedSha256)));
   assert.ok(installation.managedFiles.every((entry) => typeof entry.generatedFrom === "string"));
@@ -491,6 +506,88 @@ test("bootstrap refuses to write through repository symlinks", { skip: process.p
   fs.symlinkSync(external, path.join(root, ".ai"), "dir");
 
   await assert.rejects(() => runBootstrap(root), /refuses to write through a symbolic link/);
+  assert.deepEqual(fs.readdirSync(external), []);
+});
+
+test("bootstrap rejects symlinked canonical skill resources", { skip: process.platform === "win32" }, async () => {
+  const root = makeRepo("skill-source-symlink");
+  await runBootstrap(root);
+  const external = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "ai-agent-kit-secret-")), "secret.md");
+  fs.writeFileSync(external, "external content must not be copied\n");
+  const sourceLink = path.join(root, ".ai", "skills-src", "humanize-writing", "references", "external.md");
+  fs.symlinkSync(external, sourceLink, "file");
+
+  await assert.rejects(() => runBootstrap(root), /refuses to read a symbolic link in canonical skill resources/);
+  assert.equal(fs.existsSync(path.join(root, ".agents", "skills", "humanize-writing", "references", "external.md")), false);
+});
+
+test("bootstrap bounds canonical skill resource size", async () => {
+  const root = makeRepo("skill-source-size");
+  await runBootstrap(root);
+  const oversized = path.join(root, ".ai", "skills-src", "humanize-writing", "references", "oversized.md");
+  fs.writeFileSync(oversized, Buffer.alloc((2 * 1024 * 1024) + 1, "a"));
+
+  await assert.rejects(() => runBootstrap(root), /canonical skill resource exceeds 2097152 byte limit/i);
+  assert.equal(fs.existsSync(path.join(root, ".agents", "skills", "humanize-writing", "references", "oversized.md")), false);
+});
+
+test("Python skill sync rejects symlinked canonical resources", { skip: process.platform === "win32" }, () => {
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), "ai-agent-kit-python-symlink-"));
+  const skillRoot = path.join(fixture, "example");
+  const references = path.join(skillRoot, "references");
+  fs.mkdirSync(references, { recursive: true });
+  fs.writeFileSync(path.join(skillRoot, "SKILL.md"), "---\nname: example\ndescription: test\n---\n");
+  const external = path.join(fixture, "outside.md");
+  fs.writeFileSync(external, "external content must not be copied\n");
+  fs.symlinkSync(external, path.join(references, "external.md"), "file");
+  const libraryDirectory = path.resolve("assets/enterprise-ai-agent-os/.ai/scripts");
+  const program = [
+    "import sys",
+    `sys.path.insert(0, ${JSON.stringify(libraryDirectory)})`,
+    "from sync_agent_assets import skill_files",
+    "from pathlib import Path",
+    "skill_files(Path(sys.argv[1]))"
+  ].join("; ");
+  const result = spawnSync("python3", ["-B", "-c", program, skillRoot], { encoding: "utf8" });
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /refuses to read a symbolic link in canonical skill resources/);
+});
+
+test("Python skill sync bounds canonical resource size", () => {
+  const fixture = fs.mkdtempSync(path.join(os.tmpdir(), "ai-agent-kit-python-size-"));
+  const skillRoot = path.join(fixture, "example");
+  fs.mkdirSync(skillRoot, { recursive: true });
+  fs.writeFileSync(path.join(skillRoot, "SKILL.md"), "---\nname: example\ndescription: test\n---\n");
+  fs.writeFileSync(path.join(skillRoot, "oversized.md"), Buffer.alloc((2 * 1024 * 1024) + 1, "a"));
+  const libraryDirectory = path.resolve("assets/enterprise-ai-agent-os/.ai/scripts");
+  const program = [
+    "import sys",
+    `sys.path.insert(0, ${JSON.stringify(libraryDirectory)})`,
+    "from sync_agent_assets import skill_files",
+    "from pathlib import Path",
+    "skill_files(Path(sys.argv[1]))"
+  ].join("; ");
+  const result = spawnSync("python3", ["-B", "-c", program, skillRoot], { encoding: "utf8" });
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /canonical skill resource exceeds 2097152 byte limit/);
+});
+
+test("Python skill sync refuses symlinked generated destinations", { skip: process.platform === "win32" }, () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "ai-agent-kit-python-destination-"));
+  const external = fs.mkdtempSync(path.join(os.tmpdir(), "ai-agent-kit-python-external-"));
+  fs.symlinkSync(external, path.join(root, ".agents"), "dir");
+  const libraryDirectory = path.resolve("assets/enterprise-ai-agent-os/.ai/scripts");
+  const program = [
+    "import sys",
+    `sys.path.insert(0, ${JSON.stringify(libraryDirectory)})`,
+    "from sync_agent_assets import reject_symlink_components",
+    "from pathlib import Path",
+    "root = Path(sys.argv[1])",
+    "reject_symlink_components(root, root / '.agents' / 'skills', 'write generated skill resources')"
+  ].join("; ");
+  const result = spawnSync("python3", ["-B", "-c", program, root], { encoding: "utf8" });
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /refuses to write generated skill resources through a symbolic link/);
   assert.deepEqual(fs.readdirSync(external), []);
 });
 
@@ -854,6 +951,24 @@ test("full agent configuration validation accepts optional-index degraded mode",
   const result = spawnSync("python3", ["-B", script], { encoding: "utf8" });
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /agent configuration validation passed/);
+});
+
+test("agent configuration validation rejects malformed and tagged YAML scalars", async () => {
+  const root = makeRepo("invalid-yaml");
+  await runBootstrap(root);
+  fs.appendFileSync(
+    path.join(root, ".ai", "quality-profiles", "java.yaml"),
+    '\ninvalid_scalar: "unterminated\n'
+  );
+  fs.appendFileSync(
+    path.join(root, ".ai", "quality-profiles", "frontend-html-css.yaml"),
+    "\ninvalid_tag: !important\n"
+  );
+  const script = path.join(root, ".ai", "scripts", "validate_agent_config.py");
+  const result = spawnSync("python3", ["-B", script, "--quick"], { cwd: root, encoding: "utf8" });
+  assert.equal(result.status, 1, result.stdout);
+  assert.match(result.stderr, /invalid YAML.*unterminated double-quoted scalar/);
+  assert.match(result.stderr, /invalid YAML.*unsupported explicit tag/);
 });
 
 test("governed runtime enforces state, capability, policy, and evidence integrity", () => {

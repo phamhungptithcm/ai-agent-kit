@@ -1,0 +1,48 @@
+version: 1
+scope:
+  decision_supported: "TODO"
+  surfaces: []
+  markets: []
+metric:
+  name: "TODO"
+  role: "primary|guardrail|diagnostic"
+  definition: "TODO"
+  numerator: "TODO"
+  denominator: "TODO"
+  unit: "TODO"
+  aggregation: "TODO"
+  eligible_population: "TODO"
+  exclusions: []
+event:
+  name: "TODO"
+  semantic_trigger: "TODO"
+  allowed_properties: []
+  prohibited_properties:
+    - "secrets"
+    - "authentication data"
+    - "sensitive free text"
+    - "unnecessary identifiers"
+source_of_truth:
+  system: "TODO"
+  timezone: "TODO"
+  reporting_window: "TODO"
+  owner: "TODO"
+privacy:
+  purpose: "TODO"
+  consent_required: "yes|no|review-required"
+  personal_data: []
+  minimization: "TODO"
+  retention: "TODO"
+  access: "TODO"
+validation:
+  method: "TODO"
+  environment: "TODO"
+  status: "NOT_RUN|PASSED|FAILED"
+attribution:
+  model: "TODO"
+  known_gaps: []
+baseline:
+  status: "MEASURED|NOT_MEASURED|UNKNOWN"
+  period: "TODO"
+  source: "TODO"
+limitations: []

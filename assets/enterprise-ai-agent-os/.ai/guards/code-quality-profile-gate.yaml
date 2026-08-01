@@ -19,6 +19,8 @@ required_selection:
   - "select_seo_geo_profile_for_public_web_surfaces"
   - "select_visual_design_profile_for_user_facing_surfaces"
   - "select_animation_motion_profile_when_material_motion_exists"
+  - "select_human_writing_profile_when_natural_voice_rewriting_is_requested"
+  - "select_marketing_growth_profile_for_positioning_conversion_campaign_or_measurement_work"
   - "prefer_repository_defined_commands"
 required_statuses:
   - "PASSED"
@@ -43,6 +45,8 @@ must_review:
   - "public_web_search_and_machine_discoverability"
   - "context_aware_visual_design_and_state_completeness"
   - "animation_purpose_interruptibility_accessibility_performance_and_lifecycle"
+  - "human_writing_meaning_voice_authorship_and_claim_integrity"
+  - "marketing_claim_journey_measurement_privacy_experiment_and_external_action_integrity"
 missing_tooling:
   behavior: "report_gap_and_recommend_team_approved_tooling"
   autonomous_install_allowed: false

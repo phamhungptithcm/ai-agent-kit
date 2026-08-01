@@ -9,7 +9,7 @@ Code Quality Intelligence makes AI-assisted changes language-aware and platform-
    - `universal.yaml` for every project.
    - language profiles such as `go.yaml`, `java.yaml`, `python.yaml`, `typescript-javascript.yaml`, and `frontend-html-css.yaml`.
    - platform/domain profiles such as `web-app.yaml`, `mobile-app.yaml`, `desktop-app.yaml`, `infrastructure.yaml`, and `devops.yaml`.
-   - cross-cutting profiles such as `api.yaml`, `database.yaml`, `concurrency.yaml`, and `memory.yaml` when applicable.
+   - cross-cutting profiles such as `api.yaml`, `database.yaml`, `concurrency.yaml`, `memory.yaml`, `human-writing.yaml`, and `marketing-growth.yaml` when applicable.
 3. Prefer existing repository commands and config over generic suggestions.
 4. Run or report the relevant checks with `PASSED`, `FAILED`, `NOT_APPLICABLE`, or `NOT_RUN` status and evidence.
 5. Review risks that tools often miss: connection leaks, transaction boundaries, thread/goroutine/task leaks, deadlocks, event-loop blocking, heap retention, cache growth, listener/timer cleanup, API compatibility, and migration safety.

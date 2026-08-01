@@ -38,11 +38,11 @@ export function createOwnershipPlan(files, { selectedAdapters }) {
     add(relPath, mode, `package:assets/enterprise-ai-agent-os/${relPath}`);
   }
   for (const relPath of files.keys()) {
-    const match = relPath.match(/^\.ai\/skills-src\/([^/]+)\/SKILL\.md$/);
+    const match = relPath.match(/^\.ai\/skills-src\/([^/]+)\/(.+)$/);
     if (!match) continue;
-    const generatedFrom = `.ai/skills-src/${match[1]}/SKILL.md`;
+    const generatedFrom = relPath;
     for (const skillRoot of selectedSkillRoots(selectedAdapters)) {
-      add(`${skillRoot}/${match[1]}/SKILL.md`, "generated-file", generatedFrom);
+      add(`${skillRoot}/${match[1]}/${match[2]}`, "generated-file", generatedFrom);
     }
   }
   add(".gitignore", "managed-section", "bootstrap:gitignore-section");

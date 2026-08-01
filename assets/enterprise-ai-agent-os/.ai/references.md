@@ -64,3 +64,11 @@ Retrieved: 2026-07-29
 ## License And Attribution Notes
 
 The files in this repository are original starter policy, workflow, and validation content. External sources were used as design references only. No third-party skill source, script, or substantial prose was copied into this repository.
+
+## Marketing Skill Research
+
+Retrieved: 2026-08-01
+
+| Source | Relevant paths inspected | Use in this kit |
+| --- | --- | --- |
+| https://github.com/kostja94/marketing-skills | `README.md`, `skills-reference.md`, `templates/project-context.md`, representative landing-page, conversion, analytics, SEO, content, channel, and strategy skills, plus `LICENSE` | Used as a taxonomy and workflow research input. The kit uses an original evidence-first orchestration skill, claim ledger, measurement contract, privacy and approval boundaries, and does not vendor the collection or import unsupported benchmark claims. |

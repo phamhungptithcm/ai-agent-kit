@@ -64,6 +64,7 @@ flowchart LR
 | `database.yaml` | Migrations, query plans, connection/session/cursor lifecycle, transaction safety, locking, batch/bulk persistence, rollback. |
 | `concurrency.yaml` | Races, deadlocks, lifecycle leaks, cancellation, backpressure, worker pools, async blocking. |
 | `memory.yaml` | Resource cleanup, heap retention, cache growth, listener/timer cleanup, stream/file/socket close behavior, profiling plan. |
+| `human-writing.yaml` | Meaning preservation, voice fidelity, natural rhythm, factual and authorship integrity, writing-sample privacy, and channel-aware output. |
 
 ## Expansion Model
 
@@ -73,7 +74,8 @@ The kit does not try to encode every programming language on day one. It gives a
 2. Apply `universal.yaml`.
 3. Apply any matching language profiles.
 4. Apply any matching platform/domain profiles.
-5. Apply API/database/concurrency/memory profiles when those risks appear.
+5. Apply API/database/concurrency/memory profiles when those risks appear, and
+   apply the human-writing profile when natural-voice rewriting is requested.
 6. If a language or domain is missing, document the gap as a new team-approved profile candidate.
 
 That makes it practical to add more languages over time without weakening the base standard.

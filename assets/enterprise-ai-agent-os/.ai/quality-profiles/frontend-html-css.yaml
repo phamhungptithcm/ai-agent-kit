@@ -278,7 +278,7 @@ reject_if:
   - text clipping
   - layout shift introduced
   - excessive CSS specificity
-  - !important without justification
+  - "!important without justification"
   - duplicated CSS
   - hydration mismatch
   - bundle exceeds budget

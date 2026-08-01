@@ -6,12 +6,12 @@
 [![MIT license](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Node.js 20+](https://img.shields.io/badge/node-%3E%3D20-43853d)](package.json)
 
-One shared engineering workflow for AI coding agents.
+Give every AI coding agent the same way to understand a repository, plan a
+change, work within approval boundaries, and show what it verified.
 
-AI Agent Kit adds repository rules, project context, quality checks, approval
-gates, safe execution boundaries, and reviewable evidence. The same workflow
-can be used across Claude Code, Codex, Copilot, Cursor, and other supported
-agents.
+AI Agent Kit brings repository context, quality profiles, governed actions,
+and reviewable evidence to Claude Code, Codex, Copilot, Cursor, and eight other
+coding agents.
 
 ```bash
 npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap
@@ -20,23 +20,31 @@ npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap
 Bootstrap is local. It does not edit application code, commit, push, open a
 pull request, update a ticket, or deploy.
 
-[Features](#whats-included) · [Quick start](#quick-start) · [Latest release](#latest-release-v060) · [Supported agents](#supported-agents) · [Documentation](#documentation) · [npm](https://www.npmjs.com/package/@hunpeolabs/ai-agent-kit)
+[Features](#whats-included) · [Quick start](#quick-start) · [Latest release](#latest-release-v061) · [Supported agents](#supported-agents) · [Documentation](#documentation) · [npm](https://www.npmjs.com/package/@hunpeolabs/ai-agent-kit)
 
 ![AI Agent Kit bootstrap flow](https://raw.githubusercontent.com/phamhungptithcm/ai-agent-kit/main/docs/assets/bootstrap-demo.gif)
 
 ## Why use it?
 
-Coding agents often work differently. One may skip repository context, another
-may miss tests, and another may change more than requested.
+Coding agents are useful, but each one can approach the same repository
+differently. Important context gets missed, plans drift from implementation,
+and a confident answer can look more complete than the evidence supports.
 
 AI Agent Kit gives them the same path:
 
 ```text
-Understand → Inspect → Plan → Approve → Execute → Verify → Review
+Understand → Inspect → Plan → Approve → Execute → Verify → Report
 ```
 
-It helps teams keep scope clear, use project-specific rules, apply the right
-quality checks, and review what happened afterward.
+| Rules or prompts alone | AI Agent Kit |
+| --- | --- |
+| Instructions are available if the agent remembers to use them | The task workflow selects the relevant context, rules, and quality profiles |
+| Approval lives in conversation history | Approval is tied to the task, repository state, scope, and protected action |
+| “Done” may describe intent or local output | Completion reports separate verified work, missing evidence, and remaining risk |
+| Optional indexing can become a blocker | CodeGraph and CocoIndex fall back to bounded `DEGRADED` repository inspection |
+
+The kit does not decide what your team should approve. It makes the boundary
+clear, keeps normal work moving, and leaves evidence another person can review.
 
 ## What's included
 
@@ -59,16 +67,40 @@ quality checks, and review what happened afterward.
 - Automatic profile selection based on the repository's language, framework,
   platform, and risk.
 
-### Public website workflow
+### Writing quality
 
+- A `humanize-writing` skill for natural voice editing across posts, blogs,
+  emails, and personal or marketing drafts.
+- Task-local voice mirroring, a model-language pattern dictionary, and
+  meaning-preserving rules for facts, attribution, authorship, and privacy.
+- No fabricated experiences or specificity, and no claims that a rewrite can
+  prove human authorship or bypass AI detectors.
+
+### Website growth, end to end
+
+The kit helps an agent understand what the website needs to say, build it well,
+and measure what happens next.
+
+```text
+Context → Positioning → Page → SEO/GEO → Design & motion → Measure → Improve
+```
+
+- Marketing context, message match, funnels, landing pages, CTAs, attribution,
+  and safe experiments.
+- A claim ledger that keeps assumptions, missing proof, and invented customer
+  stories out of public content.
 - SEO and GEO rules for metadata, canonical URLs, structured data, hreflang,
-  crawl policy, raw HTML discoverability, and evidence-backed public claims.
-- Design-taste guidance that adapts to the existing design system instead of
-  replacing it with a generic AI-style layout.
-- Animation guidance for purpose, timing, lifecycle cleanup, performance,
-  touch input, gestures, reduced motion, and static SEO content.
-- One Web Growth workflow that combines content, SEO/GEO, visual design,
-  accessibility, motion, implementation, and review.
+  crawl policy, raw HTML, and evidence-backed public claims.
+- Design and animation guidance that works with the existing system and keeps
+  accessibility, performance, reduced motion, and content intact.
+- Measurement plans with clear metrics, consent, privacy, source of truth, and
+  an honest `NOT_MEASURED` result when evidence is missing.
+
+Add the complete workflow to your repository:
+
+```bash
+npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap
+```
 
 ### Governance and safety
 
@@ -117,41 +149,45 @@ Use `npx` if you do not want to keep the package as a dependency. Running
 `npm install @hunpeolabs/ai-agent-kit` also imports the governed workflow, but
 keeps the package in `package.json` and `node_modules`.
 
-## Latest release: v0.6.0
+## Latest release: v0.6.1
 
-Version `0.6.0` focuses on safer execution and clearer completion reports.
+Version `0.6.1` helps agents improve writing and website growth without making
+up proof, flattening the author's voice, or crossing protected publish,
+messaging, tracking, and spend boundaries.
 
-### Actions are checked at execution time
+### Human writing without invented authenticity
 
-Protected actions go through one gateway shared by Claude Code, Codex, the CLI,
-and MCP tools. Approval is tied to the exact task, repository commit, policy,
-agent, capability, and action. If any of those change, the old approval cannot
-be reused.
+The new `humanize-writing` skill edits posts, articles, emails, and marketing
+copy while preserving meaning, attribution, authorship, and factual claims. It
+can mirror a task-local voice sample, but it does not invent personal
+experience, promise AI-detector evasion, or claim that text is provably human.
 
-Each decision, execution, and verification step creates a separate receipt.
-The receipt keeps useful evidence without storing raw commands, file paths,
-source, output, prompts, or secrets.
+Progressive references keep voice guidance and common model-language patterns
+available without loading them into every task.
 
-### MCP starts from zero trust
+### Evidence-based website growth
 
-MCP servers are denied by default. A server must match its reviewed identity
-before it can run. The broker also checks allowed tools, folders, domains,
-timeouts, rate limits, and credentials.
+The new website-growth workflow connects context, positioning, page strategy,
+SEO/GEO, design, motion, measurement, and iteration. Marketing briefs, claim
+ledgers, measurement plans, experiment records, and review artifacts make
+assumptions and missing evidence visible.
 
-Changed or expired server definitions are blocked, along with private-network
-SSRF, prompt injection, token passthrough, and unsafe startup patterns.
+When a baseline or source of truth is missing, the workflow reports
+`NOT_MEASURED` instead of presenting an estimate as a result. Dark patterns,
+fabricated proof, invasive tracking, and unapproved publish, send, spend, or
+analytics changes remain blocked.
 
-### Final reports use evidence, not confidence
+### Portable, bounded skill resources
 
-The final task report shows verified acceptance criteria, remaining work,
-quality checks, blockers, Git state, token usage, and estimated API-equivalent
-cost.
+Canonical skill references now synchronize across Agents, Claude Code, Cursor,
+Windsurf, and Cline alongside each `SKILL.md`. Bootstrap and maintenance
+scripts reject symlink traversal, path escape, unsupported resource types, and
+unbounded resource count or size.
 
-Missing or stale evidence cannot produce a `READY` result. Cost is clearly
-marked as estimated, partial, or unavailable—it is never presented as the
-provider's actual bill.
+Quality-profile validation also catches malformed quoted YAML and unsupported
+explicit tags, with full safe-parser validation when PyYAML is available.
 
-[Read the v0.6.0 release notes](https://github.com/phamhungptithcm/ai-agent-kit/releases/tag/v0.6.0)
+[Read the v0.6.1 release notes](https://github.com/phamhungptithcm/ai-agent-kit/releases/tag/v0.6.1)
 or see the [full changelog](CHANGELOG.md).
 
 ## Daily use
@@ -225,6 +261,7 @@ See [Agent Adapter Strategy](docs/AGENT_ADAPTER_STRATEGY.md) for details.
 | `0.4.x` | Clearer adoption flow, optional-index `DEGRADED` mode, interactive activation, and governed `npm install` import. |
 | `0.5.0` | Migration-safe updates, deterministic task context, and adapters for 12 coding agents. |
 | `0.6.0` | Execution-bound action gateway, zero-trust MCP broker, token/cost usage ledger, and evidence-driven final task reports. |
+| `0.6.1` | Human writing integrity, evidence-based website growth, portable skill references, and hardened resource synchronization. |
 
 ## Documentation
 

@@ -1,0 +1,89 @@
+version: 1
+
+id: human-writing
+
+name: Meaning-Preserving Human Writing Quality Profile
+
+description:
+  Quality standards for natural-voice rewriting that preserves meaning, facts,
+  attribution, authorship integrity, privacy, audience fit, and writer-specific
+  voice without relying on detector claims or mechanical style quotas.
+
+applies_when:
+  - "a user asks to humanize prose or make it sound less robotic, AI-generated, or ChatGPT-like"
+  - "a LinkedIn post, blog draft, email, personal note, or marketing draft is rewritten for a more authentic voice"
+  - "a supplied writing sample is used to mirror observable style"
+  - "technical, academic, legal, or regulated prose is explicitly approved for natural-voice editing"
+
+compose_with:
+  - ".ai/quality-profiles/universal.yaml"
+  - ".ai/rules/human-writing-integrity.md"
+
+required_inputs:
+  - "source text"
+  - "audience and channel when known"
+  - "explicit tone, length, formality, and voice constraints when supplied"
+  - "representative writing samples only when voice mirroring is requested"
+
+voice_selection:
+  precedence:
+    - "explicit user direction"
+    - "task-local mirror profile from representative samples"
+    - "one concise clarification when materially different voices remain plausible"
+    - "clear-thinker default for an unqualified humanize request"
+  constraints:
+    - "infer style characteristics, not identity or protected characteristics"
+    - "do not persist samples or voice profiles without explicit approval"
+    - "do not impose one universal casual or punchy style"
+
+required_review:
+  meaning_preservation:
+    - "material claims, qualifications, uncertainty, chronology, and causal relationships remain intact"
+    - "asks, promises, deadlines, responsibilities, and emotional intent are not strengthened or weakened"
+    - "citations, quotations, attribution, disclaimers, defined terms, code, and commands are preserved"
+    - "ambiguous sentences requiring subject-matter confirmation are flagged"
+  voice_fidelity:
+    - "the rewrite matches the requested audience, channel, locale, formality, and selected voice"
+    - "observable source-voice traits are preserved when mirroring"
+    - "sentence and paragraph rhythm varies naturally rather than satisfying a quota"
+    - "purposeful imperfections remain when polishing would erase the writer's voice"
+  language_and_structure:
+    - "inflated, generic, or performative language is removed where it adds no meaning"
+    - "repeated contrast, tricolon, rhetorical-question, symmetry, reveal, and summary structures are reviewed"
+    - "punctuation is chosen for meaning and conspicuous em-dash dependence is removed"
+    - "the rewrite is checked for secondary convergence and replacement cliches"
+  truth_and_authorship:
+    - "no facts, experiences, opinions, numbers, names, outcomes, sources, or credentials are invented"
+    - "attribution and provenance are not removed or obscured"
+    - "the rewrite does not impersonate an identifiable person deceptively"
+    - "no claim is made that AI assistance was absent or that detector evasion is guaranteed"
+  privacy:
+    - "writing samples and voice profiles remain task-scoped"
+    - "sensitive drafts are not copied into logs, telemetry, fixtures, examples, or memory"
+    - "required redaction does not silently change meaning"
+  output:
+    - "the requested format and approximate length are preserved unless change was requested"
+    - "no unrequested emojis, hashtags, headings, engagement bait, or calls to action are added"
+    - "the direct rewrite is returned unless rationale or alternatives were requested"
+
+preferred_checks:
+  - "side-by-side source and rewrite claim inventory"
+  - "read-aloud review for rhythm, repetition, and unnatural transitions"
+  - "proper-noun, number, date, quotation, citation, and commitment comparison"
+  - "voice-sample comparison using observable style dimensions"
+  - "manual scan using the bundled AI pattern dictionary"
+  - "channel-specific mobile readability review when applicable"
+
+evidence_statuses:
+  - "PASSED"
+  - "FAILED"
+  - "NOT_APPLICABLE"
+  - "NOT_RUN"
+
+agent_constraints:
+  - "do not use detector scores as authorship evidence or acceptance criteria"
+  - "do not trade precision, legal meaning, compliance language, or technical correctness for natural tone"
+  - "do not fabricate specificity to make prose feel human"
+  - "do not treat every dictionary term as banned regardless of context"
+  - "do not store task-scoped writing samples as durable memory without approval"
+  - "report unresolved meaning or voice uncertainty rather than guessing"
