@@ -4,12 +4,13 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { hasSymlinkComponent } from "./paths.mjs";
 import { renderUsageSummary, summarizeUsage } from "./usage-ledger.mjs";
+import { inspectFinalReview } from "./final-review.mjs";
 
 const TASK_STATES = ["DISCOVER", "ANALYZE", "PLAN_READY", "APPROVED", "IMPLEMENTING", "VERIFYING", "REVIEW_READY", "RELEASED"];
 const NEXT_STATE = new Map(TASK_STATES.slice(0, -1).map((state, index) => [state, TASK_STATES[index + 1]]));
 const CRITERION_STATUSES = new Set(["VERIFIED", "IN_PROGRESS", "PENDING", "BLOCKED", "FAILED", "NOT_APPLICABLE"]);
 const CHECK_STATUSES = new Set(["PASSED", "FAILED", "NOT_RUN", "NOT_APPLICABLE", "BLOCKED", "STALE"]);
-const DEFAULT_REQUIRED_GATES = ["lint", "typecheck", "tests", "build", "security"];
+const DEFAULT_REQUIRED_GATES = ["lint", "typecheck", "tests", "build", "security", "final-implementation-review"];
 
 function stable(value) {
   if (Array.isArray(value)) return value.map(stable);
@@ -355,7 +356,7 @@ function qualityReport(root, task, commit, requiredGates) {
   return { gates, counts, known_issues: knownIssues };
 }
 
-function productionReadiness(task, progress, evidence, git, quality, productionTarget) {
+function productionReadiness(task, progress, evidence, git, quality, finalReview, productionTarget) {
   if (!productionTarget) {
     return { status: "NOT_APPLICABLE", blockers: [], rationale: "Task is not a production target." };
   }
@@ -368,6 +369,7 @@ function productionReadiness(task, progress, evidence, git, quality, productionT
     blockers.push("Acceptance criteria are not 100% verified.");
   }
   if (git.status !== "CLEAN") blockers.push(`Git worktree is ${git.status}.`);
+  if (finalReview.status !== "PASSED") blockers.push(`Final implementation review is ${finalReview.status}.`);
   for (const gate of quality.gates.filter((candidate) => candidate.required)) {
     if (!["PASSED", "NOT_APPLICABLE"].includes(gate.status)) {
       blockers.push(`Required quality gate ${gate.gate} is ${gate.status}.`);
@@ -392,8 +394,27 @@ export function buildFinalTaskReport(options, deps = {}) {
     ? options.requiredGates.map((gate) => safeId(String(gate).toLowerCase(), "required gate"))
     : DEFAULT_REQUIRED_GATES;
   const quality = qualityReport(root, task, git.commit, requiredGates);
+  const finalReview = inspectFinalReview({ target: root, id: task.id }, deps);
+  const finalReviewGate = quality.gates.find((gate) => gate.gate === "final-implementation-review");
+  if (finalReviewGate) {
+    finalReviewGate.status = finalReview.status === "PASSED" ? "PASSED" : finalReview.status;
+    finalReviewGate.summary = finalReview.status === "PASSED"
+      ? "Evidence-backed final implementation review passed."
+      : `Final implementation review is ${finalReview.status}.`;
+    finalReviewGate.repository_commit = finalReview.reviewed_commit ?? null;
+    finalReviewGate.evidence_recorded = Boolean(finalReview.review_hash);
+  }
+  quality.counts = Object.fromEntries([...CHECK_STATUSES].sort().map((status) => [
+    status,
+    quality.gates.filter((gate) => gate.status === status).length
+  ]));
+  quality.known_issues = quality.gates.some((gate) => ["FAILED", "BLOCKED", "REJECTED"].includes(gate.status))
+    ? "ISSUES_FOUND"
+    : quality.gates.some((gate) => gate.status === "PASSED")
+      ? "NONE_FOUND_WITHIN_EXECUTED_CHECKS"
+      : "UNKNOWN_NO_PASSED_CHECKS";
   const productionTarget = booleanValue(options.productionTarget, "production target", true);
-  const readiness = productionReadiness(task, progress, evidence, git, quality, productionTarget);
+  const readiness = productionReadiness(task, progress, evidence, git, quality, finalReview, productionTarget);
   let usage;
   try {
     usage = summarizeUsage(options);
@@ -424,6 +445,7 @@ export function buildFinalTaskReport(options, deps = {}) {
     progress,
     evidence,
     quality,
+    final_review: finalReview,
     code_status: {
       git,
       known_issues: quality.known_issues,
@@ -453,6 +475,27 @@ function renderGit(git) {
   return `Git worktree: DIRTY — ${git.staged} staged, ${git.modified} modified, ${git.untracked} untracked, ${git.conflicts} conflicts`;
 }
 
+function renderFinalReview(review) {
+  const dimensions = Object.entries(review.dimensions ?? {}).map(([name, value]) =>
+    `  - ${name}: ${value.status} — ${value.summary}`
+  );
+  const findings = (review.finding_history ?? review.findings ?? []).map((finding) =>
+    `  - ${finding.cycle ? `cycle ${finding.cycle} ` : ""}[${finding.severity}/${finding.status}] ${finding.id} at ${finding.location}: ${finding.summary}${finding.resolution ? ` — ${finding.resolution}` : ""}`
+  );
+  return [
+    `Decision: ${review.status}`,
+    `Review cycles: ${review.cycle_count ?? 0}`,
+    "Reviewed:",
+    dimensions.join("\n") || "  - No review dimensions recorded.",
+    "Findings and fixes:",
+    findings.join("\n") || "  - No findings recorded.",
+    "Residual risks:",
+    (review.residual_risks ?? []).map((item) => `  - ${item}`).join("\n") || "  - None recorded.",
+    "Limitations:",
+    (review.limitations ?? []).map((item) => `  - ${item}`).join("\n") || "  - None recorded."
+  ].join("\n");
+}
+
 export function renderFinalTaskReport(report, { compact = false } = {}) {
   const progress = report.progress.percent == null ? "Unavailable" : `${report.progress.percent}%`;
   if (compact) {
@@ -462,7 +505,8 @@ export function renderFinalTaskReport(report, { compact = false } = {}) {
       `Progress: ${progress} | Production: ${report.production_readiness.status}`,
       renderUsageSummary(report.usage, { compact: true }),
       `Completed: ${completed} | Remaining: ${report.progress.remaining.length} | Blockers: ${report.production_readiness.blockers.length}`,
-      `Quality: ${qualityPassed} PASSED | Worktree: ${report.code_status.git.status}`
+      `Quality: ${qualityPassed} PASSED | Worktree: ${report.code_status.git.status}`,
+      `Final review: ${report.final_review.status} | Cycles: ${report.final_review.cycle_count ?? 0} | Findings: ${report.final_review.finding_history?.length ?? report.final_review.findings?.length ?? 0}`
     ].join("\n");
   }
   return `AI Agent Kit — Final Task Report
@@ -483,6 +527,9 @@ ${renderCriteria(report.progress.remaining, "No applicable acceptance criterion 
 
 Quality
 ${renderQuality(report.quality)}
+
+Final Implementation Review
+${renderFinalReview(report.final_review)}
 
 Code Status
   ${renderGit(report.code_status.git)}

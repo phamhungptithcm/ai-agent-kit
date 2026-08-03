@@ -1,0 +1,5 @@
+{
+  "schema_version": 1,
+  "id": "REVIEW-BASELINE-001",
+  "reviews": [{ "id": "R-001", "latency_ms": 0, "known_defects": 0, "escaped_defects": 0, "findings": [] }]
+}

@@ -8,6 +8,7 @@ import {
   normalizeActionEnvelope,
   privacyMinimizedAction
 } from "./action-gateway.mjs";
+import { assertFinalReviewPassed } from "./final-review.mjs";
 
 const STATES = ["DISCOVER", "ANALYZE", "PLAN_READY", "APPROVED", "IMPLEMENTING", "VERIFYING", "REVIEW_READY", "RELEASED"];
 const NEXT_STATE = new Map(STATES.slice(0, -1).map((state, index) => [state, STATES[index + 1]]));
@@ -17,7 +18,7 @@ const REQUIRED_EVIDENCE = {
   APPROVED: ["approval_hash", "approver"],
   IMPLEMENTING: ["capability_hash"],
   VERIFYING: ["diff_scope"],
-  REVIEW_READY: ["tests", "independent_verifier"],
+  REVIEW_READY: ["tests", "independent_verifier", "final_review"],
   RELEASED: ["release_reference"]
 };
 
@@ -224,6 +225,7 @@ export function transitionTask(options) {
   if (to === "APPROVED" && evidence.approval_hash !== task.capability.approval_hash) {
     throw new Error("approval evidence does not match capability approval hash");
   }
+  if (to === "REVIEW_READY") assertFinalReviewPassed({ target: root, id: task.id }, options.deps);
   const transition = { from: task.state, to, timestamp: new Date().toISOString(), evidence_hash: digest(evidence) };
   task.state = to;
   task.updated_at = transition.timestamp;

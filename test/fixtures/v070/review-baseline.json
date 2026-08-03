@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "id": "review-baseline-v1",
+  "reviews": [{"id":"r1","latency_ms":1000,"known_defects":1,"escaped_defects":0,"findings":[
+    {"id":"f1","severity":"high","actionable":true,"human_labels":[{"reviewer":"a","valid":true,"severity":"high","actionable":true,"accepted_fix":true},{"reviewer":"b","valid":true,"severity":"high","actionable":true,"accepted_fix":true}]}
+  ]}]
+}

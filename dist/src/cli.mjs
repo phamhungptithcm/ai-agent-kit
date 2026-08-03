@@ -47,6 +47,10 @@ import {
   renderFinalTaskReport
 } from "./task-report.mjs";
 import { recordUsage, renderUsageSummary, summarizeUsage } from "./usage-ledger.mjs";
+import { compareEvalResults, gateEvalResults, replayEvalFixture } from "./eval-harness.mjs";
+import { compareReviewQuality, scoreReviewQuality } from "./review-quality.mjs";
+import { assertPrEvidenceScope, buildPrEvidencePackage, renderPrEvidenceMarkdown } from "./pr-evidence.mjs";
+import { recordFinalReview } from "./final-review.mjs";
 
 const FORBIDDEN_BOOTSTRAP_OPTIONS = new Set(["--commit", "--push", "--create-mr", "--git-mode"]);
 const SUPPORTED_PRESETS = new Set(["governed", "full"]);
@@ -67,9 +71,15 @@ Usage:
   ai-agent-kit tools install --apply [--target <path>]
   ai-agent-kit prompts
   ai-agent-kit prompt <name>
+  ai-agent-kit eval replay --fixture <file>
+  ai-agent-kit eval compare|gate --baseline <file> --candidate <file>
+  ai-agent-kit eval review-score|review-baseline --fixture <file>
+  ai-agent-kit eval review-compare --baseline <file> --candidate <file>
+  ai-agent-kit evidence pr-package --id <task-id> [--base-ref <ref>] [--format json|markdown]
   ai-agent-kit runtime task create|status|transition|report [options]
   ai-agent-kit runtime criterion record [options]
   ai-agent-kit runtime check record [options]
+  ai-agent-kit runtime review record --id <task-id> --file <review.json>
   ai-agent-kit runtime usage record|summary [options]
   ai-agent-kit runtime context add [options]
   ai-agent-kit runtime plan revise [options]
@@ -107,6 +117,8 @@ Governed runtime:
   mcp start|authorize requires --id and an exact JSON --server identity.
   task report combines completion, quality, Git, production-readiness, token,
   and API-equivalent cost evidence. Use --format text, compact, or json.
+  Eval replay is offline and uses versioned recorded fixtures. Eval gate fails
+  on material or statistically significant regressions.
 
 Prompt names:
   start-task, plan-change, implement-approved, fix-bug,
@@ -117,6 +129,38 @@ Safety:
   bootstrap is local only. It never stages, commits, pushes, creates branches,
   creates merge requests, updates Jira, deploys, or edits application source code.
   By default it is fast and policy-only: it does not install tools or refresh indexes.`;
+}
+
+export function parseEvalArgs(argv) {
+  const action = argv[0];
+  if (!new Set(["replay", "compare", "gate", "review-score", "review-baseline", "review-compare"]).has(action)) throw new Error("eval requires replay, compare, gate, review-score, review-baseline, or review-compare");
+  const options = {};
+  for (let index = 1; index < argv.length; index += 1) {
+    const flag = argv[index];
+    if (!["--fixture", "--baseline", "--candidate", "--material-threshold"].includes(flag)) throw new Error(`Unknown eval option: ${flag}`);
+    const value = argv[++index];
+    if (!value) throw new Error(`${flag} requires a value`);
+    options[flag.slice(2).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase())] = value;
+  }
+  if (["replay", "review-score", "review-baseline"].includes(action) && !options.fixture) throw new Error(`${action} requires --fixture`);
+  if (["compare", "gate", "review-compare"].includes(action) && (!options.baseline || !options.candidate)) throw new Error(`${action} requires --baseline and --candidate`);
+  return { action, options };
+}
+
+export function parsePrEvidenceArgs(argv) {
+  if (argv[0] !== "pr-package") throw new Error("evidence requires pr-package");
+  const options = { target: process.cwd(), format: "markdown", requiredGates: [] };
+  for (let index = 1; index < argv.length; index += 1) {
+    const flag = argv[index];
+    if (!["--id", "--target", "--base-ref", "--format", "--required-gate"].includes(flag)) throw new Error(`Unknown evidence option: ${flag}`);
+    const value = argv[++index];
+    if (!value) throw new Error(`${flag} requires a value`);
+    if (flag === "--required-gate") options.requiredGates.push(value);
+    else options[flag.slice(2).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase())] = value;
+  }
+  if (!options.id) throw new Error("pr-package requires --id");
+  if (!["json", "markdown"].includes(options.format)) throw new Error("pr-package format must be json or markdown");
+  return options;
 }
 
 export function parseRuntimeArgs(argv) {
@@ -146,7 +190,7 @@ export function parseRuntimeArgs(argv) {
     "--batch", "--requests", "--input-tokens", "--cached-input-tokens",
     "--cache-read-input-tokens", "--cache-write-input-tokens",
     "--cache-write-5m-input-tokens", "--cache-write-1h-input-tokens",
-    "--output-tokens", "--reasoning-tokens"
+    "--output-tokens", "--reasoning-tokens", "--file"
   ]);
   for (let index = 2; index < argv.length; index += 1) {
     const flag = argv[index];
@@ -176,8 +220,8 @@ export function parseRuntimeArgs(argv) {
       options[key] = value;
     }
   }
-  if (!["task", "criterion", "check", "usage", "context", "plan", "gateway", "mcp", "policy", "evidence", "memory", "eval"].includes(area)) {
-    throw new Error("runtime area must be task, criterion, check, usage, context, plan, gateway, mcp, policy, evidence, memory, or eval");
+  if (!["task", "criterion", "check", "review", "usage", "context", "plan", "gateway", "mcp", "policy", "evidence", "memory", "eval"].includes(area)) {
+    throw new Error("runtime area must be task, criterion, check, review, usage, context, plan, gateway, mcp, policy, evidence, memory, or eval");
   }
   if (!((area === "memory" && action === "query") || (area === "mcp" && action === "inspect")) && !options.id) {
     throw new Error("runtime command requires --id");
@@ -194,7 +238,7 @@ function runRuntime(argv, deps = {}) {
     return createTask({ ...options, tools: options.tools, paths: options.paths, domains: options.domains });
   }
   if (area === "task" && action === "status") return inspectTask(options);
-  if (area === "task" && action === "transition") return transitionTask(options);
+  if (area === "task" && action === "transition") return transitionTask({ ...options, deps });
   if (area === "task" && action === "report") {
     const report = buildFinalTaskReport(options, deps);
     if (options.format === "json") return report;
@@ -202,6 +246,10 @@ function runRuntime(argv, deps = {}) {
   }
   if (area === "criterion" && action === "record") return recordCriterionStatus(options);
   if (area === "check" && action === "record") return recordQualityCheck({ ...options, deps });
+  if (area === "review" && action === "record") {
+    if (!options.file) throw new Error("review record requires --file");
+    return recordFinalReview(options, deps);
+  }
   if (area === "usage" && action === "record") return recordUsage(options);
   if (area === "usage" && action === "summary") {
     const summary = summarizeUsage(options);
@@ -459,6 +507,22 @@ export async function main(argv = process.argv.slice(2), io = console, deps = {}
       return 0;
     }
     io.log(renderNamedPrompt(name));
+    return 0;
+  }
+  if (command === "eval") {
+    const { action, options } = parseEvalArgs(argv.slice(1));
+    const result = action === "replay" ? replayEvalFixture(options)
+      : action === "compare" ? compareEvalResults(options)
+        : action === "gate" ? gateEvalResults(options)
+          : action === "review-compare" ? compareReviewQuality(options)
+            : scoreReviewQuality(options);
+    io.log(JSON.stringify(result, null, 2));
+    return 0;
+  }
+  if (command === "evidence") {
+    const options = parsePrEvidenceArgs(argv.slice(1));
+    const pkg = assertPrEvidenceScope(buildPrEvidencePackage(options, deps));
+    io.log(options.format === "json" ? JSON.stringify(pkg, null, 2) : renderPrEvidenceMarkdown(pkg));
     return 0;
   }
   if (command === "status") {

@@ -1,6 +1,6 @@
 {
   "name": "@hunpeolabs/ai-agent-kit",
-  "version": "0.6.1",
+  "version": "0.7.0",
   "description": "Governed cross-agent coding workflows with repository intelligence, quality profiles, approval gates, and evidence.",
   "type": "module",
   "bin": {
@@ -57,7 +57,8 @@
     "SECURITY.md"
   ],
   "scripts": {
-    "check": "npm run lint && npm run typecheck && npm test && npm run security:supply-chain && npm run build && npm run smoke:packed",
+    "check": "npm run lint && npm run typecheck && npm test && npm run eval:gate && npm run security:supply-chain && npm run build && npm run smoke:packed",
+    "eval:gate": "node bin/ai-agent-kit.mjs eval gate --baseline test/fixtures/v070/eval-pass.json --candidate test/fixtures/v070/eval-pass.json",
     "lint": "node scripts/lint.mjs",
     "typecheck": "node scripts/typecheck.mjs",
     "test": "node --test",

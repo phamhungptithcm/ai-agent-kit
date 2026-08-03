@@ -9,13 +9,14 @@
 4. If the provider exposes stable usage metadata, normalize and record token
    counts. Prefer a provider event ID for idempotency. Use cumulative mode only
    with a session ID; the ledger stores only its hash.
-5. Generate the report:
+5. Run `final-implementation-review`, record `.ai/templates/final-implementation-review.json`, and resolve any approved in-scope blocking finding before continuing.
+6. Generate the report:
 
    ```bash
    ai-agent-kit runtime task report --id TASK-ID --format text
    ```
 
-6. Include the report in the final response. For a shorter footer:
+7. Include the report in the final response. For a shorter footer:
 
    ```bash
    ai-agent-kit runtime task report --id TASK-ID --format compact

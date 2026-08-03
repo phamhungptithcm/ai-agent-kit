@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/phamhungptithcm/ai-agent-kit/schemas/review-quality-v1.json",
+  "title": "Labeled AI review quality fixture",
+  "type": "object",
+  "required": ["schema_version", "id", "reviews"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "id": { "type": "string" },
+    "reviews": { "type": "array", "items": { "type": "object", "required": ["id", "findings"] } }
+  }
+}

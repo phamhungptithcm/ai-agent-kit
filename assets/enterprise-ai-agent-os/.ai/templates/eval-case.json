@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "id": "CASE-001",
+  "repository_fixture": { "version": "1", "source_hash": "TODO" },
+  "task": { "goal": "TODO", "acceptance_criteria": [], "approval_required": true, "allowed_paths": [] },
+  "budgets": { "max_actions": 100, "max_latency_ms": 60000, "max_cost_usd_micros": null },
+  "expected": { "outcome": "completed", "required_evidence": [] },
+  "human_rubric": [],
+  "runs": []
+}

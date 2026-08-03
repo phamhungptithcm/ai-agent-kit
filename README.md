@@ -104,6 +104,15 @@ npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap
 
 ### Governance and safety
 
+![AI Agent Kit governed agent loop](docs/assets/agent-loop-v070.svg)
+
+AI Agent Kit gives every coding agent the same path:
+
+**Understand → Inspect → Plan → Approve → Execute → Verify → Report**
+
+Inside Verify, the agent repeats review → fix → verify until a fresh review
+passes. Release actions always require separate authorization.
+
 - Existing-system changes stop for a reviewed impact plan and explicit approval.
 - Protected edits are checked against the approved paths and current diff.
 - Command policy separates safe, review-required, and forbidden operations.
@@ -114,6 +123,18 @@ npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap
 
 ### Lifecycle and evidence
 
+- Replay the same recorded repository task across Claude Code and Codex, then
+  compare outcomes, trajectory, latency, cost, and action counts offline.
+- Generate a concise PR evidence package with task scope, changed files,
+  approval match, checks, receipt verification, and remaining uncertainty.
+- Measure review accuracy, severity calibration, duplicates, actionable
+  findings, accepted fixes, latency, and escaped defects without rewarding
+  comment volume.
+- Run a mandatory final implementation review before handoff. It checks
+  requirements, security, code quality, failure paths, error handling,
+  production readiness, and trade-offs. The agent fixes approved findings,
+  verifies them, and reviews again until a fresh cycle passes; the report keeps
+  every cycle, finding, fix, residual risk, and blocker.
 - Read-only `status`, `doctor`, and managed `diff` commands.
 - Dry-run bootstrap, update, uninstall, and tool-install planning.
 - Migration-safe `update --apply` with backups, rollback, and conflict evidence.
@@ -205,6 +226,13 @@ Review the final task report:
 npx --yes @hunpeolabs/ai-agent-kit@latest runtime task report --id TASK-123 --format compact
 ```
 
+Replay an offline evaluation or generate PR evidence:
+
+```bash
+npx --yes @hunpeolabs/ai-agent-kit@latest eval replay --fixture path/to/case.json
+npx --yes @hunpeolabs/ai-agent-kit@latest evidence pr-package --id TASK-123
+```
+
 Update an existing installation safely:
 
 ```bash
@@ -262,6 +290,7 @@ See [Agent Adapter Strategy](docs/AGENT_ADAPTER_STRATEGY.md) for details.
 | `0.5.0` | Migration-safe updates, deterministic task context, and adapters for 12 coding agents. |
 | `0.6.0` | Execution-bound action gateway, zero-trust MCP broker, token/cost usage ledger, and evidence-driven final task reports. |
 | `0.6.1` | Human writing integrity, evidence-based website growth, portable skill references, and hardened resource synchronization. |
+| `0.7.0` | Replayable cross-agent evals, evidence-native PR packages, regression gates, and high-signal review measurement. |
 
 ## Documentation
 

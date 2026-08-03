@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "id": "review-noisy-v1",
+  "reviews": [{"id":"r1","latency_ms":500,"known_defects":1,"escaped_defects":1,"findings":[
+    {"id":"f1","severity":"critical","human_labels":[{"reviewer":"a","valid":false,"severity":"low","actionable":false,"accepted_fix":false},{"reviewer":"b","valid":false,"severity":"low","actionable":false,"accepted_fix":false}]},
+    {"id":"f2","severity":"high","duplicate_of":"f1","human_labels":[{"reviewer":"a","valid":false,"actionable":false},{"reviewer":"b","valid":false,"actionable":false}]}
+  ]}]
+}
