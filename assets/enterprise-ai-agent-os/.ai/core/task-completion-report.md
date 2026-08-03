@@ -8,6 +8,7 @@ Every governed task should finish with one evidence-derived report covering:
 - Git worktree cleanliness and current commit;
 - known issues limited to the checks actually executed;
 - fail-closed production readiness and blockers;
+- final implementation-review decision, cycle count, reviewed dimensions, findings from every cycle, fixes, residual risks, and limitations;
 - provider-reported token usage when available;
 - API-equivalent estimated cost when an exact, effective pricing entry exists.
 
@@ -23,14 +24,15 @@ Before the final response:
 3. Record provider usage with `runtime usage record` when stable usage metadata
    is available. Never parse or store prompt, response, transcript, secret, API
    key, chain-of-thought, personal identifier, or raw tool output.
-4. Run `runtime task report --format text`.
-5. Include the rendered report, or its compact form, in the final response.
+4. Run `final-implementation-review`, fix approved in-scope findings, re-run affected checks, and record the current JSON review with `runtime review record`.
+5. Run `runtime task report --format text`.
+6. Include the rendered report, or its compact form, in the final response. Do not produce a success handoff unless the final review is current and `PASSED`.
 
 If an adapter does not expose token usage, report `Unavailable`; never infer
 zero. If the task uses a subscription, credits, negotiated pricing, tools, or
 taxes, label the monetary value as an API-equivalent estimate and keep actual
 billed cost `Unavailable`.
 
-Reporting is fail-open and cannot block task completion. Production readiness
-is fail-closed and cannot become `READY` without current evidence for every
-configured required gate.
+Report rendering is fail-open, but final success handoff and production readiness
+are fail-closed. Neither may pass without a current final implementation review
+and current evidence for every configured required gate.

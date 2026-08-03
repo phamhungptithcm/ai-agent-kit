@@ -327,3 +327,28 @@ Published in `0.5.0`:
 ## Why This Matters
 
 Without a shared operating model, every developer invents a different prompt, every agent interprets risk differently, and review evidence becomes inconsistent. AI Agent Kit gives the team a repeatable path from prompt to plan, implementation, review, and learning while keeping the developer in control of source changes and external actions.
+
+## Evidence-driven quality in v0.7.0
+
+Every completed implementation now passes through a final review gate before a
+successful handoff. The gate composes the existing code, quality, security, data,
+performance, and operations reviews according to risk. It checks the actual diff
+against approval, exercises material failure paths, records fixed and unresolved
+findings, and blocks `REVIEW_READY` when the review is missing, stale, rejected,
+or blocked. The final task report reads this tamper-evident review ledger and
+shows reviewed dimensions, corrections, residual risks, and limitations.
+
+The offline evaluation lane replays versioned task fixtures and normalized
+Claude Code or Codex trajectories. It evaluates approval, scope, denied
+actions, required evidence, outcome, latency, cost, and action budgets before
+comparing a candidate with a named baseline. Default CI performs no live model
+or production calls.
+
+The PR evidence lane renders the existing task, criterion, quality, Git, and
+receipt records as deterministic JSON and concise Markdown. Raw logs remain
+outside the primary artifact. A scope mismatch fails instead of becoming a
+warning.
+
+The review-quality lane scores labeled findings using explicit denominators,
+sample sizes, confidence intervals, noise penalties, and preserved human label
+disagreement. More comments do not create a higher score by themselves.

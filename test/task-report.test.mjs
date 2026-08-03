@@ -18,6 +18,7 @@ import {
   renderFinalTaskReport
 } from "../src/task-report.mjs";
 import { recordUsage, summarizeUsage } from "../src/usage-ledger.mjs";
+import { recordFinalReview } from "../src/final-review.mjs";
 
 function run(command, args, cwd) {
   const result = spawnSync(command, args, { cwd, encoding: "utf8" });
@@ -85,11 +86,27 @@ function advanceToReviewReady(root, id = "TASK-REPORT") {
     evidence: { capability_hash: task.capability_hash }
   });
   transitionTask({ target: root, id, to: "VERIFYING", evidence: { diff_scope: "approved-paths" } });
+  const reviewFile = path.join(root, ".ai-agent-kit", "final-review-input.json");
+  fs.mkdirSync(path.dirname(reviewFile), { recursive: true });
+  const dimensions = Object.fromEntries([
+    "requirement_match", "security", "code_quality", "failure_paths",
+    "error_handling", "production_readiness", "trade_offs"
+  ].map((name) => [name, { status: "PASSED", summary: `${name} reviewed`, evidence_refs: [`fixture://${name}`] }]));
+  fs.writeFileSync(reviewFile, `${JSON.stringify({
+    schema_version: 1,
+    task_id: id,
+    status: "PASSED",
+    dimensions,
+    findings: [],
+    residual_risks: [],
+    limitations: []
+  })}\n`);
+  recordFinalReview({ target: root, id, file: reviewFile });
   transitionTask({
     target: root,
     id,
     to: "REVIEW_READY",
-    evidence: { tests: "passed", independent_verifier: "passed" }
+    evidence: { tests: "passed", independent_verifier: "passed", final_review: "passed" }
   });
 }
 
@@ -318,7 +335,8 @@ test("passing check evidence becomes stale after the repository commit changes",
   run("git", ["commit", "-m", "change"], root);
 
   const report = buildFinalTaskReport({ target: root, id: "TASK-REPORT" });
-  assert.ok(report.quality.gates.every((gate) => gate.status === "STALE"));
+  assert.ok(report.quality.gates.filter((gate) => gate.gate !== "final-implementation-review").every((gate) => gate.status === "STALE"));
+  assert.equal(report.quality.gates.find((gate) => gate.gate === "final-implementation-review").status, "NOT_RUN");
   assert.equal(report.production_readiness.status, "NOT_READY");
 });
 

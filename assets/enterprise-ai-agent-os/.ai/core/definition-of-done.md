@@ -19,6 +19,7 @@ Completed AI-assisted engineering work must be able to answer:
 - What provider-reported token usage is available, and is monetary cost estimated, partial, actual, or unavailable?
 - Is the current Git worktree clean, and are passing quality records bound to the current commit?
 - Is production readiness `READY`, `NOT_READY`, `NOT_ASSESSED`, or `NOT_APPLICABLE`, and which blockers support that status?
+- Did `final-implementation-review` pass against the current implementation, and does the report list reviewed dimensions, findings, fixes, residual risks, and limitations?
 - For public web changes, are canonical/indexing intent, crawler policy, structured data integrity, content claims, and verification evidence explicit?
 - For user-facing visual changes, are audience, design direction, existing-system fidelity, responsive composition, UI states, accessibility, motion, and screenshot or browser evidence explicit?
 - For material animation changes, are purpose, frequency, timing, reduced-motion behavior, interruption, cancellation, gesture parity, performance, compatibility, cleanup, and trace or browser evidence explicit?

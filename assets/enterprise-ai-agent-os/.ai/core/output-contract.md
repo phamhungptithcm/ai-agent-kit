@@ -35,6 +35,7 @@ Final task report
 - Remaining risks: record residual risk and follow-up owners.
 - Memory candidates: propose reusable learnings only; mark each with category, scope, source, confidence, status, and approver need. Use `None` when no durable team memory should be created.
 - Final task report: render `.ai/core/task-completion-report.md` from recorded evidence. Include weighted completion, completed and remaining criteria, quality gates, Git cleanliness, scoped known-issue language, production readiness and blockers, token usage, and cost status.
+- Final implementation review: include its decision, reviewed dimensions, findings discovered, fixes applied and re-verified, unresolved risks, limitations, and blockers. A success-style final output requires a current `PASSED` review.
 
 The agent must not claim a test, MR/PR, Jira update, document, diagram, screenshot, PPTX, or XLSX artifact exists unless it actually verified that evidence.
 The agent must not claim zero usage, zero cost, clean code, no issues, or production readiness when the required evidence is unavailable, stale, failed, or was not run.

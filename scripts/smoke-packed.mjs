@@ -75,6 +75,34 @@ try {
   assert.match(runtimeStatus.stdout, /"goal": "Verify packaged runtime"/);
   assert.ok(fs.existsSync(path.join(fixture, ".ai-agent-kit", "runtime", "tasks", "SMOKE-001.json")));
 
+  const evalResult = execute(
+    npxCommand,
+    ["--yes", packageOption, "ai-agent-kit", "eval", "replay", "--fixture", path.join(workspace, "test/fixtures/v070/eval-pass.json")],
+    fixture
+  );
+  assert.match(evalResult.stdout, /"status": "PASSED"/);
+
+  execute("git", ["config", "user.email", "smoke@example.invalid"], fixture);
+  execute("git", ["config", "user.name", "Smoke"], fixture);
+  fs.mkdirSync(path.join(fixture, "src"), { recursive: true });
+  fs.writeFileSync(path.join(fixture, "src/smoke.mjs"), "export const smoke = 1;\n");
+  execute("git", ["add", "src/smoke.mjs"], fixture);
+  execute("git", ["commit", "-m", "smoke base"], fixture);
+  const prTask = execute(
+    npxCommand,
+    ["--yes", packageOption, "ai-agent-kit", "runtime", "task", "create", "--id", "PR-SMOKE", "--goal", "Verify PR evidence", "--acceptance", "Scoped source changes", "--tool", "edit", "--path", "src/**"],
+    fixture
+  );
+  assert.match(prTask.stdout, /"id": "PR-SMOKE"/);
+  fs.writeFileSync(path.join(fixture, "src/smoke.mjs"), "export const smoke = 2;\n");
+  const prEvidence = execute(
+    npxCommand,
+    ["--yes", packageOption, "ai-agent-kit", "evidence", "pr-package", "--id", "PR-SMOKE", "--format", "json"],
+    fixture
+  );
+  assert.match(prEvidence.stdout, /"approval_to_diff"/);
+  assert.match(prEvidence.stdout, /"status": "PASSED"/);
+
   const installFixture = path.join(temporaryRoot, "install-fixture");
   fs.mkdirSync(installFixture);
   execute("git", ["init"], installFixture);

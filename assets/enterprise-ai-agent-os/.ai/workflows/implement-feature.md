@@ -13,6 +13,7 @@ Use this workflow after the business outcome, acceptance criteria, and scope are
 9. Add or update tests for expected behavior and important failure paths.
 10. Update documentation or operational notes when needed.
 11. Run focused validation and complete `.ai/core/quality-gates.md` plus `.ai/templates/code-quality-review.md` with status and evidence.
+12. Run `final-implementation-review`, resolve approved in-scope findings, re-run affected checks, and record the result before final handoff.
 12. Compare actual diff to approved scope, refresh CodeGraph/CocoIndex indexes, and re-run the gate.
 13. Review security, data, performance, concurrency, memory/resource lifecycle, deployment, and rollback.
 14. Report memory candidates under `.ai/core/memory-policy.md`, or state `None`.

@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "task_id": "TASK-ID",
+  "status": "BLOCKED",
+  "dimensions": {
+    "requirement_match": { "status": "NOT_RUN", "summary": "Not reviewed yet.", "evidence_refs": [] },
+    "security": { "status": "NOT_RUN", "summary": "Not reviewed yet.", "evidence_refs": [] },
+    "code_quality": { "status": "NOT_RUN", "summary": "Not reviewed yet.", "evidence_refs": [] },
+    "failure_paths": { "status": "NOT_RUN", "summary": "Not reviewed yet.", "evidence_refs": [] },
+    "error_handling": { "status": "NOT_RUN", "summary": "Not reviewed yet.", "evidence_refs": [] },
+    "production_readiness": { "status": "NOT_RUN", "summary": "Not reviewed yet.", "evidence_refs": [] },
+    "trade_offs": { "status": "NOT_RUN", "summary": "Not reviewed yet.", "evidence_refs": [] }
+  },
+  "findings": [],
+  "residual_risks": [],
+  "limitations": []
+}

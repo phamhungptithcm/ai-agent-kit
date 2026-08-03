@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+## 0.7.0 - 2026-08-03
+
+- Added a mandatory final implementation-review gate before successful agent handoff, covering requirement match, security, code quality, failure paths, error handling, production readiness, and trade-offs.
+- Added a tamper-evident runtime review ledger and fail-closed `REVIEW_READY` transition, plus final-report sections for reviewed dimensions, findings, fixes, residual risks, and limitations.
+- Made final review iterative: agents must fix, verify, and review again until a fresh cycle passes, while preserving the complete finding and remediation history.
+- Added a replayable offline end-to-end evaluation harness with versioned
+  Claude Code and Codex trajectories, outcome and trajectory checks, explicit
+  cost/latency/action budgets, failure taxonomy, and material or statistical
+  regression gates.
+- Added deterministic JSON and reviewer-focused Markdown PR evidence packages
+  covering task contracts, facts and assumptions, changed files,
+  approval-to-diff scope, quality gates, receipt verification, and remaining
+  uncertainty without embedding raw logs.
+- Added high-signal review metrics with explicit numerators and denominators,
+  noise and duplicate penalties, severity calibration, actionable and accepted
+  fix rates, escaped defects, latency, confidence intervals, and preserved
+  human disagreement.
+- Added offline GitHub Actions coverage, versioned schemas, starter fixtures,
+  workflow guidance, CLI commands, security boundaries, and regression tests
+  for the v0.7.0 evidence-quality contract.
+
 ## 0.6.1 - 2026-08-01
 
 - Added a cross-agent `humanize-writing` skill with progressive-disclosure

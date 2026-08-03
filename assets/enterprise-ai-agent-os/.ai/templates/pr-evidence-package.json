@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "task": {},
+  "context": { "verified_facts": [], "assumptions": [] },
+  "change": { "files": [], "allowed_paths": [], "approval_to_diff": { "status": "NOT_RUN", "drift": [] } },
+  "verification": { "quality": {}, "final_review": {}, "evidence": {} },
+  "risks": {},
+  "logs": { "policy": "Reference raw logs; do not embed them." },
+  "package_hash": "TODO"
+}

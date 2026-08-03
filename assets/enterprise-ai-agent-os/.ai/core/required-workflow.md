@@ -83,4 +83,6 @@ Stop after presenting the plan. Do not implement until explicit approval evidenc
 14. Describe deployment sequencing.
 15. Describe rollback.
 16. Report commands executed and actual results.
-17. Clearly identify anything not executed or not verified.
+17. Run `final-implementation-review` against the completed diff. Review requirement match, security, code quality, bad paths, error handling, production readiness, and trade-offs; fix approved in-scope findings, re-run affected checks, and review the complete diff again. Repeat until a fresh review passes.
+18. Record every review cycle and preserve findings and fixes. Do not emit a successful final response while the newest review is missing, stale, rejected, or blocked. Stop with a precise blocker only when further progress requires new scope, authority, or external evidence.
+19. Clearly identify anything not executed or not verified.

@@ -20,6 +20,7 @@ Every implementation completion must report each gate with `PASSED`, `FAILED`, `
 | API compatibility reviewed | TODO | TODO |
 | Observability impact reviewed | TODO | TODO |
 | Diff self-reviewed | TODO | TODO |
+| Final implementation review current and passed | TODO | `.ai/templates/final-implementation-review.json` and runtime review receipt |
 | Search metadata, crawler policy, structured data, and claims reviewed where applicable | TODO | TODO |
 | Design direction, responsive composition, UI states, accessibility, motion, and visual evidence reviewed where applicable | TODO | TODO |
 | Animation purpose, reduced motion, interruptibility, performance, compatibility, lifecycle cleanup, and evidence reviewed where applicable | TODO | TODO |

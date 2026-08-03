@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AI Agent Kit Final Implementation Review",
+  "type": "object",
+  "required": ["schema_version", "task_id", "status", "dimensions", "findings", "residual_risks", "limitations"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "task_id": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "status": { "enum": ["PASSED", "BLOCKED"] },
+    "dimensions": {
+      "type": "object",
+      "required": ["requirement_match", "security", "code_quality", "failure_paths", "error_handling", "production_readiness", "trade_offs"],
+      "additionalProperties": false,
+      "properties": {
+        "requirement_match": { "$ref": "#/$defs/dimension" },
+        "security": { "$ref": "#/$defs/dimension" },
+        "code_quality": { "$ref": "#/$defs/dimension" },
+        "failure_paths": { "$ref": "#/$defs/dimension" },
+        "error_handling": { "$ref": "#/$defs/dimension" },
+        "production_readiness": { "$ref": "#/$defs/dimension" },
+        "trade_offs": { "$ref": "#/$defs/dimension" }
+      }
+    },
+    "findings": { "type": "array", "maxItems": 200, "items": { "$ref": "#/$defs/finding" } },
+    "residual_risks": { "type": "array", "maxItems": 50, "items": { "type": "string", "maxLength": 2048 } },
+    "limitations": { "type": "array", "maxItems": 50, "items": { "type": "string", "maxLength": 2048 } }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "dimension": {
+      "type": "object",
+      "required": ["status", "summary", "evidence_refs"],
+      "additionalProperties": false,
+      "properties": {
+        "status": { "enum": ["PASSED", "FAILED", "NOT_APPLICABLE", "NOT_RUN"] },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 2048 },
+        "evidence_refs": { "type": "array", "maxItems": 50, "items": { "type": "string", "maxLength": 512 } }
+      }
+    },
+    "finding": {
+      "type": "object",
+      "required": ["id", "severity", "status", "category", "location", "summary", "evidence_refs"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "severity": { "enum": ["CRITICAL", "HIGH", "MEDIUM", "LOW"] },
+        "status": { "enum": ["OPEN", "FIXED", "ACCEPTED_RISK"] },
+        "category": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "location": { "type": "string", "minLength": 1, "maxLength": 512 },
+        "summary": { "type": "string", "minLength": 1, "maxLength": 2048 },
+        "resolution": { "type": ["string", "null"], "maxLength": 2048 },
+        "evidence_refs": { "type": "array", "maxItems": 50, "items": { "type": "string", "maxLength": 512 } }
+      }
+    }
+  }
+}
