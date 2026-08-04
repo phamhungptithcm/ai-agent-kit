@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "keys": [
+    {
+      "key_id": "TODO",
+      "public_key": "TODO PEM",
+      "allowed_layers": ["organization", "team", "repository", "task"],
+      "revoked": false
+    }
+  ]
+}

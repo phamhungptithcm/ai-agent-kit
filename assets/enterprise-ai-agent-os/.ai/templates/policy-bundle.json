@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "id": "team-policy",
+  "layer": "team",
+  "version": "1.0.0",
+  "compatibility": { "kit": ">=0.8.0 <0.9.0" },
+  "rules": {},
+  "locks": [],
+  "deprecated_after": null,
+  "signer": { "key_id": "TODO", "public_key": "TODO PEM" },
+  "signature": "TODO BASE64 ED25519 SIGNATURE"
+}

@@ -4,6 +4,64 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 0.8.0 - 2026-08-04
+
+- Added signed, versioned organization, team, repository, and task policy
+  overlays with explicit precedence, compatibility gates, locked-rule conflict
+  detection, provenance, and effective-policy diffs.
+- Added privacy-preserving local outcome analytics with versioned metric
+  definitions, explicit denominators and missing-data handling, before/after
+  comparison, and evidence thresholds for product claims.
+- Added approved-memory lifecycle 2.0 with expiry, review dates, revocation,
+  supersession, source-commit reachability, deterministic retrieval,
+  provenance, and health reporting.
+- Added Agent Proof Replay: a redacted offline HTML replay, machine-readable
+  proof, PR card, trust badge, and opt-in OpenTelemetry-compatible export.
+- Added a zero-config governed demo and policy developer commands for key
+  generation, bundle initialization, signing, verification, and effective diff.
+- Added read-only policy simulation that returns the same allow, ask, or deny
+  decision contract without recording a receipt or executing an action.
+- Added Failure Lab manifests with preview-first, shell-free failure-path
+  execution, bounded non-secret injection, redacted output hashes, and
+  tamper-evident reports.
+- Added repository-trusted Ed25519 Change Passports that bind READY Agent Proof,
+  Git state, review and evidence integrity, and optional passing Failure Lab
+  reports to an independently verifiable signature.
+- Added constraint-driven system design with automatic intent triggering,
+  normalized scale/latency/reliability/security/cost contracts, deterministic
+  capacity and unit-cost arithmetic, official-source pricing rules, staged
+  architecture options, and fail-closed evidence statuses.
+- Added a composable system-design quality profile, copy-ready prompt,
+  architecture workflow, report and model templates, progressive references,
+  cross-agent skill delivery, and golden cases for high-scale, concurrency,
+  consistency, security, pricing, and premature-complexity failures.
+- Added the `architecture` CLI for request validation, capacity modelling,
+  official AWS/GCP/Azure pricing lookup with reviewed local snapshots,
+  benchmark planning and evidence import, artifact build/verify/diff, and
+  executable design-quality evaluation.
+- Added tamper-evident, commit-bound architecture evidence packs with offline
+  visual reports, constraint-to-validation traceability, workload playbooks,
+  security control ownership, fail-closed staleness, and Agent Proof binding.
+- Added zero-friction `architecture quick`, `start`, and `status` flows that
+  turn a short goal plus optional constraints into a saved request, at most
+  three useful questions, copy-ready next steps, and current/stale design
+  visibility without requiring users to author JSON first.
+- Added reviewed pricing-snapshot attachment to the capacity model and a
+  dedicated architecture evidence card in the offline Agent Proof report.
+- Added the Agent Department Orchestrator: automatic solo, product, bug, or
+  assurance workcell selection with bounded fan-out, one write owner,
+  dependency-aware assignments, native Codex/Claude dispatch contracts, and a
+  non-blocking serial-persona fallback for other hosts.
+- Added team plan, start, status, record, and report commands; tamper-evident
+  workcell state; independent-review enforcement; review-fix-review history;
+  and team evidence in Agent Proof Replay.
+- Added the Team Context Protocol with versioned shared briefs, assignment
+  leases, duplicate-work and write-overlap prevention, structured evidence
+  handoffs, stale dependency detection, explicit conflict decisions, and
+  optimistic concurrency.
+- Added orchestration policy, workflow, schemas, offline eval cases, packaged
+  CLI coverage, and a concise README product story for right-sized agent teams.
+
 ## 0.7.0 - 2026-08-03
 
 - Added a mandatory final implementation-review gate before successful agent handoff, covering requirement match, security, code quality, failure paths, error handling, production readiness, and trade-offs.

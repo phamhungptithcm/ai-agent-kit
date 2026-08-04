@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hunpeolabs.com/schemas/ai-agent-kit/outcome-event-v1.json",
+  "type": "object",
+  "properties": {
+    "completed": { "type": "boolean" },
+    "verified": { "type": "boolean" },
+    "scope_violation": { "type": "boolean" },
+    "review_time_ms": { "type": "number", "minimum": 0 },
+    "rework": { "type": "boolean" },
+    "released": { "type": "boolean" },
+    "rollback": { "type": "boolean" },
+    "action_decisions": { "type": "array", "items": { "enum": ["allow", "ask", "deny"] } },
+    "eval_score": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+    "cost_usd": { "type": ["number", "null"], "minimum": 0 },
+    "action_count": { "type": "integer", "minimum": 0 }
+  },
+  "additionalProperties": false
+}

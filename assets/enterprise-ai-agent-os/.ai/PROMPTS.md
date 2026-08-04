@@ -37,6 +37,32 @@ npx --yes @hunpeolabs/ai-agent-kit@latest prompt start-task
 | `build-seo-geo-website` | A public website needs an evidence-based SEO/GEO plan, implementation, or audit. |
 | `design-website` | A website or product surface needs design direction, approved implementation, audit-first redesign, or visual review. |
 | `animate-interface` | A user interface needs animation opportunities, motion direction, approved implementation, strict review, or an improvement inventory. |
+| `design-system` | Product constraints need a measurable system architecture, capacity model, security boundaries, staged scale, and cost range. |
+
+## design-system
+
+```text
+Use the design-scalable-systems skill for this request.
+
+Requirement:
+[describe the product, workload, latency, users or connections, reliability, security, data, cost, region, and delivery constraints you know]
+
+Inspect the repository first. Normalize the request, ask no more than three architecture-changing questions, and continue with explicit scenarios when answers are unavailable.
+
+Return:
+- one recommended architecture and why
+- measurable requirements with source and confidence
+- assumptions, contradictions, and unknowns
+- one clear architecture diagram and request/data flow
+- deterministic capacity and bandwidth calculations
+- launch, target, and justified extreme-scale cost scenarios
+- overload, dependency, recovery, data, and security boundaries
+- evolution triggers and migration path
+- benchmark, load, resilience, recovery, security, cost, and observability validation plan
+- READY_FOR_REVIEW, NEEDS_DECISION, INSUFFICIENT_EVIDENCE, or CONSTRAINTS_CONFLICT
+
+Never invent per-instance throughput, cloud prices, discounts, compliance, or production evidence. Do not provision, deploy, run paid tests, commit, push, or release without separate approval.
+```
 
 ## start-task
 

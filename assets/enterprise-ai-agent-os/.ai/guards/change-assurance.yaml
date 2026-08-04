@@ -1,0 +1,18 @@
+version: 1
+default: deny
+policy_simulation:
+  read_only: true
+  records_receipt: false
+  executes_action: false
+failure_lab:
+  shell: forbidden
+  explicit_apply: required
+  raw_output_storage: forbidden
+  secret_like_environment: forbidden
+change_passport:
+  ready_proof: required
+  trusted_signer: required
+  failure_report_integrity: required_when_present
+  untrusted_signature: not_verified
+  repository_drift: stale
+  external_actions: forbidden

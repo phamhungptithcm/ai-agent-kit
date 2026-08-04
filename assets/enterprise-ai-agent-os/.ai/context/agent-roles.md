@@ -4,6 +4,12 @@ All repository-facing roles must use the `repository-intelligence` skill before 
 
 The Team Lead Orchestrator owns the shared repository intelligence brief and must populate `.ai/templates/repository-intelligence-brief.md` before assigning specialists.
 
+After inspection, run `ai-agent-kit team plan --id <task-id>` and start the
+smallest safe workcell. Use native subagents on Codex or Claude when available;
+otherwise execute the same assignments as serial personas. The Team Lead owns
+scope and synthesis, one implementation assignment owns writes, and an
+independent reviewer owns the final review loop.
+
 Specialist roles reuse the shared brief and query CodeGraph or CocoIndex only for role-specific gaps:
 
 - Team Lead Orchestrator

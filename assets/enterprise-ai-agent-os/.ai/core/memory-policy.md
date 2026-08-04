@@ -64,3 +64,17 @@ When sources conflict, trust them in this order:
 ## Review Cadence
 
 Memory Approvers must run a quarterly stale review for approved entries. Entries past review date become `STALE` until re-approved, superseded, or rejected.
+
+## Lifecycle 2.0
+
+- Approved entries require a future review date and a source commit reachable
+  from the current repository history.
+- Expired, revoked, stale, superseded, or source-unreachable entries are
+  excluded from default retrieval.
+- Revocation uses a durable tombstone. Supersession names the approved
+  replacement and preserves history.
+- Every retrieved result includes source, source commit, approver, confidence,
+  and lifecycle state.
+- Deterministic scoped retrieval runs before any optional semantic retrieval.
+- Memory health reports conflicts and lifecycle exclusions without exposing the
+  memory content.

@@ -1,4 +1,4 @@
-version: 1
+version: 2
 title: "TODO: concise durable learning"
 category: "architecture|ownership|domain-rule|implementation-pattern|testing|release|observability|operational-risk|failure-mode"
 scope:
@@ -12,12 +12,16 @@ source:
   references:
     - "TODO: file path, test, ADR, work item, or approval reference"
 confidence: 0.8
+trust_tier: "provisional|reviewed|verified"
 status: "PROPOSED"
 approver: "TODO: Memory Approver"
 review_date: "YYYY-MM-DD"
+expires_at: null
 created_by: "TODO: agent/person"
 created_at: "YYYY-MM-DD"
 last_reviewed_at: null
 supersedes: []
+revoked_at: null
+revocation_reason: null
 tags: []
 retention_notes: "No secrets, PII, PHI, PCI, credentials, or production customer data."

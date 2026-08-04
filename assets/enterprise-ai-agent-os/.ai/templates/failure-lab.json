@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "id": "dependency-timeout",
+      "category": "resilience",
+      "command": ["npm", "test", "--", "--test-name-pattern", "dependency timeout"],
+      "env": { "FAILURE_MODE": "dependency_timeout" },
+      "expected_exit_code": 0
+    }
+  ]
+}

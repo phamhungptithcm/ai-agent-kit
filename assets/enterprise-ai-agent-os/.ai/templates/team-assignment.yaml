@@ -1,0 +1,21 @@
+schema_version: 1
+assignment_id: impact-explorer
+role: Impact Explorer
+objective: ""
+depends_on: []
+write_access: false
+allowed_paths: []
+budget:
+  token_budget: null
+  timeout_seconds: null
+expected_output:
+  facts: []
+  findings: []
+  evidence_hashes: []
+  unresolved_risks: []
+shared_context:
+  brief_hash: null
+  expected_revision: null
+  claim_id: null
+  handoff_hash: null
+status: PENDING
