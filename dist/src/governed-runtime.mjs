@@ -9,6 +9,10 @@ import {
   privacyMinimizedAction
 } from "./action-gateway.mjs";
 import { assertFinalReviewPassed } from "./final-review.mjs";
+import { memoryHealth, queryEligibleMemory, transitionMemory } from "./memory-lifecycle.mjs";
+import { loadRepositoryPolicyOverlays } from "./policy-overlays.mjs";
+import { getPackageVersion } from "./version.mjs";
+import { planTeam } from "./team-orchestrator.mjs";
 
 const STATES = ["DISCOVER", "ANALYZE", "PLAN_READY", "APPROVED", "IMPLEMENTING", "VERIFYING", "REVIEW_READY", "RELEASED"];
 const NEXT_STATE = new Map(STATES.slice(0, -1).map((state, index) => [state, STATES[index + 1]]));
@@ -74,10 +78,12 @@ function currentPolicyRevision(root) {
     ".ai/guards/capability-policy.yaml",
     ".ai/guards/sandbox-and-secrets.yaml"
   ];
-  return digest(paths.map((relPath) => {
+  const legacyPolicy = paths.map((relPath) => {
     const file = path.join(root, relPath);
     return [relPath, fs.existsSync(file) ? fs.readFileSync(file, "utf8") : null];
-  }));
+  });
+  const overlays = loadRepositoryPolicyOverlays({ target: root, kitVersion: getPackageVersion() });
+  return digest({ legacy_policy: legacyPolicy, effective_overlays: overlays.effective, provenance: overlays.provenance });
 }
 
 function atomicWrite(file, value) {
@@ -159,6 +165,18 @@ export function createTask(options) {
   };
   atomicWrite(taskPath(root, id), `${JSON.stringify(task, null, 2)}\n`);
   appendReceipt(root, id, "task.created", { state: task.state, capability_hash: task.capability_hash });
+  if (task.goal) {
+    try {
+      const team = planTeam({ target: root, id, goal: task.goal, risk: capability.max_risk, paths: capability.allowed_paths });
+      task.orchestration = { status: "PLANNED", team_type: team.team_type, team_hash: team.team_hash };
+      appendReceipt(root, id, "team.planned", task.orchestration);
+    } catch {
+      task.orchestration = { status: "DEGRADED", reason_code: "TEAM_PLANNER_UNAVAILABLE" };
+      appendReceipt(root, id, "team.degraded", task.orchestration);
+    }
+    task.updated_at = new Date().toISOString();
+    atomicWrite(taskPath(root, id), `${JSON.stringify(task, null, 2)}\n`);
+  }
   return task;
 }
 
@@ -268,6 +286,28 @@ export function authorizeAction(options) {
 
 export function evaluateAction(options) {
   return authorizeAction(options);
+}
+
+export function simulateAction(options) {
+  const root = rootFor(options.target);
+  const task = readTask(root, options.id);
+  const envelope = normalizeActionEnvelope({
+    ...options,
+    approvalHash: options.approvalHash ?? task.capability.approval_hash,
+    repositoryCommit: options.repositoryCommit ?? currentRepositoryCommit(root),
+    policyRevision: options.policyRevision ?? currentPolicyRevision(root),
+    capabilityHash: options.capabilityHash ?? task.capability_hash
+  });
+  const assessment = assessAction({ task, envelope, now: options.now });
+  return {
+    schema_version: 1,
+    mode: "SIMULATION",
+    decision: assessment.decision,
+    reason_code: assessment.reason_code,
+    envelope_hash: assessment.envelope_hash,
+    recorded: false,
+    executed: false
+  };
 }
 
 function receiptByHash(root, id, receiptHash) {
@@ -417,6 +457,13 @@ export function proposeMemory(options) {
   if (!options.title || !options.content || !options.source) {
     throw new Error("memory proposal requires title, content, and source");
   }
+  if (String(options.content).length > 16_384 || String(options.title).length > 256 || String(options.source).length > 1024) {
+    throw new Error("memory proposal exceeds bounded field limits");
+  }
+  const sensitive = /(-----BEGIN [A-Z ]*PRIVATE KEY-----|\b(?:api[_-]?key|password|secret|access[_-]?token)\s*[:=]|\bAKIA[0-9A-Z]{16}\b|\bgh[pousr]_[A-Za-z0-9_]{20,}\b)/i;
+  if (sensitive.test(`${options.title}\n${options.content}\n${options.source}`)) {
+    throw new Error("memory proposal contains secret-like content");
+  }
   const entry = {
     id: digest({ task_id: task.id, title: options.title, content: options.content }).slice(0, 24),
     task_id: task.id,
@@ -425,14 +472,17 @@ export function proposeMemory(options) {
     scope: options.scope ?? "repository",
     content: options.content,
     source: options.source,
-    source_commit: options.sourceCommit ?? null,
+    source_commit: options.sourceCommit ?? currentRepositoryCommit(root),
     confidence: Number(options.confidence ?? 0.5),
+    trust_tier: options.trustTier ?? "provisional",
     status: "proposed",
     approver: null,
     review_date: null,
+    expires_at: options.expiresAt ?? null,
     created_at: new Date().toISOString()
   };
   if (entry.confidence < 0 || entry.confidence > 1) throw new Error("confidence must be between 0 and 1");
+  if (!new Set(["provisional", "reviewed", "verified"]).has(entry.trust_tier)) throw new Error("trust tier must be provisional, reviewed, or verified");
   entry.content_hash = digest({
     title: entry.title, category: entry.category, scope: entry.scope,
     content: entry.content, source: entry.source, source_commit: entry.source_commit
@@ -454,11 +504,18 @@ export function approveMemory(options) {
   const proposed = [...entries].reverse().find((entry) => entry.id === options.memoryId);
   if (!proposed) throw new Error(`memory not found: ${options.memoryId}`);
   if (proposed.status !== "proposed") throw new Error("only proposed memory can be approved");
+  if (!proposed.source_commit) throw new Error("memory approval requires a source commit");
+  const defaultReview = new Date();
+  defaultReview.setUTCDate(defaultReview.getUTCDate() + 90);
+  const reviewDate = options.reviewDate ?? defaultReview.toISOString().slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(reviewDate ?? "") || new Date(reviewDate) <= new Date(new Date().toISOString().slice(0, 10))) {
+    throw new Error("memory approval requires a future review date");
+  }
   const approved = {
     ...proposed,
     status: "approved",
     approver: options.approver,
-    review_date: options.reviewDate ?? new Date().toISOString().slice(0, 10),
+    review_date: reviewDate,
     approved_at: new Date().toISOString()
   };
   appendJsonl(file, approved);
@@ -469,15 +526,19 @@ export function approveMemory(options) {
 }
 
 export function queryMemory(options) {
-  const file = memoryPath(rootFor(options.target));
-  if (!fs.existsSync(file)) return [];
-  const latest = new Map();
-  for (const entry of fs.readFileSync(file, "utf8").trim().split("\n").filter(Boolean).map(JSON.parse)) latest.set(entry.id, entry);
-  return [...latest.values()].filter((entry) =>
-    entry.status === "approved"
-    && (!options.scope || entry.scope === options.scope)
-    && (!options.query || `${entry.title}\n${entry.content}`.toLowerCase().includes(options.query.toLowerCase()))
-  );
+  return queryEligibleMemory(options);
+}
+
+export function revokeMemory(options) {
+  return transitionMemory({ ...options, action: "revoke" });
+}
+
+export function supersedeMemory(options) {
+  return transitionMemory({ ...options, action: "supersede" });
+}
+
+export function inspectMemoryHealth(options) {
+  return memoryHealth(options);
 }
 
 export function scoreTask(options) {

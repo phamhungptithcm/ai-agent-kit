@@ -161,6 +161,7 @@ test("bootstrap creates local AI-agent files without staging, branch, commit, pu
   assert.ok(fs.existsSync(path.join(root, ".ai", "quality-profiles", "human-writing.yaml")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "rules", "marketing-integrity.md")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "quality-profiles", "marketing-growth.yaml")));
+  assert.ok(fs.existsSync(path.join(root, ".ai", "quality-profiles", "system-design.yaml")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "templates", "seo-geo-review.md")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "templates", "design-brief.md")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "templates", "design-direction.md")));
@@ -203,6 +204,7 @@ test("bootstrap creates local AI-agent files without staging, branch, commit, pu
   assert.ok(fs.existsSync(path.join(root, ".agents", "skills", "repository-intelligence", "SKILL.md")));
   assert.ok(fs.existsSync(path.join(root, ".agents", "skills", "code-quality-review", "SKILL.md")));
   assert.ok(fs.existsSync(path.join(root, ".agents", "skills", "architecture-review", "SKILL.md")));
+  assert.ok(fs.existsSync(path.join(root, ".agents", "skills", "design-scalable-systems", "SKILL.md")));
   assert.ok(fs.existsSync(path.join(root, ".agents", "skills", "release-readiness", "SKILL.md")));
   assert.ok(fs.existsSync(path.join(root, ".agents", "skills", "security-review", "SKILL.md")));
   assert.ok(fs.existsSync(path.join(root, ".codex", "agents", "solution-architect.toml")));

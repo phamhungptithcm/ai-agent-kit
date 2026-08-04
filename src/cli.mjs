@@ -34,9 +34,13 @@ import {
   inspectTask,
   proposeMemory,
   queryMemory,
+  revokeMemory,
+  supersedeMemory,
+  inspectMemoryHealth,
   recordActionVerification,
   revisePlan,
   scoreTask,
+  simulateAction,
   transitionTask,
   verifyEvidence
 } from "./governed-runtime.mjs";
@@ -51,6 +55,33 @@ import { compareEvalResults, gateEvalResults, replayEvalFixture } from "./eval-h
 import { compareReviewQuality, scoreReviewQuality } from "./review-quality.mjs";
 import { assertPrEvidenceScope, buildPrEvidencePackage, renderPrEvidenceMarkdown } from "./pr-evidence.mjs";
 import { recordFinalReview } from "./final-review.mjs";
+import { generatePolicyKey, initializePolicyBundle, loadRepositoryPolicyOverlays, signPolicyFile, verifyPolicyFile } from "./policy-overlays.mjs";
+import { compareOutcomes, recordOutcome, summarizeOutcomes } from "./outcome-analytics.mjs";
+import { buildProofReplay, demoProof, writeProofArtifacts } from "./proof-replay.mjs";
+import { planFailureLab, runFailureLab, writeFailureReport } from "./failure-lab.mjs";
+import { generatePassportKey, issueChangePassport, verifyChangePassport } from "./change-passport.mjs";
+import {
+  buildArchitectureArtifact,
+  buildBenchmarkPlan,
+  buildQuickArchitectureRequest,
+  calculateSystemDesignModel,
+  diffArchitectureArtifacts,
+  evaluateSystemDesignFixture,
+  importBenchmarkResult,
+  inspectArchitectureWorkspace,
+  lookupArchitecturePricing,
+  applyPricingSnapshot,
+  readSystemDesignJson,
+  validateSystemDesignRequest,
+  verifyArchitectureArtifact,
+  writeArchitecturePack,
+  writeArchitectureRequest
+} from "./system-design.mjs";
+import fs from "node:fs";
+import path from "node:path";
+import { spawnSync } from "node:child_process";
+import { evaluateTeamCases, inspectTeam, planTeam, recordTeamResult, reportTeam, startTeam } from "./team-orchestrator.mjs";
+import { claimTeamWork, decideTeamConflict, publishTeamHandoff, recordTeamConflict, teamContextSummary } from "./team-context.mjs";
 
 const FORBIDDEN_BOOTSTRAP_OPTIONS = new Set(["--commit", "--push", "--create-mr", "--git-mode"]);
 const SUPPORTED_PRESETS = new Set(["governed", "full"]);
@@ -76,6 +107,33 @@ Usage:
   ai-agent-kit eval review-score|review-baseline --fixture <file>
   ai-agent-kit eval review-compare --baseline <file> --candidate <file>
   ai-agent-kit evidence pr-package --id <task-id> [--base-ref <ref>] [--format json|markdown]
+  ai-agent-kit policy init|keygen|sign|verify|resolve|diff|simulate [options]
+  ai-agent-kit failure plan|run --manifest <file> [--output <file>] [--apply]
+  ai-agent-kit passport keygen|issue|verify [options]
+  ai-agent-kit proof --id <task-id> [--output <directory>] [--otlp]
+  ai-agent-kit demo [--output <directory>] [--otlp]
+  ai-agent-kit analytics record --id <task-id> --event <file> [--target <path>]
+  ai-agent-kit analytics summary [--target <path>]
+  ai-agent-kit analytics compare --baseline <file> --current <file>
+  ai-agent-kit architecture quick|start --goal <description> [constraint options]
+  ai-agent-kit architecture status
+  ai-agent-kit architecture validate|model|benchmark-plan --file <request.json>
+  ai-agent-kit architecture benchmark-import --file <result.json> --request <request.json>
+  ai-agent-kit architecture pricing --provider <name> --region <id> --service <id> [--refresh]
+  ai-agent-kit architecture build --file <design.json> [--output <directory>]
+  ai-agent-kit architecture verify --file <architecture.json>
+  ai-agent-kit architecture diff --before <architecture.json> --after <architecture.json>
+  ai-agent-kit architecture eval --fixture <fixture.json>
+  ai-agent-kit team plan --id <task-id> [--shape <type>] [--path <scope>]
+  ai-agent-kit team start --id <task-id> --adapter codex|claude|other
+  ai-agent-kit team status|report --id <task-id>
+  ai-agent-kit team context --id <task-id>
+  ai-agent-kit team claim --id <task-id> --assignment <id> --agent <id> --expected-revision <n>
+  ai-agent-kit team handoff --id <task-id> --claim <id> --agent <id> --expected-revision <n> --file <handoff.json>
+  ai-agent-kit team conflict --id <task-id> --handoff-hash <sha256> --handoff-hash <sha256> --summary <text> --expected-revision <n>
+  ai-agent-kit team decide --id <task-id> --conflict <id> --selected-handoff <sha256> --reason <text> --decided-by <id> --expected-revision <n>
+  ai-agent-kit team record --id <task-id> --assignment <id> --status <status> --tokens <n> --actions <n> --duration-seconds <n> --handoff-hash <sha256> [--evidence-hash <sha256>]
+  ai-agent-kit team eval --fixture <file>
   ai-agent-kit runtime task create|status|transition|report [options]
   ai-agent-kit runtime criterion record [options]
   ai-agent-kit runtime check record [options]
@@ -87,7 +145,7 @@ Usage:
   ai-agent-kit runtime mcp inspect|start|authorize [options]
   ai-agent-kit runtime policy evaluate [options]
   ai-agent-kit runtime evidence verify|export [options]
-  ai-agent-kit runtime memory propose|approve|query [options]
+  ai-agent-kit runtime memory propose|approve|query|revoke|supersede|health [options]
   ai-agent-kit runtime eval score [options]
 
 Options:
@@ -123,7 +181,8 @@ Governed runtime:
 Prompt names:
   start-task, plan-change, implement-approved, fix-bug,
   code-quality-review, review-pr, investigate-incident,
-  prepare-handoff
+  prepare-handoff, build-seo-geo-website, design-website,
+  animate-interface, design-system
 
 Safety:
   bootstrap is local only. It never stages, commits, pushes, creates branches,
@@ -190,7 +249,7 @@ export function parseRuntimeArgs(argv) {
     "--batch", "--requests", "--input-tokens", "--cached-input-tokens",
     "--cache-read-input-tokens", "--cache-write-input-tokens",
     "--cache-write-5m-input-tokens", "--cache-write-1h-input-tokens",
-    "--output-tokens", "--reasoning-tokens", "--file"
+    "--output-tokens", "--reasoning-tokens", "--file", "--reason", "--replacement-id", "--limit", "--trust-tier"
   ]);
   for (let index = 2; index < argv.length; index += 1) {
     const flag = argv[index];
@@ -223,7 +282,7 @@ export function parseRuntimeArgs(argv) {
   if (!["task", "criterion", "check", "review", "usage", "context", "plan", "gateway", "mcp", "policy", "evidence", "memory", "eval"].includes(area)) {
     throw new Error("runtime area must be task, criterion, check, review, usage, context, plan, gateway, mcp, policy, evidence, memory, or eval");
   }
-  if (!((area === "memory" && action === "query") || (area === "mcp" && action === "inspect")) && !options.id) {
+  if (!((area === "memory" && ["approve", "query", "revoke", "supersede", "health"].includes(action)) || (area === "mcp" && action === "inspect")) && !options.id) {
     throw new Error("runtime command requires --id");
   }
   if (options.format && !["text", "compact", "json"].includes(options.format)) {
@@ -291,6 +350,9 @@ function runRuntime(argv, deps = {}) {
   if (area === "memory" && action === "propose") return proposeMemory(options);
   if (area === "memory" && action === "approve") return approveMemory(options);
   if (area === "memory" && action === "query") return queryMemory(options);
+  if (area === "memory" && action === "revoke") return revokeMemory(options);
+  if (area === "memory" && action === "supersede") return supersedeMemory(options);
+  if (area === "memory" && action === "health") return inspectMemoryHealth(options);
   if (area === "eval" && action === "score") return scoreTask(options);
   throw new Error(`Unknown runtime command: ${area} ${action ?? ""}`.trim());
 }
@@ -369,6 +431,154 @@ export function parseContextArgs(argv) {
   }
   if (!options.id) throw new Error("context command requires --id");
   return { action, options };
+}
+
+export function parsePolicyArgs(argv) {
+  const action = argv[0];
+  if (!new Set(["init", "keygen", "sign", "verify", "resolve", "diff", "simulate"]).has(action)) throw new Error("policy requires init, keygen, sign, verify, resolve, diff, or simulate");
+  const options = { target: process.cwd() };
+  for (let index = 1; index < argv.length; index += 1) {
+    const flag = argv[index];
+    if (flag === "--apply") { options.apply = true; continue; }
+    if (!new Set(["--target", "--task-bundle", "--layer", "--id", "--version", "--compatibility", "--output", "--key-id", "--bundle", "--private-key", "--tool", "--path", "--domain", "--command"]).has(flag)) throw new Error(`Unknown policy option: ${flag}`);
+    const value = argv[++index];
+    if (!value) throw new Error(`${flag} requires a value`);
+    options[flag.slice(2).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase())] = value;
+  }
+  return { action, options };
+}
+
+export function parseFailureArgs(argv) {
+  const action = argv[0];
+  if (!new Set(["plan", "run"]).has(action)) throw new Error("failure requires plan or run");
+  const options = { target: process.cwd(), apply: false };
+  for (let index = 1; index < argv.length; index += 1) {
+    const flag = argv[index];
+    if (flag === "--apply") { options.apply = true; continue; }
+    if (!new Set(["--target", "--manifest", "--output", "--timeout-ms"]).has(flag)) throw new Error(`Unknown failure option: ${flag}`);
+    const value = argv[++index];
+    if (!value) throw new Error(`${flag} requires a value`);
+    options[flag.slice(2).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase())] = flag === "--timeout-ms" ? Number(value) : value;
+  }
+  if (!options.manifest) throw new Error("failure command requires --manifest");
+  if (action === "plan" && options.apply) throw new Error("failure plan is read-only");
+  if (options.timeoutMs !== undefined && (!Number.isInteger(options.timeoutMs) || options.timeoutMs < 100 || options.timeoutMs > 600000)) throw new Error("failure timeout must be 100-600000ms");
+  return { action, options };
+}
+
+export function parsePassportArgs(argv) {
+  const action = argv[0];
+  if (!new Set(["keygen", "issue", "verify"]).has(action)) throw new Error("passport requires keygen, issue, or verify");
+  const options = { target: process.cwd(), apply: false };
+  for (let index = 1; index < argv.length; index += 1) {
+    const flag = argv[index];
+    if (flag === "--apply") { options.apply = true; continue; }
+    if (!new Set(["--target", "--id", "--key-id", "--private-key", "--failure-report", "--output", "--file"]).has(flag)) throw new Error(`Unknown passport option: ${flag}`);
+    const value = argv[++index];
+    if (!value) throw new Error(`${flag} requires a value`);
+    options[flag.slice(2).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase())] = value;
+  }
+  if (action === "keygen" && !options.keyId) throw new Error("passport keygen requires --key-id");
+  if (action === "issue" && (!options.id || !options.keyId || !options.privateKey)) throw new Error("passport issue requires --id, --key-id, and --private-key");
+  if (action === "verify" && !options.file) throw new Error("passport verify requires --file");
+  return { action, options };
+}
+
+export function parseProofArgs(argv, { demo = false } = {}) {
+  const options = { target: process.cwd(), otlp: false };
+  for (let index = 0; index < argv.length; index += 1) {
+    const flag = argv[index];
+    if (flag === "--otlp") { options.otlp = true; continue; }
+    if (!new Set(["--target", "--id", "--output"]).has(flag)) throw new Error(`Unknown proof option: ${flag}`);
+    const value = argv[++index];
+    if (!value) throw new Error(`${flag} requires a value`);
+    options[flag.slice(2)] = value;
+  }
+  if (!demo && !options.id) throw new Error("proof requires --id");
+  return options;
+}
+
+export function parseAnalyticsArgs(argv) {
+  const action = argv[0];
+  if (!new Set(["record", "summary", "compare"]).has(action)) throw new Error("analytics requires record, summary, or compare");
+  const options = { target: process.cwd() };
+  for (let index = 1; index < argv.length; index += 1) {
+    const flag = argv[index];
+    if (!new Set(["--target", "--id", "--event", "--baseline", "--current"]).has(flag)) throw new Error(`Unknown analytics option: ${flag}`);
+    const value = argv[++index];
+    if (!value) throw new Error(`${flag} requires a value`);
+    options[flag.slice(2).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase())] = value;
+  }
+  if (action === "record" && (!options.id || !options.event)) throw new Error("analytics record requires --id and --event");
+  if (action === "compare" && (!options.baseline || !options.current)) throw new Error("analytics compare requires --baseline and --current");
+  return { action, options };
+}
+
+export function parseArchitectureArgs(argv) {
+  const action = argv[0];
+  const actions = new Set(["quick", "start", "status", "validate", "model", "pricing", "benchmark-plan", "benchmark-import", "build", "verify", "diff", "eval"]);
+  if (!actions.has(action)) throw new Error(`architecture requires one of: ${[...actions].join(", ")}`);
+  const options = { target: process.cwd(), refresh: false };
+  const valueFlags = new Set(["--target", "--file", "--request", "--output", "--before", "--after", "--fixture", "--goal", "--id", "--stage", "--provider", "--region", "--service", "--sku", "--currency", "--api-key-env", "--pricing-snapshot", "--pricing-item", "--monthly-quantity", "--timeout-ms", "--ttl-hours", "--tested-safe-rps", "--headroom-factor", "--zone-reserve-factor", "--retention-days", "--average-rps", "--peak-rps", "--concurrent-users", "--open-connections", "--service-time-ms", "--latency-ms", "--availability", "--budget"]);
+  for (let index = 1; index < argv.length; index += 1) {
+    const flag = argv[index];
+    if (flag === "--refresh") { options.refresh = true; continue; }
+    if (!valueFlags.has(flag)) throw new Error(`Unknown architecture option: ${flag}`);
+    const value = argv[++index];
+    if (!value) throw new Error(`${flag} requires a value`);
+    const key = flag.slice(2).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
+    options[key] = value;
+  }
+  const required = { quick: ["goal"], start: ["goal"], status: [], validate: ["file"], model: ["file"], pricing: ["provider", "region", "service"], "benchmark-plan": ["file"], "benchmark-import": ["file", "request"], build: ["file"], verify: ["file"], diff: ["before", "after"], eval: ["fixture"] }[action];
+  for (const key of required) if (!options[key]) throw new Error(`architecture ${action} requires --${key}`);
+  for (const key of ["pricingItem", "monthlyQuantity", "timeoutMs", "ttlHours", "testedSafeRps", "headroomFactor", "zoneReserveFactor", "retentionDays", "averageRps", "peakRps", "concurrentUsers", "openConnections", "serviceTimeMs", "latencyMs", "availability", "budget"]) if (options[key] != null) { const value = Number(options[key]); if (!Number.isFinite(value) || value < 0) throw new Error(`--${key.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)} must be a finite non-negative number`); options[key] = value; }
+  if (options.apiKeyEnv && !/^[A-Z_][A-Z0-9_]{0,127}$/.test(options.apiKeyEnv)) throw new Error("--api-key-env must name a safe uppercase environment variable");
+  return { action, options };
+}
+
+export function parseTeamArgs(argv) {
+  const action = argv[0];
+  if (!new Set(["plan", "start", "status", "context", "claim", "handoff", "conflict", "decide", "record", "report", "eval"]).has(action)) throw new Error("team action is invalid");
+  const options = { target: process.cwd(), paths: [], handoffHashes: [] };
+  const flags = new Set(["--id", "--target", "--fixture", "--file", "--goal", "--shape", "--risk", "--adapter", "--assignment", "--agent", "--claim", "--conflict", "--selected-handoff", "--reason", "--decided-by", "--summary", "--expected-revision", "--lease-seconds", "--status", "--evidence-hash", "--handoff-hash", "--finding-count", "--tokens", "--actions", "--duration-seconds", "--max-agents", "--token-budget", "--timeout-seconds", "--max-actions", "--path"]);
+  for (let index = 1; index < argv.length; index += 1) {
+    const flag = argv[index]; if (!flags.has(flag)) throw new Error(`Unknown team option: ${flag}`);
+    const value = argv[++index]; if (!value) throw new Error(`${flag} requires a value`);
+    if (flag === "--path") options.paths.push(value);
+    else if (flag === "--handoff-hash" && action === "conflict") options.handoffHashes.push(value);
+    else options[flag.slice(2).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase())] = value;
+  }
+  if (action === "eval" && !options.fixture) throw new Error("team eval requires --fixture");
+  if (action !== "eval" && !options.id) throw new Error(`team ${action} requires --id`);
+  if (action === "start" && !options.adapter) throw new Error("team start requires --adapter");
+  if (action === "claim" && (!options.assignment || !options.agent || options.expectedRevision == null)) throw new Error("team claim requires --assignment, --agent, and --expected-revision");
+  if (action === "handoff" && (!options.claim || !options.agent || !options.file || options.expectedRevision == null)) throw new Error("team handoff requires --claim, --agent, --file, and --expected-revision");
+  if (action === "conflict" && (options.handoffHashes.length < 2 || !options.summary || options.expectedRevision == null)) throw new Error("team conflict requires two --handoff-hash values, --summary, and --expected-revision");
+  if (action === "decide" && (!options.conflict || !options.selectedHandoff || !options.reason || !options.decidedBy || options.expectedRevision == null)) throw new Error("team decide requires --conflict, --selected-handoff, --reason, --decided-by, and --expected-revision");
+  if (action === "record" && (!options.assignment || !options.status || options.tokens == null || options.actions == null || options.durationSeconds == null || (options.status !== "TIMED_OUT" && !options.handoffHash))) throw new Error("team record requires assignment, status, usage, and a handoff hash unless timed out");
+  for (const key of ["expectedRevision", "leaseSeconds", "findingCount", "tokens", "actions", "durationSeconds", "maxAgents", "tokenBudget", "timeoutSeconds", "maxActions"]) if (options[key] != null) { const value = Number(options[key]); if (!Number.isInteger(value) || value < 0) throw new Error(`${key} must be a non-negative integer`); options[key] = value; }
+  return { action, options };
+}
+
+function currentCommit(target, deps = {}) {
+  const result = (deps.spawnSync ?? spawnSync)("git", ["rev-parse", "HEAD"], { cwd: target, encoding: "utf8", timeout: 30000 });
+  return result.status === 0 ? result.stdout.trim() : null;
+}
+
+async function runArchitecture(action, options, deps = {}) {
+  const root = path.resolve(options.target);
+  const read = (file, label) => readSystemDesignJson(root, file, label);
+  if (["quick", "start"].includes(action)) { const result = buildQuickArchitectureRequest(options); return action === "start" ? writeArchitectureRequest({ result, target: root, output: options.output }) : result; }
+  if (action === "status") return inspectArchitectureWorkspace({ target: root, repositoryCommit: currentCommit(root, deps) });
+  if (action === "validate") return validateSystemDesignRequest(read(options.file, "system-design request"));
+  if (action === "model") { let request = read(options.file, "system-design request"); if (options.pricingSnapshot) request = applyPricingSnapshot(request, read(options.pricingSnapshot, "pricing snapshot"), { itemIndex: options.pricingItem ?? 0, monthlyQuantity: options.monthlyQuantity }); return calculateSystemDesignModel(request, { tested_safe_rps_per_replica: options.testedSafeRps, headroom_factor: options.headroomFactor, zone_failure_reserve_factor: options.zoneReserveFactor, retention_days: options.retentionDays }); }
+  if (action === "pricing") return lookupArchitecturePricing({ ...options, apiKey: options.apiKeyEnv ? process.env[options.apiKeyEnv] : undefined }, deps);
+  if (action === "benchmark-plan") return buildBenchmarkPlan(read(options.file, "system-design request"));
+  if (action === "benchmark-import") return importBenchmarkResult(read(options.file, "benchmark result"), read(options.request, "system-design request"));
+  if (action === "build") { const artifact = buildArchitectureArtifact(read(options.file, "architecture design"), { repositoryCommit: currentCommit(root, deps) }); return writeArchitecturePack({ artifact, target: root, output: options.output }); }
+  if (action === "verify") return verifyArchitectureArtifact(read(options.file, "architecture artifact"), { repositoryCommit: currentCommit(root, deps) });
+  if (action === "diff") return diffArchitectureArtifacts(read(options.before, "before architecture"), read(options.after, "after architecture"));
+  return evaluateSystemDesignFixture(read(options.fixture, "system-design fixture"));
 }
 
 export function parseBootstrapArgs(argv) {
@@ -524,6 +734,61 @@ export async function main(argv = process.argv.slice(2), io = console, deps = {}
     const pkg = assertPrEvidenceScope(buildPrEvidencePackage(options, deps));
     io.log(options.format === "json" ? JSON.stringify(pkg, null, 2) : renderPrEvidenceMarkdown(pkg));
     return 0;
+  }
+  if (command === "policy") {
+    const { action, options } = parsePolicyArgs(argv.slice(1));
+    const result = action === "simulate" ? simulateAction(options)
+      : action === "init" ? initializePolicyBundle(options)
+      : action === "keygen" ? generatePolicyKey(options)
+        : action === "sign" ? signPolicyFile(options)
+          : action === "verify" ? verifyPolicyFile({ ...options, kitVersion: getPackageVersion() })
+            : loadRepositoryPolicyOverlays({ ...options, kitVersion: getPackageVersion() });
+    io.log(JSON.stringify(result, null, 2));
+    return 0;
+  }
+  if (command === "failure") {
+    const { action, options } = parseFailureArgs(argv.slice(1));
+    const result = action === "plan" ? planFailureLab(options) : runFailureLab(options, deps);
+    io.log(JSON.stringify(action === "run" && options.output ? writeFailureReport({ report: result, ...options }) : result, null, 2));
+    return result.status === "FAILED" ? 1 : 0;
+  }
+  if (command === "passport") {
+    const { action, options } = parsePassportArgs(argv.slice(1));
+    const result = action === "keygen" ? generatePassportKey(options) : action === "issue" ? issueChangePassport(options, deps) : verifyChangePassport(options);
+    io.log(JSON.stringify(result, null, 2));
+    return result.status === "REJECTED" || result.status === "VALID_UNTRUSTED" || result.status === "STALE" ? 1 : 0;
+  }
+  if (command === "proof") {
+    const options = parseProofArgs(argv.slice(1));
+    io.log(JSON.stringify(writeProofArtifacts({ ...options, proof: buildProofReplay(options, deps) }), null, 2));
+    return 0;
+  }
+  if (command === "demo") {
+    const options = parseProofArgs(argv.slice(1), { demo: true });
+    io.log(JSON.stringify(writeProofArtifacts({ ...options, proof: demoProof(), output: options.output ?? ".ai-agent-kit/demo" }), null, 2));
+    return 0;
+  }
+  if (command === "analytics") {
+    const { action, options } = parseAnalyticsArgs(argv.slice(1));
+    const result = action === "record"
+      ? recordOutcome({ target: options.target, taskId: options.id, event: JSON.parse(fs.readFileSync(options.event, "utf8")) })
+      : action === "summary"
+        ? summarizeOutcomes(options)
+        : compareOutcomes({ baseline: JSON.parse(fs.readFileSync(options.baseline, "utf8")), current: JSON.parse(fs.readFileSync(options.current, "utf8")) });
+    io.log(JSON.stringify(result, null, 2));
+    return 0;
+  }
+  if (command === "architecture") {
+    const { action, options } = parseArchitectureArgs(argv.slice(1));
+    const result = await runArchitecture(action, options, deps);
+    io.log(JSON.stringify(result, null, 2));
+    return ["FAILED", "REJECTED", "STALE", "CONSTRAINTS_CONFLICT"].includes(result.status) ? 1 : 0;
+  }
+  if (command === "team") {
+    const { action, options } = parseTeamArgs(argv.slice(1));
+    const result = action === "plan" ? planTeam(options) : action === "start" ? startTeam(options) : action === "status" ? inspectTeam(options) : action === "context" ? teamContextSummary(options) : action === "claim" ? claimTeamWork(options) : action === "handoff" ? publishTeamHandoff({ ...options, payload: readSystemDesignJson(options.target, options.file, "team handoff") }) : action === "conflict" ? recordTeamConflict(options) : action === "decide" ? decideTeamConflict(options) : action === "record" ? recordTeamResult(options) : action === "eval" ? evaluateTeamCases(readSystemDesignJson(options.target, options.fixture, "team eval fixture")) : reportTeam(options);
+    io.log(JSON.stringify(result, null, 2));
+    return ["NOT_READY", "FAILED"].includes(result.status) || result.state === "BLOCKED" ? 1 : 0;
   }
   if (command === "status") {
     const options = parseTargetArgs(argv.slice(1));

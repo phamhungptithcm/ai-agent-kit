@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hunpeolabs.com/schemas/ai-agent-kit/proof-replay-v1.json",
+  "type": "object",
+  "required": ["schema_version", "generated_at", "privacy", "task", "readiness", "timeline", "policy", "quality", "memory", "evidence", "proof_hash"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "privacy": { "type": "object" },
+    "task": { "type": "object" },
+    "readiness": { "type": "object", "required": ["status", "blockers"], "properties": { "status": { "enum": ["READY", "NOT_READY"] }, "blockers": { "type": "array", "items": { "type": "string" } } } },
+    "timeline": { "type": "array", "minItems": 8, "maxItems": 8 },
+    "policy": { "type": "object" },
+    "quality": { "type": "object" },
+    "memory": { "type": "object" },
+    "architecture": { "type": ["object", "null"] },
+    "team": { "type": ["object", "null"] },
+    "evidence": { "type": "object" },
+    "actions": { "type": "array" },
+    "proof_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

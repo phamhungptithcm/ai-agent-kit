@@ -5,6 +5,7 @@ import { spawnSync } from "node:child_process";
 import { hasSymlinkComponent } from "./paths.mjs";
 import { renderUsageSummary, summarizeUsage } from "./usage-ledger.mjs";
 import { inspectFinalReview } from "./final-review.mjs";
+import { inspectTeam, reportTeam } from "./team-orchestrator.mjs";
 
 const TASK_STATES = ["DISCOVER", "ANALYZE", "PLAN_READY", "APPROVED", "IMPLEMENTING", "VERIFYING", "REVIEW_READY", "RELEASED"];
 const NEXT_STATE = new Map(TASK_STATES.slice(0, -1).map((state, index) => [state, TASK_STATES[index + 1]]));
@@ -356,7 +357,7 @@ function qualityReport(root, task, commit, requiredGates) {
   return { gates, counts, known_issues: knownIssues };
 }
 
-function productionReadiness(task, progress, evidence, git, quality, finalReview, productionTarget) {
+function productionReadiness(task, progress, evidence, git, quality, finalReview, team, productionTarget) {
   if (!productionTarget) {
     return { status: "NOT_APPLICABLE", blockers: [], rationale: "Task is not a production target." };
   }
@@ -370,6 +371,7 @@ function productionReadiness(task, progress, evidence, git, quality, finalReview
   }
   if (git.status !== "CLEAN") blockers.push(`Git worktree is ${git.status}.`);
   if (finalReview.status !== "PASSED") blockers.push(`Final implementation review is ${finalReview.status}.`);
+  if (team && team.status !== "READY") blockers.push(`Agent workcell is ${team.status}; the latest independent review must complete cleanly.`);
   for (const gate of quality.gates.filter((candidate) => candidate.required)) {
     if (!["PASSED", "NOT_APPLICABLE"].includes(gate.status)) {
       blockers.push(`Required quality gate ${gate.gate} is ${gate.status}.`);
@@ -414,7 +416,9 @@ export function buildFinalTaskReport(options, deps = {}) {
       ? "NONE_FOUND_WITHIN_EXECUTED_CHECKS"
       : "UNKNOWN_NO_PASSED_CHECKS";
   const productionTarget = booleanValue(options.productionTarget, "production target", true);
-  const readiness = productionReadiness(task, progress, evidence, git, quality, finalReview, productionTarget);
+  let team = null;
+  try { const contract = inspectTeam({ target: root, id: task.id }); team = { ...reportTeam({ target: root, id: task.id }), state: contract.state }; } catch (error) { if (!/team contract is missing/.test(error.message)) team = { status: "REJECTED", blocker: error.message }; }
+  const readiness = productionReadiness(task, progress, evidence, git, quality, finalReview, team, productionTarget);
   let usage;
   try {
     usage = summarizeUsage(options);
@@ -446,6 +450,7 @@ export function buildFinalTaskReport(options, deps = {}) {
     evidence,
     quality,
     final_review: finalReview,
+    team,
     code_status: {
       git,
       known_issues: quality.known_issues,
@@ -506,6 +511,7 @@ export function renderFinalTaskReport(report, { compact = false } = {}) {
       renderUsageSummary(report.usage, { compact: true }),
       `Completed: ${completed} | Remaining: ${report.progress.remaining.length} | Blockers: ${report.production_readiness.blockers.length}`,
       `Quality: ${qualityPassed} PASSED | Worktree: ${report.code_status.git.status}`,
+      `Team: ${report.team?.team_type ?? "NOT_APPLICABLE"} | ${report.team?.status ?? "NOT_APPLICABLE"} | Context: ${report.team?.context?.status ?? "NOT_APPLICABLE"}`,
       `Final review: ${report.final_review.status} | Cycles: ${report.final_review.cycle_count ?? 0} | Findings: ${report.final_review.finding_history?.length ?? report.final_review.findings?.length ?? 0}`
     ].join("\n");
   }
@@ -530,6 +536,15 @@ ${renderQuality(report.quality)}
 
 Final Implementation Review
 ${renderFinalReview(report.final_review)}
+
+Engineering Team
+  Type: ${report.team?.team_type ?? "NOT_APPLICABLE"}
+  Execution: ${report.team?.execution_mode ?? "NOT_APPLICABLE"}
+  Status: ${report.team?.status ?? "NOT_APPLICABLE"}
+  Review independence: ${report.team?.review_independence ?? "NOT_APPLICABLE"}
+  Shared context: ${report.team?.context?.status ?? "NOT_APPLICABLE"}
+  Handoffs: ${report.team?.context?.handoff_count ?? 0}
+  Open conflicts: ${report.team?.context?.open_conflicts ?? 0}
 
 Code Status
   ${renderGit(report.code_status.git)}

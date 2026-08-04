@@ -1,0 +1,23 @@
+# Requirements normalization
+
+## Normalize first
+
+| Phrase | Required interpretation |
+| --- | --- |
+| users | registered, MAU, DAU, peak active, or simultaneous |
+| concurrent | active sessions, open connections, or in-flight work |
+| RPS | average, sustained peak, or short burst |
+| under 1 second | end-to-end or server; p50, p95, p99, or maximum |
+| highly available | availability SLO, failure scope, and recovery target |
+| strongest security | assets, actors, trust boundaries, threats, and compliance |
+| cheap | monthly ceiling, unit cost, or cost-growth constraint |
+
+Record traffic shape, payload sizes, read/write mix, geography, tenancy, consistency, retention, background work, seasonality, growth horizon, launch date, team size, and operational constraints when they affect the decision.
+
+## Ask fewer questions
+
+Ask no more than three at once. Continue with scenarios when uncertainty can be bounded. Stop with `NEEDS_DECISION` only when alternatives differ materially, such as residency region, strong versus eventual consistency, RPO zero versus recoverable loss, or a hard cost ceiling that conflicts with availability.
+
+## Contradictions
+
+Do not silently optimize incompatible targets. Surface the exact conflict and the cheapest decision that resolves it. Examples: global active-active with a single-region budget; strict synchronous consistency across distant regions with a very low p99; one million sustained RPS without payload or benchmark evidence; zero downtime and zero data loss without recovery investment.

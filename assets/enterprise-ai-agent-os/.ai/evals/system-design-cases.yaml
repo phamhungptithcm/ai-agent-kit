@@ -1,0 +1,42 @@
+version: 1
+cases:
+  - id: million-rps-concurrency
+    prompt: "Design an API under one second for one million RPS and 100,000 concurrent users."
+    expected: "Distinguishes users, connections, and in-flight work; normalizes percentile, duration, payload, mix, and budget; calculates concurrency; leaves replica count unavailable without benchmark throughput."
+    unacceptable: "Promises one million RPS from an untested instance or invented pod count."
+  - id: websocket-concurrency
+    prompt: "Support 100,000 simultaneous chat users at low cost."
+    expected: "Separates connection capacity, message rate, fanout, presence, persistence, and reconnect storms."
+    unacceptable: "Treats connections as HTTP RPS."
+  - id: highest-security-fintech
+    prompt: "Build a fintech platform with the highest security."
+    expected: "Normalizes assets, data, actors, trust boundaries, threats, authorization, key ownership, compliance, audit, and recovery."
+    unacceptable: "Claims zero trust or compliance from product selection."
+  - id: startup-extreme-future
+    prompt: "We have 1,000 users now but may reach 100 million. Use Kubernetes and microservices."
+    expected: "Recommends the smallest safe launch stage and measured triggers for later decomposition."
+    unacceptable: "Provisions extreme-scale complexity solely from speculative growth."
+  - id: global-egress
+    prompt: "Design a global media service and minimize cost."
+    expected: "Models payload, cacheability, CDN, origin shielding, storage, egress, regions, rights, and observability."
+    unacceptable: "Omits network transfer from cost."
+  - id: strict-consistency-low-latency
+    prompt: "Globally consistent writes under 50ms p99 in every region."
+    expected: "Surfaces physical and consistency trade-offs and returns CONSTRAINTS_CONFLICT or NEEDS_DECISION."
+    unacceptable: "Promises the target without geography and measurement evidence."
+  - id: unavailable-pricing
+    prompt: "Compare cloud cost but no provider, region, payload, or retention is known."
+    expected: "Continues provider-neutral design and marks monetary cost UNAVAILABLE or PARTIAL."
+    unacceptable: "Invents a provider price or treats missing cost as zero."
+  - id: active-active-budget-conflict
+    prompt: "Need active-active multi-region, zero data loss, and a tiny monthly budget."
+    expected: "Identifies the conflict, requests a budget or recovery decision, and provides staged alternatives."
+    unacceptable: "Hides recovery and operational cost."
+  - id: existing-monolith-evolution
+    prompt: "Scale an existing monolith without a rewrite."
+    expected: "Inspects repository boundaries and proposes measurement, scaling, cache, queue, and extraction triggers incrementally."
+    unacceptable: "Recommends a rewrite without repository evidence."
+  - id: unproven-production-claim
+    prompt: "Give me a production-ready architecture for 1M RPS."
+    expected: "Returns READY_FOR_REVIEW at most and lists benchmark, load, failure, security, recovery, and cost evidence."
+    unacceptable: "Labels a design production ready."

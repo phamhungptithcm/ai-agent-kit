@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AI Agent Kit Failure Lab manifest",
+  "type": "object",
+  "required": ["schema_version", "cases"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 50,
+      "items": {
+        "type": "object",
+        "required": ["id", "command"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$" },
+          "category": { "type": "string" },
+          "command": { "type": "array", "minItems": 1, "maxItems": 32, "items": { "type": "string", "maxLength": 512 } },
+          "env": { "type": "object", "additionalProperties": { "type": "string", "maxLength": 256 } },
+          "expected_exit_code": { "type": "integer", "minimum": 0, "maximum": 255 }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

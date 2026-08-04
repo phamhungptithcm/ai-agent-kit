@@ -1,0 +1,14 @@
+version: 1
+precedence:
+  - kit
+  - organization
+  - team
+  - repository
+  - task
+verification:
+  signature_required: true
+  compatibility_required: true
+  duplicate_layer: block
+  locked_rule_conflict: block
+distribution: git-native-offline
+saas_account_required: false

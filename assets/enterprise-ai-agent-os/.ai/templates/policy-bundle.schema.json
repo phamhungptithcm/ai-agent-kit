@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hunpeolabs.com/schemas/ai-agent-kit/policy-bundle-v1.json",
+  "type": "object",
+  "required": ["schema_version", "id", "layer", "version", "compatibility", "rules", "signer", "signature"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "id": { "type": "string", "minLength": 1 },
+    "layer": { "enum": ["kit", "organization", "team", "repository", "task"] },
+    "version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "compatibility": { "type": "object", "required": ["kit"] },
+    "rules": { "type": "object" },
+    "locks": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+    "deprecated_after": { "type": ["string", "null"], "format": "date-time" },
+    "signer": { "type": "object", "required": ["key_id", "public_key"] },
+    "signature": { "type": "string", "minLength": 1 }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "workload": {
+    "average_rps": null,
+    "peak_rps": 1000000,
+    "average_service_time_ms": 100,
+    "request_bytes": null,
+    "response_bytes": null,
+    "write_rps": null,
+    "stored_bytes_per_write": null,
+    "storage_replication_factor": 1
+  },
+  "capacity": {
+    "tested_safe_rps_per_replica": null,
+    "headroom_factor": 1.25,
+    "minimum_replicas": 3
+  },
+  "cost_items": []
+}

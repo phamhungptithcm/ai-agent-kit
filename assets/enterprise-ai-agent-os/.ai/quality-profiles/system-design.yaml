@@ -1,0 +1,71 @@
+version: 1
+id: system-design
+name: Constraint-Driven System Design Profile
+description: Convert scale, latency, reliability, security, data, cost, and operability requirements into measurable architecture without fabricated capacity or premature complexity.
+applies_when:
+  - "system architecture, high-level design, platform design, service decomposition, or architecture option work"
+  - "RPS, throughput, concurrent users, open connections, latency percentile, availability, RTO, RPO, durability, or global scale requirements"
+  - "cloud selection, capacity planning, cost ceiling, unit economics, database, cache, queue, stream, partition, or consistency decisions"
+  - "security level, sensitive-data boundary, tenant isolation, compliance, threat model, or zero-trust architecture requirements"
+goals:
+  - measurable requirements
+  - smallest safe architecture
+  - evidence-backed capacity
+  - explicit trade-offs
+  - bounded cost
+  - designed failure behavior
+  - staged evolution
+composes_when_relevant:
+  api_contracts: .ai/quality-profiles/api.yaml
+  persistent_data_or_consistency: .ai/quality-profiles/database.yaml
+  parallel_async_or_connection_work: .ai/quality-profiles/concurrency.yaml
+  cloud_or_runtime_resources: .ai/quality-profiles/infrastructure.yaml
+  deployment_or_operations: .ai/quality-profiles/devops.yaml
+required_review:
+  requirements:
+    - "users, connections, in-flight work, average RPS, sustained peak, and burst are not conflated"
+    - "latency includes scope, percentile, success criteria, and measurement window"
+    - "availability, durability, consistency, RTO, and RPO are separate"
+    - "assumptions, unknowns, conflicts, source, unit, and horizon are explicit"
+  capacity:
+    - "capacity arithmetic is reproducible"
+    - "per-replica throughput comes from benchmark evidence or remains unavailable"
+    - "payload, read-write mix, bandwidth, storage growth, headroom, zone loss, and overload are considered"
+    - "quotas are not represented as achieved throughput"
+  architecture:
+    - "one recommendation is selected from no more than three options"
+    - "the recommended design is the smallest safe stage for current evidence"
+    - "boundaries, ownership, request flow, data flow, bottlenecks, and dependencies are clear"
+    - "each later stage has a measurable trigger and migration path"
+  reliability:
+    - "timeouts, retries, idempotency, backpressure, bounded queues, load shedding, isolation, degradation, and recovery are explicit"
+    - "backup restore, failover, rollback limits, observability, alerting, and operational ownership are covered"
+  security:
+    - "assets, actors, data classification, trust boundaries, privileged operations, threats, mitigations, and verification are explicit"
+    - "zero trust, compliance, certification, and highest-security claims are not used without testable requirements"
+  cost:
+    - "compute, data, network, observability, security, recovery, and operational cost drivers are covered"
+    - "prices include provider, SKU, region, currency, unit, effective date, retrieval date, purchase model, and exclusions"
+    - "missing price is unavailable, never zero"
+    - "launch, target, and extreme scenarios do not imply premature provisioning"
+required_output:
+  - recommendation
+  - normalized_requirement_contract
+  - assumptions_conflicts_and_unknowns
+  - architecture_diagram
+  - capacity_and_cost_model
+  - failure_and_security_boundaries
+  - staged_evolution_triggers
+  - validation_plan
+  - open_decisions
+allowed_statuses:
+  - READY_FOR_REVIEW
+  - NEEDS_DECISION
+  - INSUFFICIENT_EVIDENCE
+  - CONSTRAINTS_CONFLICT
+forbidden_claims:
+  - PRODUCTION_READY_FROM_DESIGN_ONLY
+  - UNBENCHMARKED_THROUGHPUT
+  - UNSOURCED_PRICE
+  - ZERO_COST_FOR_MISSING_PRICE
+  - IMPLIED_COMPLIANCE_OR_CERTIFICATION

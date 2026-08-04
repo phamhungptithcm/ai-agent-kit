@@ -1,0 +1,35 @@
+version: 1
+decision: always
+spawn: conditional
+team_types: [SOLO, PRODUCT_WORKCELL, BUG_WORKCELL, ASSURANCE_WORKCELL]
+limits:
+  max_agents: 6
+  max_depth: 1
+  timeout_seconds: 1800
+  token_budget: 60000
+  max_actions: 100
+ownership:
+  maximum_write_owners: 1
+  independent_review_required: true
+  implementer_cannot_review_own_work: true
+shared_context:
+  required: true
+  optimistic_concurrency: true
+  assignment_claim_required: true
+  lease_seconds_default: 900
+  completed_handoff_required: true
+  raw_conversation_allowed: false
+  handoff_trust: UNTRUSTED_DATA
+  secret_like_content: deny
+  evidence_content_hash_required: true
+  production_path_evidence_must_be_current: true
+  unresolved_conflicts_block_readiness: true
+  optional_indexes_block_task: false
+fallback:
+  unsupported_native_subagents: SERIAL_PERSONAS
+  block_task: false
+external_actions:
+  commit: require_explicit_approval
+  push: require_explicit_approval
+  deploy: require_explicit_approval
+  release: require_explicit_approval

@@ -4,6 +4,7 @@ import path from "node:path";
 import { requireGitRoot, getCommit } from "./git.mjs";
 import { createRunner } from "./runner.mjs";
 import { hasSymlinkComponent, normalizeRelPath } from "./paths.mjs";
+import { queryEligibleMemory } from "./memory-lifecycle.mjs";
 
 const MANDATORY_CORE = [
   ".ai/core/instruction-precedence.md",
@@ -59,17 +60,6 @@ function readTask(root, id) {
   const file = path.join(root, ".ai-agent-kit", "runtime", "tasks", `${safeId(id)}.json`);
   if (!fs.existsSync(file)) throw new Error(`task not found: ${id}`);
   return JSON.parse(fs.readFileSync(file, "utf8"));
-}
-
-function approvedMemory(root) {
-  const file = path.join(root, ".ai-agent-kit", "runtime", "memory", "entries.jsonl");
-  if (!fs.existsSync(file)) return [];
-  const latest = new Map();
-  for (const line of fs.readFileSync(file, "utf8").split("\n").filter(Boolean)) {
-    const entry = JSON.parse(line);
-    latest.set(entry.id, entry);
-  }
-  return [...latest.values()].filter((entry) => entry.status === "approved").sort((a, b) => a.id.localeCompare(b.id));
 }
 
 function repositoryIntelligence(root, runner, commit) {
@@ -172,7 +162,7 @@ export function compileContext(options, deps = {}) {
       score: Number.MAX_SAFE_INTEGER
     });
   }
-  for (const memory of approvedMemory(root)) {
+  for (const memory of queryEligibleMemory({ target: root, limit: 10 })) {
     candidates.push({
       path: `memory://${memory.id}`,
       content: `${memory.title}\n${memory.content}`,

@@ -13,7 +13,8 @@ export const PROMPT_NAMES = [
   "prepare-handoff",
   "build-seo-geo-website",
   "design-website",
-  "animate-interface"
+  "animate-interface",
+  "design-system"
 ];
 
 const PROMPT_ALIASES = new Map([
@@ -47,7 +48,10 @@ const PROMPT_ALIASES = new Map([
   ["motion", "animate-interface"],
   ["review-animation", "animate-interface"],
   ["improve-animation", "animate-interface"],
-  ["motion-opportunities", "animate-interface"]
+  ["motion-opportunities", "animate-interface"],
+  ["system-design", "design-system"],
+  ["architecture-design", "design-system"],
+  ["capacity-plan", "design-system"]
 ]);
 
 function promptCatalogPath(scaffoldRoot = SCAFFOLD_ROOT) {

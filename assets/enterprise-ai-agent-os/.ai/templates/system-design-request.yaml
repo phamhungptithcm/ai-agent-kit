@@ -1,0 +1,54 @@
+schema_version: 1
+id: SYSTEM-DESIGN
+goal: ""
+stage: launch
+horizon: ""
+workload:
+  average_rps: null
+  peak_rps: null
+  burst_rps: null
+  burst_duration_seconds: null
+  registered_users: null
+  peak_active_users: null
+  open_connections: null
+  average_service_time_ms: null
+  request_bytes: null
+  response_bytes: null
+  write_rps: null
+  stored_bytes_per_write: null
+  cache_hit_ratio: null
+  retry_rate: null
+  read_write_ratio: null
+  geographies: []
+service_levels:
+  latency_scope: null
+  latency_percentile: null
+  latency_target_ms: null
+  availability_percent: null
+  durability: null
+  rto_minutes: null
+  rpo_minutes: null
+data:
+  classification: null
+  consistency: null
+  residency: []
+  retention_days: null
+security:
+  actors: []
+  compliance: []
+  threat_model_required: null
+cost:
+  provider: null
+  regions: []
+  monthly_ceiling: null
+  currency: USD
+  purchase_model: on_demand
+  items: []
+delivery:
+  launch_date: null
+  team_size: null
+  operational_constraints: []
+facts: []
+assumptions: []
+unknowns: []
+conflicts: []

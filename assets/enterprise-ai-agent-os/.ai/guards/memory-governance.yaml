@@ -1,4 +1,4 @@
-version: 1
+version: 2
 name: memory-governance
 default_retrieval: "approved-only"
 approval_required: true
@@ -9,6 +9,8 @@ blocked_status:
   - "REJECTED"
   - "STALE"
   - "SUPERSEDED"
+  - "REVOKED"
+  - "EXPIRED"
 confidence:
   preferred_minimum: 0.8
   below_minimum_requires_source_reverification: true
@@ -41,6 +43,19 @@ prohibited_content:
 review:
   stale_review_required: true
   cadence: "quarterly"
+  future_review_date_required: true
+source_commit:
+  required_for_approval: true
+  must_be_reachable_from_head: true
+lifecycle:
+  revocation_tombstones: true
+  supersession_replacement_required: true
+  deterministic_retrieval_first: true
+  health_report: true
+trust_tiers:
+  - "verified"
+  - "reviewed"
+  - "provisional"
 roles:
   memory_approver: "Approves, rejects, supersedes, or marks memory stale."
   module_context_owner: "Verifies module-scoped memory against current ownership and source."

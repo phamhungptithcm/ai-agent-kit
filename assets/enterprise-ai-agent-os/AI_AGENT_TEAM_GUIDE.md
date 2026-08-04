@@ -50,7 +50,7 @@ For full repository intelligence, first run `npx --yes @hunpeolabs/ai-agent-kit@
 
 Every repository task starts with the Repository Intelligence Gate. Run `.ai/scripts/check-repository-intelligence.py`. Use CodeGraph and CocoIndex when ready; if either is missing, stale, unhealthy, or cannot be installed, continue in `DEGRADED` mode with bounded native evidence. Attempt recovery once, record the limitation, and do not overstate confidence. Tooling failure alone does not block work.
 
-Use CodeGraph first for structural evidence and impact. Use CocoIndex second for semantic retrieval across code, specs, docs, runbooks, tests, ADRs, and similar implementations. For multi-agent work, the Team Lead Orchestrator creates a shared `.ai/templates/repository-intelligence-brief.md` brief before assigning specialists.
+Use CodeGraph first for structural evidence and impact. Use CocoIndex second for semantic retrieval across code, specs, docs, runbooks, tests, ADRs, and similar implementations. For multi-agent work, the Team Lead Orchestrator creates one repository-intelligence brief, then uses the Team Context Protocol to claim assignments and merge structured handoffs without duplicate work or overlapping writes. Optional index failure is non-blocking.
 
 Use the prompt catalog in `.ai/PROMPTS.md` or the universal task contract in `.ai/prompts/task-contract.md`. At minimum, provide the task, business outcome, scope, constraints, acceptance criteria, and evidence.
 

@@ -1,0 +1,13 @@
+{
+  "completed": true,
+  "verified": true,
+  "scope_violation": false,
+  "review_time_ms": 0,
+  "rework": false,
+  "released": false,
+  "rollback": false,
+  "action_decisions": [],
+  "eval_score": null,
+  "cost_usd": null,
+  "action_count": 0
+}

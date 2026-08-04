@@ -352,3 +352,123 @@ warning.
 The review-quality lane scores labeled findings using explicit denominators,
 sample sizes, confidence intervals, noise penalties, and preserved human label
 disagreement. More comments do not create a higher score by themselves.
+
+## Team operations in v0.8.0
+
+Team policy remains Git-native. Signed bundles are resolved from kit defaults
+through organization, team, repository, and task layers. Compatibility,
+trusted-key authority, duplicate layers, and locked rules fail closed. The
+effective result retains per-rule provenance and a deterministic diff.
+
+Outcome analytics store only allowlisted operational facts in a local ledger.
+Metric definitions include units, denominators, exclusions, and missing-data
+state. Before/after claims remain blocked until both periods have adequate
+evidence; export is disabled by default.
+
+Memory lifecycle 2.0 excludes expired, revoked, stale, superseded, and
+source-unreachable entries before context compilation. Retrieval is scoped and
+deterministic, while the health report exposes lifecycle counts and conflicting
+approved knowledge without returning private memory content.
+
+Agent Proof Replay composes these contracts into a redacted proof model. It
+derives readiness from current task state, policy decisions, quality checks,
+final-review cycles, evidence receipts, and memory health. The same model
+renders standalone offline HTML, a PR card, a trust badge, and an optional
+OpenTelemetry-compatible trace. None of those outputs can grant approval or
+change runtime state.
+
+The zero-config demo uses synthetic evidence and performs no model, network,
+Git, or application-code action. Its purpose is to make the governed loop
+understandable before a team bootstraps the kit into a real repository.
+
+## Change assurance in v0.8.0
+
+Policy Playground evaluates a proposed action against the same task capability
+and policy engine used at execution time, but its read-only path does not
+consume an action, append a receipt, or return an execution token.
+
+Failure Lab accepts a bounded repository-local manifest of argv arrays. It
+never invokes a shell, rejects secret-like injected environment names, requires
+explicit execution approval, and stores output hashes rather than raw command
+output. A passing report includes a hash over the full normalized result.
+
+Change Passport is the final integrity envelope. A repository-trusted Ed25519
+key signs the READY proof hash, repository commit and privacy-minimized worktree
+fingerprint, current review and evidence state, and an optional verified
+Failure Lab report. Verification checks both signature integrity and signer
+trust. Valid signatures from missing or revoked trust entries remain
+`VALID_UNTRUSTED`; tampered passports are `REJECTED`.
+
+## Constraint-driven system design
+
+The `design-scalable-systems` skill converts natural-language product and
+non-functional requirements into a versioned requirement contract. It keeps
+traffic rate, users, connections, in-flight work, latency percentiles,
+availability, recovery, consistency, security, and cost as separate measurable
+dimensions with source and confidence.
+
+The context compiler selects the skill, system-design profile, and integrity
+rule through task-intent matching. The skill inspects repository evidence,
+asks at most three architecture-changing questions, and otherwise continues
+with explicit low, base, and high scenarios. Detailed references load only for
+the dimensions present in the request.
+
+The dependency-free capacity model performs arithmetic for monthly requests,
+in-flight concurrency, bandwidth, storage growth, benchmark-backed replica
+needs, and sourced cost items. Missing benchmark or pricing evidence remains
+`UNAVAILABLE` or `PARTIAL`. It never becomes an invented throughput or zero
+cost.
+
+The runtime `architecture` surface validates the contract, calculates capacity,
+queries official AWS, Google Cloud, or Azure catalogs through bounded adapters,
+and stores hash-verified snapshots under ignored local state. Pricing failure is
+degraded evidence, not a design blocker. Benchmark plans require explicit
+approval and imported results bind back to the exact request hash.
+
+An architecture build produces JSON evidence plus a script-free offline HTML
+view. The artifact binds normalized requirements, the model, decisions,
+controls, failure modes, traceability, validation, and repository commit.
+Verification rejects tampering and reports repository drift as `STALE`; Agent
+Proof includes this result when an artifact exists for the task ID.
+
+Design output compares no more than three stages and selects one recommendation:
+smallest viable, target, and extreme scale only when justified. Later stages
+require measurable triggers and migration paths. The highest possible design
+status is `READY_FOR_REVIEW`; provisioning, paid tests, deployment, and release
+remain separate governed actions.
+
+## Agent Department Orchestration
+
+After repository inspection, every task receives an orchestration decision.
+The classifier selects a solo path, product workcell, bug workcell, or assurance
+workcell from task intent, risk, and approved change areas. It always chooses
+the smallest team that preserves an independent review.
+
+The workcell contract binds role objectives, dependencies, path ownership,
+write access, fan-out, depth, time, token, and action budgets. A single
+implementation assignment owns writes. Read-only specialists may work in
+parallel from one shared repository intelligence brief.
+
+The Team Context Protocol turns that brief into a versioned coordination bus.
+Assignments are claimed through bounded leases, publish immutable structured
+handoffs, and advance a separate knowledge revision. Optimistic concurrency
+rejects lost updates; dependency handoff hashes prevent agents from building on
+superseded findings. Claimed write paths cannot overlap or expand approved
+scope, and completed work without a matching handoff is not accepted.
+
+Conflicting findings remain explicit and block readiness until the Team Lead
+records an evidence-bound decision. Handoffs contain facts, findings, risks,
+tests, unresolved questions, paths, and source references—not raw conversations,
+prompts, secrets, or chain-of-thought. Repository intelligence may be degraded
+when optional indexes are unavailable without blocking the workcell.
+
+Codex and Claude receive native subagent dispatch profiles. Other adapters use
+the same assignments as serial personas and report `SERIAL_PERSONAS`; absence
+of native subagents is degraded orchestration, not a blocker. Assignment
+results, handoff hashes, context revisions, and evidence hashes form a
+tamper-evident team contract.
+
+Independent review is a dependency, not an optional persona. Findings reset the
+implementation and review assignments, preserving the result history until a
+new clean review completes. Agent Proof Replay binds the resulting team hash,
+execution mode, assignment status, review independence, and evidence summary.

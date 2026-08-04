@@ -9,6 +9,7 @@ Use this workflow after the business outcome, acceptance criteria, and scope are
 5. Confirm contracts, data ownership, authorization, compatibility, and operational impact.
 6. Verify explicit approval evidence for existing-system changes before editing protected files.
 7. Detect language/version/framework/tooling and application/platform/domain, then apply `.ai/core/code-quality-intelligence.md` plus selected `.ai/quality-profiles/`.
+7a. Run `team plan` and `team start`; dispatch the smallest safe native workcell or use serial-persona fallback.
 8. Implement the smallest safe change inside the approved scope.
 9. Add or update tests for expected behavior and important failure paths.
 10. Update documentation or operational notes when needed.

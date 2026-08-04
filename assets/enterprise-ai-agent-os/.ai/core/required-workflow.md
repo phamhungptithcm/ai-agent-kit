@@ -15,6 +15,7 @@
 10. Detect language/version/framework/tooling and select matching `.ai/quality-profiles/` under `.ai/core/code-quality-intelligence.md`.
 11. Propose the smallest safe change that addresses only the issue or approved requirement.
 12. Identify tests, validation evidence, documentation, specification, diagram, runbook, ADR, API-contract, Jira, deployment, and rollback impacts.
+13. Run the Agent Department orchestration decision. Reuse the shared brief and select the smallest safe team; unsupported subagents fall back to serial personas.
 
 ## Phase 2 - Produce A Reviewable Change-Impact And Implementation Plan
 
@@ -59,6 +60,7 @@ Stop after presenting the plan. Do not implement until explicit approval evidenc
 4. Avoid unrelated refactoring.
 5. Stay within the approved plan and constraints.
 6. Stop for a delta-impact plan and renewed approval if material scope or design changes emerge.
+6a. Execute approved work through the planned workcell. Claim assignments through the versioned shared context, publish structured evidence handoffs, keep one write owner, and preserve independent review ownership.
 7. Use explicit error handling.
 8. Protect authentication, authorization, sensitive data, and transaction integrity.
 9. Add tests that demonstrate expected behavior when feasible.

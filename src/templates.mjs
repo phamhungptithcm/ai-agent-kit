@@ -16,6 +16,8 @@ This repository uses \`@hunpeolabs/ai-agent-kit\` for local, cross-agent coding 
 - Use CodeGraph for structural impact and CocoIndex for semantic/code/document retrieval.
 - Do not edit protected application files before a reviewed plan and explicit human approval.
 - Complete quality gates and report memory candidates under shared `.ai/` policy before handoff.
+- After inspection, run the Agent Department orchestration decision and use the smallest safe workcell; fall back to serial personas when native subagents are unavailable.
+- Coordinate workcells through versioned claims and structured handoffs; do not share raw chat history, duplicate live assignments, overlap writes, or accept unresolved context conflicts.
 - Keep all bootstrap work local. Developers manually review, stage, commit, push, create MRs, and update Jira.
 
 Shared policy lives under \`.ai/\`. ${productName} adapters remain thin, local, and ownership-tracked.
@@ -28,8 +30,14 @@ export function gitignoreSection() {
 .cocoindex_code/
 .ai/local/
 .ai-agent-kit/backups/
+.ai-agent-kit/architecture/
 .ai-agent-kit/conflicts/
 .ai-agent-kit/context/
+.ai-agent-kit/demo/
+.ai-agent-kit/failure-lab/
+.ai-agent-kit/local/
+.ai-agent-kit/passport/
+.ai-agent-kit/proof/
 .ai-agent-kit/transactions/
 .ai-agent-kit/runtime/
 `);

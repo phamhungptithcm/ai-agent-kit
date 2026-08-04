@@ -1,0 +1,22 @@
+version: 1
+default_mode: local-only
+export: explicit-opt-in
+allowed:
+  - verified_task_success
+  - scope_violation
+  - review_time
+  - rework
+  - rollback
+  - action_decisions
+  - eval_score
+  - evidence_backed_cost
+  - action_count
+prohibited:
+  - source
+  - prompts
+  - secrets
+  - raw_logs
+  - file_paths
+  - direct_personal_identifiers
+missing_data: report-never-impute
+claims: require-adequate-baseline

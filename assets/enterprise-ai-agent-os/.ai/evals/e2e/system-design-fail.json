@@ -1,0 +1,1 @@
+{"schema_version":1,"id":"system-design-fail","prompt":"Production-ready design for 1M concurrent users","output":{"status":"PRODUCTION_READY","recommendation":{"summary":"Use 100 pods"},"capacity":{"required_replicas":100},"cost":{"status":"LIVE_ESTIMATE","sources":[]},"distinctions":[],"validation_plan":[],"traceability":[]}}

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AI Agent Kit Change Passport",
+  "type": "object",
+  "required": ["schema_version", "type", "issued_at", "kit_version", "subject", "repository", "assurance", "signer", "signature", "passport_hash"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "type": { "const": "https://hunpeolabs.com/ai-agent-kit/change-passport/v1" },
+    "issued_at": { "type": "string", "format": "date-time" },
+    "kit_version": { "type": "string" },
+    "subject": { "type": "object", "required": ["task_id", "proof_hash"] },
+    "repository": { "type": "object", "required": ["commit", "dirty", "change_count", "changes", "tracked_diff_hash", "untracked"] },
+    "assurance": { "type": "object", "required": ["readiness", "evidence_integrity", "review", "failure_lab"] },
+    "signer": { "type": "object", "required": ["key_id", "public_key"] },
+    "signature": { "type": "string" },
+    "passport_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  },
+  "additionalProperties": false
+}

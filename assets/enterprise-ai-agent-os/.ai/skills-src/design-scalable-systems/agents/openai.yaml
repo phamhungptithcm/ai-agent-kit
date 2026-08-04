@@ -1,0 +1,4 @@
+interface:
+  display_name: "Scalable System Design"
+  short_description: "Turn constraints into measurable architecture"
+  default_prompt: "Use $design-scalable-systems to turn my scale, latency, security, reliability, and cost requirements into an evidence-based system design."

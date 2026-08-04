@@ -1,0 +1,20 @@
+{
+  "id": "ARCH-DEMO",
+  "request": {
+    "schema_version": 1,
+    "id": "ARCH-DEMO",
+    "goal": "Design a measured API with predictable cost",
+    "stage": "target",
+    "workload": { "average_rps": 1000, "peak_rps": 5000, "average_service_time_ms": 120, "response_bytes": 1500 },
+    "service_levels": { "latency_scope": "end_to_end", "latency_percentile": "p99", "latency_target_ms": 900, "availability_percent": 99.9 },
+    "cost": { "provider": "aws", "regions": ["us-east-1"], "currency": "USD" }
+  },
+  "capacity_options": { "tested_safe_rps_per_replica": 500, "headroom_factor": 1.25 },
+  "recommendation": { "title": "Measured regional API", "summary": "Start with a stateless service, managed data, bounded retries, and benchmark-backed scaling." },
+  "components": [{ "name": "Edge", "responsibility": "Protect and route" }, { "name": "API", "responsibility": "Serve stateless requests" }, { "name": "Data", "responsibility": "Persist durable state" }, { "name": "Queue", "responsibility": "Absorb asynchronous work" }],
+  "decisions": [{ "id": "D1", "choice": "Scale from measured throughput" }],
+  "security_controls": [{ "boundary": "API", "control": "deny-default authorization", "owner": "service team", "validation": "cross-tenant tests" }],
+  "failure_modes": [{ "failure": "dependency timeout", "behavior": "bounded timeout and retry budget" }],
+  "traceability": [{ "constraint": "p99 under 900ms", "decision": "D1", "validation": "peak load benchmark", "sli": "end-to-end p99" }],
+  "validation_plan": ["Benchmark steady, peak, burst, degraded dependency, and recovery phases"]
+}

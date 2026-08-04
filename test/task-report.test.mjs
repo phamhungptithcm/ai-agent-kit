@@ -19,6 +19,8 @@ import {
 } from "../src/task-report.mjs";
 import { recordUsage, summarizeUsage } from "../src/usage-ledger.mjs";
 import { recordFinalReview } from "../src/final-review.mjs";
+import { inspectTeam, recordTeamResult, startTeam } from "../src/team-orchestrator.mjs";
+import { briefHash, claimTeamWork, inspectTeamContext, publishTeamHandoff } from "../src/team-context.mjs";
 
 function run(command, args, cwd) {
   const result = spawnSync(command, args, { cwd, encoding: "utf8" });
@@ -51,6 +53,17 @@ function createReportTask(root, id = "TASK-REPORT") {
     paths: ["src/**"],
     adapter: "codex"
   });
+}
+
+function completeTeam(root, id = "TASK-REPORT") {
+  const team = inspectTeam({ target: root, id });
+  startTeam({ target: root, id, adapter: "codex" });
+  for (const assignment of team.assignments) {
+    const context = inspectTeamContext({ target: root, id }); const agent = `${assignment.id}-agent`;
+    const claimed = claimTeamWork({ target: root, id, assignment: assignment.id, agent, expectedRevision: context.revision });
+    const handoff = publishTeamHandoff({ target: root, id, claim: claimed.claim.claim_id, agent, expectedRevision: claimed.revision, payload: { brief_hash: briefHash(context), facts: [`${assignment.id} completed`], evidence: [{ path: "README.md", line_start: 1, line_end: 1 }], status: "COMPLETED" } });
+    recordTeamResult({ target: root, id, assignment: assignment.id, status: "COMPLETED", evidenceHash: (assignment.id === "implementation-engineer" ? "a" : "b").repeat(64), handoffHash: handoff.handoff_hash, tokens: 10, actions: 1, durationSeconds: 1 });
+  }
 }
 
 function advanceToReviewReady(root, id = "TASK-REPORT") {
@@ -272,6 +285,10 @@ test("verified criteria and current required gates can produce a production-read
     source: "test://docs"
   });
   passDefaultChecks(root);
+  const beforeTeam = buildFinalTaskReport({ target: root, id: "TASK-REPORT" });
+  assert.equal(beforeTeam.production_readiness.status, "NOT_READY");
+  assert.ok(beforeTeam.production_readiness.blockers.some((item) => item.includes("Agent workcell")));
+  completeTeam(root);
   recordUsage({
     target: root,
     id: "TASK-REPORT",
