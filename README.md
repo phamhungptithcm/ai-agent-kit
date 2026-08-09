@@ -16,6 +16,10 @@ Code, Codex, Copilot, Cursor, and eight other coding agents. It combines
 repository intelligence, multi-agent coordination, system design, quality
 profiles, approval gates, and reviewable evidence in one local workflow.
 
+One canonical system now drives every adapter. A machine-readable capability
+matrix shows which host features are native, generated, bridged, advisory,
+preview, or unsupported—so portability claims stay honest and testable.
+
 ```bash
 # Codex only
 npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap --agents codex
@@ -202,6 +206,23 @@ passes. Release actions always require separate authorization.
 - Protected execution returns `allow`, `ask`, or `deny` with hash-linked evidence.
 - Zero-trust MCP checks server identity, permissions, network access,
   credentials, timeouts, and rate limits.
+
+### Portable across agents
+
+- A versioned adapter SDK keeps instructions, skills, roles, hooks,
+  permissions, protected actions, and evidence mapped to one `.ai/` source.
+- `ai-agent-kit adapter matrix` shows the exact capability level and known
+  limitations for all 12 supported agents.
+- `ai-agent-kit adapter conformance --adapter copilot --target .` verifies the
+  installed surfaces instead of assuming they work.
+- GitHub Copilot gets repository and path-specific instructions, custom
+  planner/implementer/reviewer/security agents, native skill delivery, and an
+  approval hook that keeps read-only work moving while gating mutations and
+  protected release actions.
+- `ai-agent-kit standards verify` checks Agent Skills bundles, explicit MCP
+  compatibility, namespaced extensions, and the optional A2A profile.
+- A2A stays disabled by default. It is only relevant for explicitly approved,
+  authenticated delegation to an independently operated remote agent.
 
 ### One task. The right engineering team.
 
@@ -465,6 +486,7 @@ See [Agent Adapter Strategy](docs/AGENT_ADAPTER_STRATEGY.md) for details.
 | `0.6.1` | Human writing integrity, evidence-based website growth, portable skill references, and hardened resource synchronization. |
 | `0.7.0` | Replayable cross-agent evals, evidence-native PR packages, regression gates, and high-signal review measurement. |
 | `0.8.0` | Agent Department orchestration, shared Team Context, constraint-driven system design, signed policy overlays, local outcome analytics, memory lifecycle 2.0, Agent Proof Replay, Change Passports, Failure Lab, and Policy Playground. |
+| `0.9.0` | Versioned adapter SDK, honest capability matrix, full GitHub Copilot surfaces, portable conformance, Agent Skills compatibility, MCP versioning, and optional A2A boundaries. |
 
 ## Documentation
 

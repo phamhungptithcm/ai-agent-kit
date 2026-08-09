@@ -108,6 +108,7 @@ def sync(check: bool = False) -> int:
         root / ".cursor" / "skills",
         root / ".windsurf" / "skills",
         root / ".cline" / "skills",
+        root / ".github" / "skills",
     ]
     for dest_root in destinations:
         try:

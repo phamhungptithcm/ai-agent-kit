@@ -1,28 +1,19 @@
 # Agent Adapter Strategy
 
-Published version `0.4.2` ships repository adapters for Claude Code and OpenAI Codex. The current unreleased source implements the next expansion: `.ai/` remains the source of truth, and every supported AI coding tool gets a thin adapter that points back to the same policy, prompts, skills, guards, quality gates, and output contract.
+`.ai/` is the source of truth. Every supported coding tool gets a thin adapter
+that points to the same policy, prompts, skills, guards, quality gates, and
+output contract. The adapter registry makes support levels and limitations
+machine-readable instead of relying on marketing claims.
 
 This keeps the team operating model stable even when developers use different AI agents.
 
-## Support Status
-
-| Status | Meaning |
-| --- | --- |
-| Published | Available in the current npm release. |
-| Next release | Implemented and tested in source, but not published yet. |
-
-## Published Today
-
-| Agent | Adapter Surface | Current Package Behavior |
-| --- | --- | --- |
-| Claude Code | `CLAUDE.md`, `.claude/`, `.claude/skills/` | Installs root instructions, Claude config, commands, agents, and generated skills. |
-| OpenAI Codex | `AGENTS.md`, `.codex/`, `.agents/skills/` | Installs root instructions, Codex config, hooks, rules, agents, and generated skills. |
-
-## Implemented For The Next Release
+## Supported adapters
 
 | Target Agent | Implemented Adapter Surface |
 | --- | --- |
-| GitHub Copilot | `.github/copilot-instructions.md`, `AGENTS.md`, `.agents/skills/` |
+| Claude Code | `CLAUDE.md`, `.claude/`, `.claude/skills/` |
+| OpenAI Codex | `AGENTS.md`, `.codex/`, `.agents/skills/` |
+| GitHub Copilot | `.github/copilot-instructions.md`, `.github/instructions/`, `.github/agents/`, `.github/skills/`, `.github/hooks/` |
 | Cursor | `.cursor/rules/ai-agent-kit.mdc`, `AGENTS.md`, `.cursor/skills/` |
 | Windsurf / Devin Desktop Cascade | `AGENTS.md`, `.windsurf/skills/` |
 | Google Gemini CLI | `GEMINI.md` with native context imports |
@@ -79,7 +70,7 @@ flowchart LR
   OSS --> SameBehavior
 ```
 
-## Next-Release Acceptance Gates
+## Conformance
 
 1. Registry selection, default-all behavior, and legacy flags pass unit tests.
 2. Each native instruction surface is installed, ownership-tracked, and reported by `status`/`doctor`.
@@ -87,8 +78,26 @@ flowchart LR
 4. Single- and multi-adapter bootstraps remain local-only, transactional, idempotent, and application-source safe.
 5. `npm run check` and packed-tarball smoke verification pass before any release is requested.
 
+```bash
+ai-agent-kit adapter list
+ai-agent-kit adapter matrix
+ai-agent-kit adapter inspect --adapter copilot
+ai-agent-kit adapter conformance --adapter copilot --target .
+ai-agent-kit standards verify --target .
+```
+
+Capability states are `native`, `generated`, `bridged`, `advisory`, `preview`,
+or `unsupported`. Unsupported behavior is visible; it is never silently treated
+as equivalent.
+
 ## Sources Reviewed
 
+- Agent Skills specification: https://agentskills.io/specification
+- Model Context Protocol 2026-07-28: https://modelcontextprotocol.io/specification/2026-07-28
+- Agent2Agent Protocol 0.3.0: https://a2a-protocol.org/v0.3.0/specification/
+- GitHub Copilot customization reference: https://docs.github.com/en/copilot/reference/customization-cheat-sheet
+- GitHub Copilot hooks reference: https://docs.github.com/en/copilot/reference/hooks-reference
+- GitHub Copilot code review: https://docs.github.com/en/enterprise-cloud@latest/copilot/concepts/agents/code-review
 - GitHub Copilot repository custom instructions: https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/add-custom-instructions/add-repository-instructions
 - Cursor Rules: https://docs.cursor.com/context/rules
 - Cursor coding-agent best practices: https://cursor.com/blog/agent-best-practices

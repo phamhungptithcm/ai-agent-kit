@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "suite": "portable-adapter-lifecycle",
+  "cases": [
+    { "id": "bootstrap-selected-surfaces", "area": "bootstrap", "expected": "Only selected adapter surfaces and canonical generated skills are installed." },
+    { "id": "update-preserves-selection", "area": "update", "expected": "The recorded adapter selection and modified ownership state are preserved." },
+    { "id": "gateway-binds-adapter", "area": "action_gateway", "expected": "A mismatched adapter identity is denied and produces a receipt." },
+    { "id": "evidence-declares-capabilities", "area": "evidence", "expected": "Evidence identifies the adapter, SDK version, capabilities, and limitations." }
+  ]
+}

@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/phamhungptithcm/ai-agent-kit/schemas/adapter-registry-v1.json",
+  "title": "AI Agent Kit adapter registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "sdk_version", "owner", "lifecycle", "capability_states", "adapters"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "sdk_version": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "owner": { "type": "string", "minLength": 1 },
+    "lifecycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source_of_truth", "generated_surfaces", "updates", "removal"],
+      "properties": {
+        "source_of_truth": { "type": "string", "minLength": 1 },
+        "generated_surfaces": { "type": "string", "minLength": 1 },
+        "updates": { "type": "string", "minLength": 1 },
+        "removal": { "type": "string", "minLength": 1 }
+      }
+    },
+    "capability_states": {
+      "type": "array",
+      "items": { "enum": ["native", "generated", "bridged", "advisory", "preview", "unsupported"] },
+      "uniqueItems": true
+    },
+    "adapters": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label", "exact_paths", "path_prefixes", "skill_roots", "shared_skill_roots", "capabilities", "required_capabilities", "limitations"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,63}$" },
+          "label": { "type": "string", "minLength": 1 },
+          "exact_paths": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+          "path_prefixes": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+          "skill_roots": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+          "shared_skill_roots": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+          "capabilities": {
+            "type": "object",
+            "additionalProperties": { "enum": ["native", "generated", "bridged", "advisory", "preview", "unsupported"] }
+          },
+          "required_capabilities": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true },
+          "limitations": { "type": "array", "items": { "type": "string", "minLength": 1 }, "uniqueItems": true }
+        }
+      }
+    }
+  }
+}
