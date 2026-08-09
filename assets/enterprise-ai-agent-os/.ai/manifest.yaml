@@ -8,6 +8,7 @@ generated_skill_roots:
   - ".cursor/skills"
   - ".windsurf/skills"
   - ".cline/skills"
+  - ".github/skills"
 repository_docs:
   - ".ai/README.md"
   - ".ai/references.md"
@@ -174,6 +175,12 @@ docs:
   - ".ai/docs/agent-adapter-strategy.md"
   - ".ai/docs/governed-runtime-guide.md"
   - ".ai/docs/task-completion-report-guide.md"
+adapters:
+  - ".ai/adapters/registry.json"
+  - ".ai/adapters/registry.schema.json"
+standards:
+  - ".ai/standards/compatibility.json"
+  - ".ai/standards/compatibility.schema.json"
 scripts:
   - ".ai/scripts/bootstrap-repository-intelligence.ps1"
   - ".ai/scripts/bootstrap-repository-intelligence.sh"
@@ -191,6 +198,7 @@ scripts:
   - ".ai/scripts/validate_implementation_approval.py"
   - ".ai/scripts/governed_action_gateway.mjs"
   - ".ai/scripts/final_task_report.mjs"
+  - ".ai/scripts/copilot_action_hook.mjs"
 evals:
   - ".ai/evals/README.md"
   - ".ai/evals/behavioral-cases.json"
@@ -203,6 +211,7 @@ evals:
   - ".ai/evals/e2e/system-design-pass.json"
   - ".ai/evals/e2e/system-design-fail.json"
   - ".ai/evals/e2e/team-orchestration-cases.json"
+  - ".ai/evals/e2e/adapter-conformance-cases.json"
 skills:
   - ".ai/skills-src/architecture-diagrams/SKILL.md"
   - ".ai/skills-src/architecture-review/SKILL.md"

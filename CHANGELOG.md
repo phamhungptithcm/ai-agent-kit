@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 0.9.0 - 2026-08-09
+
+- Added a versioned adapter SDK and canonical capability registry covering
+  instructions, skills, roles, hooks, permissions, the governed action
+  gateway, evidence, ownership, limitations, and required capabilities for all
+  12 supported coding agents.
+- Added adapter discovery, inspection, capability-matrix, and executable
+  conformance commands with fail-closed validation for missing or unsafe
+  adapter surfaces.
+- Expanded the GitHub Copilot adapter with repository-wide and path-specific
+  instructions, focused custom agents, native skill delivery, and a scoped
+  pre-tool approval hook that does not block read-only inspection or tests.
+- Added explicit Agent Skills, MCP 2026-07-28, and optional A2A 0.3.0
+  compatibility contracts, namespaced extensions, and executable standards
+  conformance. A2A remains disabled and unnecessary for single-agent work.
+- Added regression coverage for registry integrity, missing surfaces, Copilot
+  bootstrap assets, hook decisions, standards versions, and portable skill
+  conformance while preserving existing Claude and Codex behavior.
+
 ## 0.8.0 - 2026-08-04
 
 - Added signed, versioned organization, team, repository, and task policy

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/phamhungptithcm/ai-agent-kit/schemas/standards-compatibility-v1.json",
+  "title": "AI Agent Kit standards compatibility",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "retrieved_on", "namespace", "standards"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "retrieved_on": { "type": "string", "format": "date" },
+    "namespace": { "const": "dev.hunpeolabs.ai-agent-kit" },
+    "standards": { "type": "object" }
+  }
+}

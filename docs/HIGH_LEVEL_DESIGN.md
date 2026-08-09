@@ -353,6 +353,28 @@ The review-quality lane scores labeled findings using explicit denominators,
 sample sizes, confidence intervals, noise penalties, and preserved human label
 disagreement. More comments do not create a higher score by themselves.
 
+## Portable adapter contract
+
+The canonical adapter registry separates shared behavior from host-specific
+surfaces. Bootstrap and update consume the registry; conformance checks verify
+the files and skills that each selected adapter claims to support; task
+evidence records the adapter's capabilities and limitations.
+
+```mermaid
+flowchart LR
+  AI[".ai canonical contract"] --> SDK["Adapter SDK"]
+  SDK --> Host["Host instructions, skills, roles, hooks"]
+  Host --> Gate["Governed action gateway"]
+  Gate --> Proof["Adapter-aware evidence"]
+  Matrix["Capability matrix"] --> SDK
+  Standards["Agent Skills · MCP · optional A2A"] --> SDK
+```
+
+The capability states distinguish native, generated, bridged, advisory,
+preview, and unsupported behavior. A2A is a disabled-by-default compatibility
+profile for approved remote-agent boundaries, not a dependency of ordinary
+single-agent or same-host orchestration.
+
 ## Team operations in v0.8.0
 
 Team policy remains Git-native. Signed bundles are resolved from kit defaults
