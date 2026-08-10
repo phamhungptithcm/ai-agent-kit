@@ -1,13 +1,14 @@
 # Orchestrate Agent Department
 
-1. Complete the repository intelligence brief once.
-2. Run `ai-agent-kit team plan --id <task-id>` after task creation and inspection.
-3. Review team type, reason codes, budgets, dependencies, write ownership, and approval boundary.
-4. Run `team start` with the active adapter. Dispatch native subagents when supported; otherwise execute assignments as serial personas.
-5. Run `team context` and give each specialist only its assignment, brief hash, approved scope, dependency handoffs, and role-specific evidence.
-6. Claim each assignment with `team claim` and the current revision. Parallelize only independent read work. Never duplicate a live claim or overlap write scope.
-7. Publish facts, findings, risks, tests, paths, questions, and evidence with `team handoff`. Sync and retry if optimistic concurrency rejects a stale revision.
+1. Create the task, complete the repository intelligence brief once, and record the approval boundary.
+2. Run `ai-agent-kit team plan --id <task-id>`. Review team type, signal-backed reason codes, budgets, dependencies, blocking roles, optional roles, write ownership, and approval boundary.
+3. Probe or declare the active host's execution capabilities. Run `team start --adapter <adapter> [--capabilities-file <json>]`. Start automatically replans if goal, scope, facts, assumptions, paths, or evidence changed since planning.
+4. Loop on `team next --id <task-id>`. It returns only the dependency-ready wave bounded by the declared concurrency. Run independent read assignments in parallel only when the host contract permits it; otherwise use serial personas.
+5. Before every spawn, run `team dispatch --id <task-id> --assignment <assignment-id> --agent <agent-id>`. The returned envelope contains trusted controls, untrusted repository context, claim, limits, dependencies, and the required result schema. Never construct a broader prompt from raw chat.
+6. Use the host-native subagent primitive to execute that envelope. The host bridge, not repository code, owns native spawning. For long work, run `team heartbeat` before the lease expires.
+7. Save only a `team-result-v1` structured result and run `team ingest --result-file <json>`. The runtime validates usage, evidence, status, handoff, secret boundaries, optimistic concurrency, and idempotency before advancing the DAG. Retrying the same validated result returns the prior evidence binding without applying it twice.
 8. If handoffs conflict, run `team conflict`; the Team Lead records the evidence-bound choice with `team decide`. Open conflicts block readiness.
-9. Record each assignment result with its latest handoff and evidence hashes. Record timeout, rejection, or blocker honestly.
-10. If independent review reports findings, return them to the implementation owner, fix, publish a new handoff, verify, and review again.
-11. Run `team report`. Do not issue successful final evidence until shared context is current, conflicts are resolved, review independence is verified, and the latest review is clean.
+9. Use `team cancel` to stop further dispatch and release active claims. Use `team resume` after interruption. Use `team recover` after a process or host failure to verify the hash-chained journal and reconcile state-ahead gaps. Read-only work may retry within budget; an orphaned writer requires explicit Team Lead review.
+10. If independent review reports findings, return them to the implementation owner, then rerun implementation, downstream QA and assurance, and independent review on fresh evidence.
+11. Run `team watch --output <directory>` for a standalone JSON, text, and HTML timeline. Run `team report`. Do not issue successful final evidence until shared context is current, blocking work is complete, optional failures are explicit, conflicts are resolved, review independence is verified, the journal verifies, and the latest review is clean.
+12. Treat `team demo` as synthetic control-plane evidence only. For host claims, populate and verify `team conformance-template`. For comparative marketing, run the three-mode benchmark with the same task, commit, host, and model; report `INSUFFICIENT_EVIDENCE` instead of estimating missing measurements.

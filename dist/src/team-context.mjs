@@ -10,6 +10,7 @@ const MAX_CLAIMS = 200;
 const MAX_CONFLICTS = 100;
 const MAX_FACTS = 50;
 const MAX_TEXT = 1000;
+const FINDING_SEVERITIES = new Set(["CRITICAL", "HIGH", "MEDIUM", "LOW", "INFORMATIONAL"]);
 
 function stable(value) {
   if (Array.isArray(value)) return value.map(stable);
@@ -105,6 +106,27 @@ function statements(values, label) {
   return values.map((value) => bounded(value, label));
 }
 
+function structuredFinding(item, root, assignmentId) {
+  if (!item || typeof item !== "object" || Array.isArray(item)) throw new Error("structured finding is invalid");
+  const allowed = new Set(["severity", "confidence", "category", "summary", "path", "line", "recommendation", "evidence_hashes"]);
+  if (Object.keys(item).some((key) => !allowed.has(key))) throw new Error("structured finding contains an unsupported field");
+  const severity = bounded(item.severity, "finding severity", 20).toUpperCase();
+  if (!FINDING_SEVERITIES.has(severity)) throw new Error("finding severity is invalid");
+  const confidence = Number(item.confidence);
+  if (!Number.isFinite(confidence) || confidence < 0 || confidence > 1) throw new Error("finding confidence must be between 0 and 1");
+  const category = bounded(item.category, "finding category", 100);
+  const summary = bounded(item.summary, "finding summary");
+  const findingPath = item.path == null ? null : scopedPath(item.path, root, "finding path");
+  const line = item.line == null ? null : integer(item.line, "finding line", 1);
+  const recommendation = item.recommendation == null ? null : bounded(item.recommendation, "finding recommendation");
+  const evidenceHashes = [...new Set(item.evidence_hashes ?? [])].slice(0, MAX_FACTS).map((value) => {
+    if (!/^[a-f0-9]{64}$/.test(value)) throw new Error("finding evidence hash is invalid");
+    return value;
+  });
+  const normalizedKey = { path: findingPath, line, category: category.toLowerCase(), summary: summary.toLowerCase().replace(/\s+/g, " ") };
+  return { fingerprint: digest(normalizedKey), severity, confidence, category, summary, path: findingPath, line, recommendation, evidence_hashes: evidenceHashes, specialist: assignmentId };
+}
+
 export function initializeTeamContext(options) {
   const root = path.resolve(options.target ?? process.cwd()); const id = safe(options.id, "task id");
   const now = timestamp(options.now ?? new Date().toISOString(), "context timestamp");
@@ -128,6 +150,20 @@ export function activateTeamContext(options) {
   return withLock(root, id, () => {
     const context = inspectTeamContext({ target: root, id }); if (context.state !== "PLANNED") throw new Error("team context is already active");
     context.state = "ACTIVE"; context.revision += 1; context.updated_at = timestamp(options.now ?? new Date().toISOString(), "activation timestamp"); seal(context); atomicWrite(root, contextPath(id), context, "team context"); return context;
+  });
+}
+
+export function recordTeamApproval(options) {
+  const root = path.resolve(options.target ?? process.cwd()); const id = safe(options.id, "task id");
+  return withLock(root, id, () => {
+    const context = inspectTeamContext({ target: root, id });
+    const approvalHash = safe(options.approvalHash, "approval hash");
+    if (!/^[a-f0-9]{64}$/.test(approvalHash)) throw new Error("approval hash must be a SHA-256 digest");
+    if (context.brief.approval_hash && context.brief.approval_hash !== approvalHash) throw new Error("a different team approval is already recorded");
+    if (context.brief.approval_hash === approvalHash) return context;
+    context.brief.approval_hash = approvalHash; context.revision += 1;
+    context.updated_at = timestamp(options.now ?? new Date().toISOString(), "approval timestamp");
+    seal(context); atomicWrite(root, contextPath(id), context, "team context"); return context;
   });
 }
 
@@ -157,6 +193,35 @@ export function claimTeamWork(options) {
   });
 }
 
+export function renewTeamClaim(options) {
+  const root = path.resolve(options.target ?? process.cwd()); const id = safe(options.id, "task id");
+  return withLock(root, id, () => {
+    const context = inspectTeamContext({ target: root, id });
+    if (context.state !== "ACTIVE") throw new Error("team context must be active before renewing work");
+    if (integer(options.expectedRevision, "expected revision", 1) !== context.revision) throw new Error(`team context revision conflict: expected ${options.expectedRevision}, current ${context.revision}`);
+    const now = timestamp(options.now ?? new Date().toISOString(), "heartbeat timestamp");
+    const claim = context.claims.find((item) => item.claim_id === options.claim && item.agent_id === options.agent && liveClaim(item, now));
+    if (!claim) throw new Error("an active matching claim is required");
+    const leaseSeconds = integer(options.leaseSeconds ?? 900, "lease seconds", 30); if (leaseSeconds > 3600) throw new Error("lease seconds exceeds 3600");
+    claim.expires_at = new Date(Date.parse(now) + leaseSeconds * 1000).toISOString(); claim.heartbeat_at = now;
+    context.revision += 1; context.updated_at = now; seal(context); atomicWrite(root, contextPath(id), context, "team context");
+    return { claim_id: claim.claim_id, expires_at: claim.expires_at, revision: context.revision, knowledge_revision: context.knowledge_revision, context_hash: context.context_hash };
+  });
+}
+
+export function cancelTeamClaim(options) {
+  const root = path.resolve(options.target ?? process.cwd()); const id = safe(options.id, "task id");
+  return withLock(root, id, () => {
+    const context = inspectTeamContext({ target: root, id });
+    const claim = context.claims.find((item) => item.claim_id === options.claim && item.agent_id === options.agent && item.status === "ACTIVE");
+    if (!claim) return { cancelled: false, revision: context.revision, context_hash: context.context_hash };
+    const now = timestamp(options.now ?? new Date().toISOString(), "claim cancellation timestamp");
+    claim.status = "CANCELLED"; claim.released_at = now; claim.cancellation_reason = bounded(options.reason ?? "team run cancelled", "claim cancellation reason");
+    context.revision += 1; context.updated_at = now; seal(context); atomicWrite(root, contextPath(id), context, "team context");
+    return { cancelled: true, revision: context.revision, context_hash: context.context_hash };
+  });
+}
+
 export function publishTeamHandoff(options) {
   const root = path.resolve(options.target ?? process.cwd()); const id = safe(options.id, "task id");
   return withLock(root, id, () => {
@@ -174,7 +239,7 @@ export function publishTeamHandoff(options) {
     if (claim.dependency_handoff_hashes.some((hashValue, index) => hashValue !== context.assignments.find((item) => item.id === assignment.depends_on[index])?.latest_handoff_hash)) throw new Error("handoff dependencies became stale");
     const affectedPaths = [...new Set(payload.affected_paths ?? [])].slice(0, 100).map((item) => scopedPath(item, root, "affected path"));
     if (claim.write_access && affectedPaths.some((item) => !coveredBy(item, claim.paths))) throw new Error("handoff affected path exceeds claimed write scope");
-    const normalized = { assignment_id: assignment.id, agent_id: claim.agent_id, claim_id: claim.claim_id, brief_hash: payload.brief_hash, context_revision: claim.context_revision, facts: statements(payload.facts ?? [], "handoff facts"), findings: statements(payload.findings ?? [], "handoff findings"), decisions_needed: statements(payload.decisions_needed ?? [], "handoff decisions"), risks: statements(payload.risks ?? [], "handoff risks"), unresolved_questions: statements(payload.unresolved_questions ?? [], "handoff questions"), affected_paths: affectedPaths, tests_recommended: statements(payload.tests_recommended ?? [], "recommended tests"), evidence: (payload.evidence ?? []).slice(0, MAX_FACTS).map((item) => evidenceItem(item, root)), status: payload.status ?? "COMPLETED", published_at: now };
+    const normalized = { assignment_id: assignment.id, agent_id: claim.agent_id, claim_id: claim.claim_id, brief_hash: payload.brief_hash, context_revision: claim.context_revision, facts: statements(payload.facts ?? [], "handoff facts"), findings: statements(payload.findings ?? [], "handoff findings"), structured_findings: (payload.structured_findings ?? []).slice(0, MAX_FACTS).map((item) => structuredFinding(item, root, assignment.id)), decisions_needed: statements(payload.decisions_needed ?? [], "handoff decisions"), risks: statements(payload.risks ?? [], "handoff risks"), unresolved_questions: statements(payload.unresolved_questions ?? [], "handoff questions"), affected_paths: affectedPaths, tests_recommended: statements(payload.tests_recommended ?? [], "recommended tests"), evidence: (payload.evidence ?? []).slice(0, MAX_FACTS).map((item) => evidenceItem(item, root)), status: payload.status ?? "COMPLETED", published_at: now };
     if (!new Set(["COMPLETED", "BLOCKED", "REJECTED"]).has(normalized.status)) throw new Error("handoff status is invalid");
     if (normalized.status === "COMPLETED" && !normalized.evidence.length) throw new Error("completed handoff requires evidence");
     const handoffHash = digest(normalized); context.handoffs.push({ ...normalized, handoff_hash: handoffHash });
@@ -234,7 +299,24 @@ export function teamContextSummary(options) {
     for (const evidence of handoff?.evidence ?? []) { try { const current = evidenceItem(evidence, root); if (current.sha256 !== evidence.sha256) staleEvidence.push(`${assignment.id}:${evidence.path}`); } catch { staleEvidence.push(`${assignment.id}:${evidence.path}`); } }
   }
   const openConflicts = context.conflicts.filter((item) => item.status === "OPEN").length; const status = openConflicts ? "BLOCKED" : staleEvidence.length ? "STALE" : "READY";
-  return { schema_version: 1, task_id: context.task_id, state: context.state, status, revision: context.revision, knowledge_revision: context.knowledge_revision, brief_hash: digest(context.brief), repository_intelligence: context.brief.repository_intelligence, assignment_handoffs: context.assignments.map((item) => ({ assignment_id: item.id, latest_handoff_hash: item.latest_handoff_hash, acknowledged_handoff_hash: item.acknowledged_handoff_hash, acknowledged_status: item.acknowledged_status })), active_claims: context.claims.filter((item) => liveClaim(item, now)).map((item) => ({ claim_id: item.claim_id, assignment_id: item.assignment_id, agent_id: item.agent_id, paths: item.paths, expires_at: item.expires_at })), handoff_count: context.handoffs.length, open_conflicts: openConflicts, stale_evidence: staleEvidence, unresolved_questions: [...new Set(context.handoffs.flatMap((item) => item.unresolved_questions))], context_hash: context.context_hash };
+  return { schema_version: 2, task_id: context.task_id, state: context.state, status, revision: context.revision, knowledge_revision: context.knowledge_revision, brief_hash: digest(context.brief), repository_intelligence: context.brief.repository_intelligence, assignment_handoffs: context.assignments.map((item) => ({ assignment_id: item.id, latest_handoff_hash: item.latest_handoff_hash, acknowledged_handoff_hash: item.acknowledged_handoff_hash, acknowledged_status: item.acknowledged_status })), active_claims: context.claims.filter((item) => liveClaim(item, now)).map((item) => ({ claim_id: item.claim_id, assignment_id: item.assignment_id, agent_id: item.agent_id, paths: item.paths, expires_at: item.expires_at, heartbeat_at: item.heartbeat_at ?? null })), handoff_count: context.handoffs.length, structured_finding_count: context.handoffs.reduce((sum, item) => sum + (item.structured_findings?.length ?? 0), 0), open_conflicts: openConflicts, stale_evidence: staleEvidence, unresolved_questions: [...new Set(context.handoffs.flatMap((item) => item.unresolved_questions))], context_hash: context.context_hash };
+}
+
+export function synthesizeTeamFindings(options) {
+  const context = inspectTeamContext(options); const grouped = new Map();
+  const currentHandoffs = new Set(context.assignments.map((item) => item.latest_handoff_hash).filter(Boolean));
+  for (const finding of context.handoffs.filter((item) => currentHandoffs.has(item.handoff_hash)).flatMap((item) => item.structured_findings ?? [])) {
+    const current = grouped.get(finding.fingerprint);
+    if (!current) {
+      grouped.set(finding.fingerprint, { ...finding, specialists: [finding.specialist], confirmations: 1, disagreement: false });
+      continue;
+    }
+    const specialists = [...new Set([...current.specialists, finding.specialist])];
+    const disagreement = current.disagreement || current.severity !== finding.severity;
+    const preferred = finding.confidence > current.confidence ? { ...finding } : current;
+    grouped.set(finding.fingerprint, { ...preferred, specialists, confirmations: current.confirmations + 1, disagreement });
+  }
+  return [...grouped.values()].sort((left, right) => right.confidence - left.confidence || left.fingerprint.localeCompare(right.fingerprint));
 }
 
 export function briefHash(context) { return digest(context.brief); }

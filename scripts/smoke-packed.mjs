@@ -31,6 +31,8 @@ try {
   const packOutput = execute(npmCommand, ["pack", "--json", "--pack-destination", temporaryRoot], workspace).stdout;
   const jsonStart = Math.max(0, packOutput.lastIndexOf("\n[") + 1);
   const packResult = JSON.parse(packOutput.slice(jsonStart));
+  const packedPaths = packResult[0].files.map((item) => item.path);
+  assert.equal(packedPaths.some((file) => file.includes("/__pycache__/") || /\.py[cod]$/i.test(file)), false, "packed tarball contains Python bytecode or cache files");
   const tarball = path.join(temporaryRoot, packResult[0].filename);
   const fixture = path.join(temporaryRoot, "fixture");
   fs.mkdirSync(fixture);

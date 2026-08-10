@@ -1,0 +1,271 @@
+import crypto from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
+
+import { briefHash, cancelTeamClaim, claimTeamWork, inspectTeamContext, publishTeamHandoff, recordTeamApproval, renewTeamClaim } from "./team-context.mjs";
+import { readTeamContract, recordTeamResult, writeTeamContract } from "./team-orchestrator.mjs";
+import { hasSymlinkComponent } from "./paths.mjs";
+import { findTeamEvent, readTeamEvents, recordTeamEvent, verifyTeamJournal } from "./team-events.mjs";
+import { recordTaskApproval } from "./governed-runtime.mjs";
+
+const INGEST_STATUSES = new Set(["COMPLETED", "BLOCKED", "REJECTED", "TIMED_OUT", "CANCELLED", "ORPHANED"]);
+const FORBIDDEN_RESULT_KEYS = new Set(["prompt", "raw_prompt", "conversation", "chat_history", "chain_of_thought", "credentials", "secrets"]);
+const RESULT_KEYS = new Set(["schema_version", "assignment_id", "status", "usage", "handoff"]);
+const USAGE_KEYS = new Set(["tokens", "actions", "duration_seconds"]);
+const HANDOFF_KEYS = new Set(["brief_hash", "facts", "findings", "structured_findings", "decisions_needed", "risks", "unresolved_questions", "affected_paths", "tests_recommended", "evidence"]);
+
+function stable(value) {
+  if (Array.isArray(value)) return value.map(stable);
+  if (value && typeof value === "object") return Object.fromEntries(Object.keys(value).sort().map((key) => [key, stable(value[key])]));
+  return value;
+}
+
+function digest(value) { return crypto.createHash("sha256").update(JSON.stringify(stable(value))).digest("hex"); }
+function now(options) { const value = options.now ?? new Date().toISOString(); if (!Number.isFinite(Date.parse(value))) throw new Error("execution timestamp is invalid"); return new Date(value).toISOString(); }
+function safe(value, label) { if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(value ?? "")) throw new Error(`${label} must be a safe identifier`); return value; }
+function integer(value, label) { if (!Number.isInteger(value) || value < 0) throw new Error(`${label} must be a non-negative integer`); return value; }
+
+function rejectForbiddenResultKeys(value, currentPath = "result") {
+  if (Array.isArray(value)) { value.forEach((item, index) => rejectForbiddenResultKeys(item, `${currentPath}[${index}]`)); return; }
+  if (!value || typeof value !== "object") return;
+  for (const [key, item] of Object.entries(value)) {
+    if (FORBIDDEN_RESULT_KEYS.has(key.toLowerCase())) throw new Error(`${currentPath}.${key} is forbidden in a structured team result`);
+    rejectForbiddenResultKeys(item, `${currentPath}.${key}`);
+  }
+}
+
+function assignmentFor(team, id) {
+  const assignment = team.assignments.find((item) => item.id === id);
+  if (!assignment) throw new Error("team assignment does not exist");
+  return assignment;
+}
+
+function dependenciesComplete(team, assignment) {
+  return assignment.depends_on.every((id) => team.assignments.find((item) => item.id === id)?.status === "COMPLETED");
+}
+
+function instructionFor(team, assignmentId) {
+  const instruction = team.dispatch_instructions?.find((item) => item.assignment_id === assignmentId);
+  if (!instruction) throw new Error("team dispatch instruction is missing");
+  return instruction;
+}
+
+function runReady(team) {
+  if (!["DISPATCH_READY", "IN_PROGRESS"].includes(team.state)) throw new Error("team is not ready for execution");
+  if (!team.run || ["CANCELLED", "BLOCKED", "COMPLETED"].includes(team.run.state)) throw new Error("team run is not accepting execution work");
+}
+
+function approvedForWrite(context) { return Boolean(context.brief.approval_hash); }
+
+function journal(options) {
+  try { return { status: "RECORDED", event: recordTeamEvent(options) }; }
+  catch (error) { return { status: "UNAVAILABLE", reason: error.message }; }
+}
+
+function preflightResultBudget(team, assignment, result) {
+  const cumulative = team.result_history.reduce((sum, item) => ({
+    tokens: sum.tokens + (item.usage?.tokens ?? 0),
+    actions: sum.actions + (item.usage?.actions ?? 0)
+  }), { tokens: 0, actions: 0 });
+  if (team.result_history.length >= team.budgets.max_actions) throw new Error("team result budget exceeded");
+  if (cumulative.tokens + result.usage.tokens > team.budgets.token_budget) throw new Error("team token budget exceeded");
+  if (cumulative.actions + result.usage.actions > team.budgets.max_actions) throw new Error("team action budget exceeded");
+  if (result.usage.duration_seconds > team.budgets.timeout_seconds) throw new Error("assignment timeout exceeded");
+  if (!dependenciesComplete(team, assignment)) throw new Error("assignment dependencies are incomplete");
+}
+
+export function nextTeamWave(options) {
+  const team = readTeamContract(options); runReady(team);
+  const context = inspectTeamContext(options);
+  const active = team.assignments.filter((item) => item.status === "RUNNING").length;
+  const capacity = Math.max(0, Math.min(team.run.max_concurrency, team.adapter_capabilities?.parallel_dispatch === false ? 1 : team.run.max_concurrency) - active);
+  const ready = team.assignments.filter((item) => item.status === "PENDING" && dependenciesComplete(team, item));
+  const blockedByApproval = ready.filter((item) => item.write_access && team.approval_required_before_writes && !approvedForWrite(context));
+  const dispatchable = ready.filter((item) => !blockedByApproval.includes(item)).slice(0, capacity);
+  return {
+    schema_version: 1,
+    task_id: team.task_id,
+    run_id: team.run.run_id,
+    execution_mode: team.execution_mode,
+    capacity,
+    assignments: dispatchable.map((item) => instructionFor(team, item.id)),
+    blocked_by_approval: blockedByApproval.map((item) => item.id),
+    pending_dependencies: team.assignments.filter((item) => item.status === "PENDING" && !dependenciesComplete(team, item)).map((item) => ({ assignment_id: item.id, depends_on: item.depends_on.filter((id) => team.assignments.find((candidate) => candidate.id === id)?.status !== "COMPLETED") }))
+  };
+}
+
+export function approveTeamRun(options) {
+  const root = path.resolve(options.target ?? process.cwd()); const team = readTeamContract({ target: root, id: options.id }); const expectedTeamHash = team.team_hash;
+  if (!team.run || ["COMPLETED", "CANCELLED"].includes(team.run.state)) throw new Error("team run cannot accept approval");
+  const timestamp = now(options); recordTaskApproval({ target: root, id: team.task_id, approvalHash: options.approvalHash });
+  const context = recordTeamApproval({ target: root, id: team.task_id, approvalHash: options.approvalHash, now: timestamp });
+  team.context_hash = context.context_hash; team.context_revision = context.revision; team.updated_at = timestamp; if (team.run) team.run.updated_at = timestamp;
+  const updated = writeTeamContract({ target: root, team, expectedTeamHash });
+  const journalResult = journal({ target: root, id: team.task_id, type: "APPROVAL_RECORDED", now: timestamp, data: { team_hash: updated.team_hash, context_hash: context.context_hash, run_id: updated.run.run_id, approval_hash: options.approvalHash, status: updated.state } });
+  return { team: updated, approval_hash: options.approvalHash, journal_status: journalResult.status };
+}
+
+export function dispatchTeamAssignment(options) {
+  const root = path.resolve(options.target ?? process.cwd()); const team = readTeamContract({ target: root, id: options.id }); const expectedTeamHash = team.team_hash; runReady(team);
+  const assignment = assignmentFor(team, options.assignment); const wave = nextTeamWave({ target: root, id: options.id });
+  if (!wave.assignments.some((item) => item.assignment_id === assignment.id)) {
+    if (wave.blocked_by_approval.includes(assignment.id)) throw new Error("write assignment requires recorded approval before dispatch");
+    throw new Error("assignment is not ready for dispatch");
+  }
+  if (assignment.attempts >= assignment.max_attempts) throw new Error("assignment retry budget is exhausted");
+  const agent = safe(options.agent, "agent id"); const timestamp = now(options);
+  const context = inspectTeamContext({ target: root, id: options.id });
+  const claimed = claimTeamWork({ target: root, id: options.id, assignment: assignment.id, agent, expectedRevision: context.revision, leaseSeconds: options.leaseSeconds, now: timestamp });
+  const spawnId = `spawn-${crypto.randomUUID()}`;
+  delete assignment.blocker;
+  assignment.status = "RUNNING"; assignment.attempts += 1;
+  assignment.execution = { state: "RUNNING", spawn_id: spawnId, external_run_id: options.externalRunId ? safe(options.externalRunId, "external run id") : null, claim_id: claimed.claim.claim_id, agent_id: agent, started_at: timestamp, last_heartbeat_at: timestamp, previous_spawns: assignment.execution?.spawn_id ? [...(assignment.execution.previous_spawns ?? []), assignment.execution.spawn_id] : [] };
+  team.state = "IN_PROGRESS"; team.run.state = "RUNNING"; team.run.dispatch_state = "HOST_DISPATCH_ACTIVE"; team.run.active_assignments = team.assignments.filter((item) => item.status === "RUNNING").length; team.run.updated_at = timestamp; team.updated_at = timestamp;
+  try {
+    writeTeamContract({ target: root, team, expectedTeamHash });
+  } catch (error) {
+    try { cancelTeamClaim({ target: root, id: options.id, claim: claimed.claim.claim_id, agent, reason: "dispatch state write failed", now: timestamp }); } catch { /* preserve the original atomic-write failure */ }
+    throw error;
+  }
+  const journalResult = journal({ target: root, id: team.task_id, type: "ASSIGNMENT_DISPATCHED", now: timestamp, data: { team_hash: team.team_hash, context_hash: claimed.context_hash, run_id: team.run.run_id, assignment_id: assignment.id, spawn_id: spawnId, external_run_id: assignment.execution.external_run_id, agent_id: agent, claim_id: claimed.claim.claim_id, status: "RUNNING" } });
+  return {
+    schema_version: 1,
+    task_id: team.task_id,
+    run_id: team.run.run_id,
+    spawn_id: spawnId,
+    claim_id: claimed.claim.claim_id,
+    agent_id: agent,
+    assignment_id: assignment.id,
+    context_revision: claimed.revision,
+    input_trust: { instructions: "TRUSTED_CONTROL", repository_context: "UNTRUSTED_DATA" },
+    instruction: instructionFor(team, assignment.id),
+    journal_status: journalResult.status
+  };
+}
+
+export function heartbeatTeamAssignment(options) {
+  const root = path.resolve(options.target ?? process.cwd()); const team = readTeamContract({ target: root, id: options.id }); const expectedTeamHash = team.team_hash; runReady(team);
+  const assignment = assignmentFor(team, options.assignment);
+  if (assignment.status !== "RUNNING" || !assignment.execution?.claim_id || !assignment.execution.agent_id) throw new Error("assignment is not running");
+  const timestamp = now(options); const context = inspectTeamContext({ target: root, id: options.id });
+  const renewed = renewTeamClaim({ target: root, id: options.id, claim: assignment.execution.claim_id, agent: assignment.execution.agent_id, expectedRevision: context.revision, leaseSeconds: options.leaseSeconds, now: timestamp });
+  assignment.execution.last_heartbeat_at = timestamp; team.run.updated_at = timestamp; team.updated_at = timestamp; writeTeamContract({ target: root, team, expectedTeamHash });
+  const journalResult = journal({ target: root, id: team.task_id, type: "ASSIGNMENT_HEARTBEAT", now: timestamp, data: { team_hash: team.team_hash, context_hash: renewed.context_hash, run_id: team.run.run_id, assignment_id: assignment.id, spawn_id: assignment.execution.spawn_id, status: "RUNNING" } });
+  return { assignment_id: assignment.id, spawn_id: assignment.execution.spawn_id, expires_at: renewed.expires_at, context_revision: renewed.revision, journal_status: journalResult.status };
+}
+
+export function validateTeamResult(result, expectedAssignment = null) {
+  if (!result || typeof result !== "object" || Array.isArray(result)) throw new Error("team result must be an object");
+  rejectForbiddenResultKeys(result);
+  if (Object.keys(result).some((key) => !RESULT_KEYS.has(key))) throw new Error("team result contains an unsupported field");
+  if (result.schema_version !== 1) throw new Error("team result schema version is invalid");
+  const assignmentId = safe(result.assignment_id, "result assignment id");
+  if (expectedAssignment && assignmentId !== expectedAssignment) throw new Error("team result assignment does not match the active assignment");
+  if (!INGEST_STATUSES.has(result.status)) throw new Error("team result status is invalid");
+  if (!result.usage || typeof result.usage !== "object") throw new Error("team result usage is required");
+  if (Array.isArray(result.usage) || Object.keys(result.usage).some((key) => !USAGE_KEYS.has(key))) throw new Error("team result usage contains an unsupported field");
+  const usage = { tokens: integer(result.usage.tokens, "result tokens"), actions: integer(result.usage.actions, "result actions"), duration_seconds: integer(result.usage.duration_seconds, "result duration") };
+  const noHandoff = ["TIMED_OUT", "CANCELLED", "ORPHANED"].includes(result.status);
+  if (!noHandoff && (!result.handoff || typeof result.handoff !== "object" || Array.isArray(result.handoff))) throw new Error("team result handoff is required");
+  if (result.handoff && Object.keys(result.handoff).some((key) => !HANDOFF_KEYS.has(key))) throw new Error("team result handoff contains an unsupported field");
+  return { assignment_id: assignmentId, status: result.status, usage, handoff: noHandoff ? null : result.handoff };
+}
+
+function appendRoleEvent(root, team, assignment, result, timestamp) {
+  const relative = ".ai-agent-kit/runtime/analytics/team-role-events.jsonl";
+  if (hasSymlinkComponent(root, relative)) throw new Error("team role analytics path cannot contain a symbolic link");
+  const directory = path.join(root, ".ai-agent-kit", "runtime", "analytics"); const file = path.join(root, relative);
+  fs.mkdirSync(directory, { recursive: true });
+  if (fs.existsSync(file) && fs.lstatSync(file).isSymbolicLink()) throw new Error("team role analytics cannot be a symbolic link");
+  const event = { schema_version: 1, task_id_hash: digest(team.task_id), run_id: team.run?.run_id ?? null, team_type: team.team_type, assignment_id: assignment.id, required: assignment.required !== false, status: result.status, finding_count: (result.handoff?.structured_findings?.length ?? 0) + (result.handoff?.findings?.length ?? 0), usage: result.usage, timestamp };
+  fs.appendFileSync(file, `${JSON.stringify(event)}\n`, { mode: 0o600 });
+}
+
+export function ingestTeamResult(options) {
+  const root = path.resolve(options.target ?? process.cwd()); const team = readTeamContract({ target: root, id: options.id });
+  const assignment = assignmentFor(team, options.assignment); const result = validateTeamResult(options.result, assignment.id);
+  const idempotencyKey = digest({ task_id: team.task_id, assignment_id: assignment.id, spawn_id: assignment.execution?.spawn_id ?? null, result });
+  const priorResult = team.result_history.findLast((item) => item.idempotency_key === idempotencyKey);
+  const duplicate = findTeamEvent({ target: root, id: team.task_id, type: "RESULT_INGESTED", match: { idempotency_key: idempotencyKey } });
+  if (priorResult || duplicate) return { team, handoff_hash: priorResult?.handoff_hash ?? duplicate?.data.handoff_hash ?? null, evidence_hash: priorResult?.evidence_hash ?? duplicate?.data.evidence_hash ?? null, analytics_status: "SKIPPED_DUPLICATE", journal_status: verifyTeamJournal({ target: root, id: team.task_id }).status, duplicate: true, idempotency_key: idempotencyKey };
+  runReady(team);
+  if (assignment.status !== "RUNNING") throw new Error("assignment is not running");
+  preflightResultBudget(team, assignment, result); const timestamp = now(options); let handoffHash = null;
+  if (!result.handoff && assignment.execution?.claim_id && assignment.execution.agent_id) cancelTeamClaim({ target: root, id: options.id, claim: assignment.execution.claim_id, agent: assignment.execution.agent_id, reason: `assignment ended with ${result.status}`, now: timestamp });
+  if (result.handoff) {
+    const context = inspectTeamContext({ target: root, id: options.id });
+    const payload = { ...result.handoff, status: result.status };
+    const handoff = publishTeamHandoff({ target: root, id: options.id, claim: assignment.execution.claim_id, agent: assignment.execution.agent_id, expectedRevision: context.revision, payload, now: timestamp });
+    handoffHash = handoff.handoff_hash;
+  }
+  const findingCount = (result.handoff?.structured_findings?.length ?? 0) + (result.handoff?.findings?.length ?? 0);
+  const evidenceHash = handoffHash ? digest({ handoff_hash: handoffHash, assignment_id: assignment.id, status: result.status }) : null;
+  const updated = recordTeamResult({ target: root, id: options.id, assignment: assignment.id, status: result.status, tokens: result.usage.tokens, actions: result.usage.actions, durationSeconds: result.usage.duration_seconds, handoffHash, evidenceHash, idempotencyKey, findingCount, now: timestamp });
+  let analyticsStatus = "RECORDED";
+  try { appendRoleEvent(root, updated, updated.assignments.find((item) => item.id === assignment.id), result, timestamp); } catch { analyticsStatus = "UNAVAILABLE"; }
+  const journalResult = journal({ target: root, id: updated.task_id, type: "RESULT_INGESTED", now: timestamp, data: { team_hash: updated.team_hash, context_hash: updated.context_hash, run_id: updated.run?.run_id ?? null, assignment_id: assignment.id, spawn_id: assignment.execution?.spawn_id ?? null, status: updated.state, result_status: result.status, idempotency_key: idempotencyKey, handoff_hash: handoffHash, evidence_hash: evidenceHash, usage: result.usage, duplicate: false } });
+  return { team: updated, handoff_hash: handoffHash, evidence_hash: evidenceHash, analytics_status: analyticsStatus, journal_status: journalResult.status, duplicate: false, idempotency_key: idempotencyKey };
+}
+
+export function cancelTeamRun(options) {
+  const root = path.resolve(options.target ?? process.cwd()); const team = readTeamContract({ target: root, id: options.id }); const expectedTeamHash = team.team_hash;
+  if (!team.run || ["COMPLETED", "CANCELLED"].includes(team.run.state)) throw new Error("team run cannot be cancelled");
+  const timestamp = now(options); const reason = String(options.reason ?? "cancelled by task owner").trim(); if (!reason || reason.length > 1000) throw new Error("cancellation reason is invalid");
+  const cancellationTargets = team.assignments.filter((item) => item.status === "RUNNING").map((item) => ({ assignment_id: item.id, spawn_id: item.execution?.spawn_id ?? null, external_run_id: item.execution?.external_run_id ?? null, agent_id: item.execution?.agent_id ?? null }));
+  for (const assignment of team.assignments) {
+    if (assignment.status === "RUNNING" && assignment.execution?.claim_id && assignment.execution.agent_id) cancelTeamClaim({ target: root, id: team.task_id, claim: assignment.execution.claim_id, agent: assignment.execution.agent_id, reason, now: timestamp });
+    if (["PENDING", "RUNNING"].includes(assignment.status)) { assignment.status = "CANCELLED"; assignment.completed_at = timestamp; if (assignment.execution) assignment.execution.state = "CANCELLED"; }
+  }
+  team.state = "CANCELLED"; team.run.state = "CANCELLED"; team.run.dispatch_state = "CANCELLED"; team.run.active_assignments = 0; team.run.cancelled_at = timestamp; team.run.cancellation_reason = reason; team.run.cancellation_targets = cancellationTargets; team.run.external_cancellation = cancellationTargets.length ? team.adapter_capabilities?.cancellation ? "HOST_ACTION_REQUIRED" : "UNSUPPORTED" : "NOT_REQUIRED"; team.run.updated_at = timestamp; team.updated_at = timestamp;
+  const updated = writeTeamContract({ target: root, team, expectedTeamHash });
+  journal({ target: root, id: team.task_id, type: "TEAM_CANCELLED", now: timestamp, data: { team_hash: updated.team_hash, run_id: updated.run.run_id, status: updated.state, reason_code: "OWNER_CANCELLED" } });
+  return updated;
+}
+
+export function resumeTeamRun(options) {
+  const root = path.resolve(options.target ?? process.cwd()); const team = readTeamContract({ target: root, id: options.id }); const expectedTeamHash = team.team_hash;
+  if (!team.run || ["COMPLETED", "CANCELLED"].includes(team.run.state)) throw new Error("team run cannot be resumed");
+  const timestamp = now(options); const stale = []; const context = inspectTeamContext({ target: root, id: options.id });
+  if (options.reviewedOrphanedWriter) {
+    const reviewed = assignmentFor(team, safe(options.reviewedOrphanedWriter, "reviewed orphaned writer"));
+    if (!reviewed.write_access || reviewed.status !== "ORPHANED") throw new Error("reviewed orphaned writer must identify the orphaned write assignment");
+    if (reviewed.attempts >= reviewed.max_attempts) throw new Error("orphaned writer retry budget is exhausted");
+    reviewed.status = "PENDING"; delete reviewed.blocker;
+    reviewed.execution.previous_spawns = [...new Set([...(reviewed.execution.previous_spawns ?? []), reviewed.execution.spawn_id].filter(Boolean))];
+    reviewed.execution.state = "PENDING"; reviewed.execution.spawn_id = null; reviewed.execution.external_run_id = null; reviewed.execution.claim_id = null; reviewed.execution.agent_id = null;
+  }
+  for (const assignment of team.assignments.filter((item) => item.status === "RUNNING")) {
+    const last = Date.parse(assignment.execution?.last_heartbeat_at ?? assignment.execution?.started_at ?? team.run.prepared_at); const ageSeconds = (Date.parse(timestamp) - last) / 1000;
+    const claim = context.claims.find((item) => item.claim_id === assignment.execution?.claim_id);
+    const leaseExpired = !claim || claim.status !== "ACTIVE" || Date.parse(claim.expires_at) <= Date.parse(timestamp);
+    if (!leaseExpired && ageSeconds <= team.budgets.timeout_seconds) continue;
+    stale.push(assignment.id);
+    if (assignment.execution?.claim_id && assignment.execution.agent_id) cancelTeamClaim({ target: root, id: team.task_id, claim: assignment.execution.claim_id, agent: assignment.execution.agent_id, reason: "stale execution lease", now: timestamp });
+    assignment.execution.state = "ORPHANED";
+    if (assignment.write_access || assignment.attempts >= assignment.max_attempts) { assignment.status = "ORPHANED"; assignment.blocker = assignment.write_access ? "WRITE_AGENT_ORPHANED_REVIEW_REQUIRED" : "RETRY_BUDGET_EXHAUSTED"; }
+    else { assignment.status = "PENDING"; assignment.execution.previous_spawns = [...(assignment.execution.previous_spawns ?? []), assignment.execution.spawn_id].filter(Boolean); assignment.execution.spawn_id = null; assignment.execution.claim_id = null; assignment.execution.agent_id = null; }
+  }
+  const requiredFailed = team.assignments.some((item) => item.required !== false && ["BLOCKED", "ORPHANED"].includes(item.status));
+  team.state = requiredFailed ? "BLOCKED" : team.assignments.some((item) => item.status === "RUNNING") ? "IN_PROGRESS" : "DISPATCH_READY"; team.run.state = requiredFailed ? "BLOCKED" : "READY"; team.run.dispatch_state = requiredFailed ? "HUMAN_REVIEW_REQUIRED" : "READY_FOR_HOST"; team.run.active_assignments = team.assignments.filter((item) => item.status === "RUNNING").length; team.run.updated_at = timestamp; team.updated_at = timestamp;
+  writeTeamContract({ target: root, team, expectedTeamHash });
+  const journalResult = journal({ target: root, id: team.task_id, type: "TEAM_RESUMED", now: timestamp, data: { team_hash: team.team_hash, run_id: team.run.run_id, status: team.state, stale_assignments: stale } });
+  return { team, stale_assignments: stale, next: requiredFailed ? null : nextTeamWave({ target: root, id: team.task_id }), journal_status: journalResult.status };
+}
+
+export function recoverTeamRun(options) {
+  const root = path.resolve(options.target ?? process.cwd()); const before = verifyTeamJournal({ target: root, id: options.id });
+  if (before.status !== "VERIFIED") throw new Error(`team journal verification failed at sequence ${before.failed_sequence}`);
+  let team = readTeamContract({ target: root, id: options.id });
+  const last = readTeamEvents({ target: root, id: team.task_id }).findLast((event) => event.data?.team_hash) ?? null;
+  let reconciled = false;
+  if (last?.data?.team_hash && last.data.team_hash !== team.team_hash) {
+    journal({ target: root, id: team.task_id, type: "JOURNAL_RECONCILED", now: options.now, data: { team_hash: team.team_hash, context_hash: team.context_hash, run_id: team.run?.run_id ?? null, journal_head: before.journal_head, status: team.state, reason_code: "STATE_AHEAD_OF_JOURNAL" } });
+    reconciled = true;
+  }
+  let recovery = null;
+  if (team.run && !["COMPLETED", "CANCELLED"].includes(team.run.state)) {
+    recovery = resumeTeamRun(options); team = recovery.team;
+  }
+  const event = journal({ target: root, id: team.task_id, type: "TEAM_RECOVERED", now: options.now, data: { team_hash: team.team_hash, context_hash: team.context_hash, run_id: team.run?.run_id ?? null, status: team.state, stale_assignments: recovery?.stale_assignments ?? [], reason_code: reconciled ? "JOURNAL_RECONCILED" : "STATE_VERIFIED" } });
+  return { schema_version: 1, task_id: team.task_id, status: event.status === "RECORDED" ? "RECOVERED" : "DEGRADED", reconciled, stale_assignments: recovery?.stale_assignments ?? [], team, next: recovery?.next ?? null, journal: verifyTeamJournal({ target: root, id: team.task_id }) };
+}

@@ -1,7 +1,7 @@
 {
   "name": "@hunpeolabs/ai-agent-kit",
-  "version": "0.9.0",
-  "description": "Governed cross-agent coding workflows with repository intelligence, quality profiles, approval gates, and evidence.",
+  "version": "0.9.1",
+  "description": "Governed AI agent orchestration with repository intelligence, approval gates, specialist workcells, and reviewable evidence.",
   "type": "module",
   "bin": {
     "ai-agent-kit": "./dist/bin/ai-agent-kit.mjs"

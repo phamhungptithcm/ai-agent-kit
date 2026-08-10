@@ -4,6 +4,32 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## 0.9.1 - 2026-08-09
+
+- Upgraded Agent Department from plan-only orchestration to a host-bridged,
+  dependency-aware execution loop with dispatch, heartbeat, structured result
+  ingestion, cancellation, bounded retries, and explicit orphaned-writer
+  handling.
+- Added content-minimized hash-chained team journals, optimistic team-contract
+  writes, idempotent result retries, state/journal reconciliation, and
+  fail-closed recovery for stale or unsafe work.
+- Added an offline `team demo` that exercises the real planner, approval gate,
+  shared context, assurance rejection, fix loop, and fresh independent review
+  while clearly identifying simulated host behavior.
+- Added `team watch` JSON, text, and standalone HTML timelines for reviewable
+  execution proof without prompts, conversations, source content, secrets, or
+  chain-of-thought.
+- Added evidence-bound live Codex and Claude conformance attestations that keep
+  declared adapter capability, deterministic contract tests, and observed host
+  execution as separate evidence levels.
+- Added a three-mode benchmark contract for single-agent, ungoverned
+  multi-agent, and Agent Department runs with fixed task/commit/host/model
+  bindings and explicit `INSUFFICIENT_EVIDENCE`, `PARTIAL`, and
+  `SYNTHETIC_ONLY` outcomes.
+- Expanded canonical policy, schemas, skills, generated adapter surfaces,
+  documentation, tests, and value-first product copy for the Agent Department
+  proof loop.
+
 ## 0.9.0 - 2026-08-09
 
 - Added a versioned adapter SDK and canonical capability registry covering

@@ -2,10 +2,10 @@
   "spdxVersion": "SPDX-2.3",
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
-  "name": "@hunpeolabs/ai-agent-kit-0.9.0",
-  "documentNamespace": "https://github.com/phamhungptithcm/ai-agent-kit/sbom/0.9.0/1bb80e1c-f985-437e-a27f-ff1f6b3ebf31",
+  "name": "@hunpeolabs/ai-agent-kit-0.9.1",
+  "documentNamespace": "https://github.com/phamhungptithcm/ai-agent-kit/sbom/0.9.1/5d3f7ef3-2ea0-409e-b172-f39d6922998a",
   "creationInfo": {
-    "created": "2026-08-09T15:04:10.921Z",
+    "created": "2026-08-10T00:43:35.718Z",
     "creators": [
       "Tool: @hunpeolabs/ai-agent-kit"
     ]
@@ -14,7 +14,7 @@
     {
       "SPDXID": "SPDXRef-Package-0",
       "name": "@hunpeolabs/ai-agent-kit",
-      "versionInfo": "0.9.0",
+      "versionInfo": "0.9.1",
       "downloadLocation": "NOASSERTION",
       "filesAnalyzed": false
     }
