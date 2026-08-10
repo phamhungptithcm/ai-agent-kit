@@ -205,6 +205,18 @@ export function addContext(options) {
   return task;
 }
 
+export function recordTaskApproval(options) {
+  const root = rootFor(options.target); const task = readTask(root, options.id);
+  const approvalHash = String(options.approvalHash ?? "");
+  if (!/^[a-f0-9]{64}$/.test(approvalHash)) throw new Error("approval hash must be a SHA-256 digest");
+  if (task.capability.approval_hash && task.capability.approval_hash !== approvalHash) throw new Error("a different task approval is already recorded");
+  if (task.capability.approval_hash === approvalHash) return task;
+  task.capability.approval_hash = approvalHash; task.capability_hash = digest(task.capability); task.updated_at = new Date().toISOString();
+  atomicWrite(taskPath(root, task.id), `${JSON.stringify(task, null, 2)}\n`);
+  appendReceipt(root, task.id, "approval.recorded", { approval_hash: approvalHash, capability_hash: task.capability_hash });
+  return task;
+}
+
 export function revisePlan(options) {
   const root = rootFor(options.target);
   const task = readTask(root, options.id);

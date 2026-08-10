@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "team-result-v1",
+  "title": "Host subagent result envelope",
+  "type": "object",
+  "required": ["schema_version", "assignment_id", "status", "usage"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "assignment_id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$" },
+    "status": { "enum": ["COMPLETED", "BLOCKED", "REJECTED", "TIMED_OUT", "CANCELLED", "ORPHANED"] },
+    "usage": {
+      "type": "object",
+      "required": ["tokens", "actions", "duration_seconds"],
+      "properties": {
+        "tokens": { "type": "integer", "minimum": 0 },
+        "actions": { "type": "integer", "minimum": 0 },
+        "duration_seconds": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "handoff": {
+      "type": "object",
+      "required": ["brief_hash"],
+      "properties": {
+        "brief_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "facts": { "type": "array", "items": { "type": "string" } },
+        "findings": { "type": "array", "items": { "type": "string" } },
+        "structured_findings": { "type": "array", "items": { "type": "object" } },
+        "decisions_needed": { "type": "array", "items": { "type": "string" } },
+        "risks": { "type": "array", "items": { "type": "string" } },
+        "unresolved_questions": { "type": "array", "items": { "type": "string" } },
+        "affected_paths": { "type": "array", "items": { "type": "string" } },
+        "tests_recommended": { "type": "array", "items": { "type": "string" } },
+        "evidence": { "type": "array", "items": { "type": "object" } }
+      },
+      "additionalProperties": false
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "status": { "enum": ["COMPLETED", "BLOCKED", "REJECTED"] } } },
+      "then": { "required": ["handoff"] }
+    }
+  ],
+  "additionalProperties": false
+}

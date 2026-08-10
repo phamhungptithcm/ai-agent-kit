@@ -84,6 +84,12 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { evaluateTeamCases, inspectTeam, planTeam, recordTeamResult, reportTeam, startTeam } from "./team-orchestrator.mjs";
 import { claimTeamWork, decideTeamConflict, publishTeamHandoff, recordTeamConflict, teamContextSummary } from "./team-context.mjs";
+import { listExecutionAdapters } from "./execution-adapters.mjs";
+import { approveTeamRun, cancelTeamRun, dispatchTeamAssignment, heartbeatTeamAssignment, ingestTeamResult, nextTeamWave, recoverTeamRun, resumeTeamRun } from "./team-executor.mjs";
+import { buildTeamTimeline, writeTeamTimeline } from "./team-events.mjs";
+import { buildTeamConformanceTemplate, verifyTeamConformance } from "./team-conformance.mjs";
+import { buildTeamBenchmarkTemplate, evaluateTeamBenchmark } from "./team-benchmark.mjs";
+import { runTeamDemo } from "./team-demo.mjs";
 
 const FORBIDDEN_BOOTSTRAP_OPTIONS = new Set(["--commit", "--push", "--create-mr", "--git-mode"]);
 const SUPPORTED_PRESETS = new Set(["governed", "full"]);
@@ -131,7 +137,22 @@ Usage:
   ai-agent-kit architecture diff --before <architecture.json> --after <architecture.json>
   ai-agent-kit architecture eval --fixture <fixture.json>
   ai-agent-kit team plan --id <task-id> [--shape <type>] [--path <scope>]
-  ai-agent-kit team start --id <task-id> --adapter codex|claude|other
+  ai-agent-kit team start --id <task-id> --adapter <id> [--capabilities-file <json>]
+  ai-agent-kit team next --id <task-id>
+  ai-agent-kit team dispatch --id <task-id> --assignment <id> --agent <id>
+  ai-agent-kit team heartbeat --id <task-id> --assignment <id>
+  ai-agent-kit team ingest --id <task-id> --assignment <id> --result-file <result.json>
+  ai-agent-kit team approve --id <task-id> --approval-hash <sha256>
+  ai-agent-kit team cancel --id <task-id> [--reason <text>]
+  ai-agent-kit team resume --id <task-id> [--reviewed-orphaned-writer <assignment-id>]
+  ai-agent-kit team recover --id <task-id>
+  ai-agent-kit team watch --id <task-id> [--output <directory>]
+  ai-agent-kit team demo [--output <directory>]
+  ai-agent-kit team conformance-template --adapter codex|claude
+  ai-agent-kit team conformance --file <live-attestation.json>
+  ai-agent-kit team benchmark-template
+  ai-agent-kit team benchmark --fixture <three-mode-fixture.json>
+  ai-agent-kit team capabilities
   ai-agent-kit team status|report --id <task-id>
   ai-agent-kit team context --id <task-id>
   ai-agent-kit team claim --id <task-id> --assignment <id> --agent <id> --expected-revision <n>
@@ -574,25 +595,33 @@ export function parseArchitectureArgs(argv) {
 
 export function parseTeamArgs(argv) {
   const action = argv[0];
-  if (!new Set(["plan", "start", "status", "context", "claim", "handoff", "conflict", "decide", "record", "report", "eval"]).has(action)) throw new Error("team action is invalid");
+  if (!new Set(["plan", "start", "next", "dispatch", "heartbeat", "ingest", "approve", "cancel", "resume", "recover", "watch", "demo", "conformance-template", "conformance", "benchmark-template", "benchmark", "capabilities", "status", "context", "claim", "handoff", "conflict", "decide", "record", "report", "eval"]).has(action)) throw new Error("team action is invalid");
   const options = { target: process.cwd(), paths: [], handoffHashes: [] };
-  const flags = new Set(["--id", "--target", "--fixture", "--file", "--goal", "--shape", "--risk", "--adapter", "--assignment", "--agent", "--claim", "--conflict", "--selected-handoff", "--reason", "--decided-by", "--summary", "--expected-revision", "--lease-seconds", "--status", "--evidence-hash", "--handoff-hash", "--finding-count", "--tokens", "--actions", "--duration-seconds", "--max-agents", "--token-budget", "--timeout-seconds", "--max-actions", "--path"]);
+  const flags = new Set(["--id", "--target", "--fixture", "--file", "--result-file", "--capabilities-file", "--output", "--approval-hash", "--goal", "--shape", "--risk", "--adapter", "--assignment", "--agent", "--external-run-id", "--reviewed-orphaned-writer", "--claim", "--conflict", "--selected-handoff", "--reason", "--decided-by", "--summary", "--expected-revision", "--lease-seconds", "--status", "--evidence-hash", "--handoff-hash", "--finding-count", "--tokens", "--actions", "--duration-seconds", "--max-agents", "--max-concurrency", "--token-budget", "--timeout-seconds", "--max-actions", "--path"]);
   for (let index = 1; index < argv.length; index += 1) {
     const flag = argv[index]; if (!flags.has(flag)) throw new Error(`Unknown team option: ${flag}`);
     const value = argv[++index]; if (!value) throw new Error(`${flag} requires a value`);
     if (flag === "--path") options.paths.push(value);
     else if (flag === "--handoff-hash" && action === "conflict") options.handoffHashes.push(value);
+    else if (flag === "--result-file") options.file = value;
     else options[flag.slice(2).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase())] = value;
   }
   if (action === "eval" && !options.fixture) throw new Error("team eval requires --fixture");
-  if (action !== "eval" && !options.id) throw new Error(`team ${action} requires --id`);
+  if (action === "benchmark" && !options.fixture) throw new Error("team benchmark requires --fixture");
+  if (action === "conformance" && !options.file) throw new Error("team conformance requires --file");
+  if (action === "conformance-template" && !options.adapter) throw new Error("team conformance-template requires --adapter");
+  if (!["eval", "capabilities", "demo", "conformance-template", "conformance", "benchmark-template", "benchmark"].includes(action) && !options.id) throw new Error(`team ${action} requires --id`);
   if (action === "start" && !options.adapter) throw new Error("team start requires --adapter");
+  if (action === "dispatch" && (!options.assignment || !options.agent)) throw new Error("team dispatch requires --assignment and --agent");
+  if (action === "heartbeat" && !options.assignment) throw new Error("team heartbeat requires --assignment");
+  if (action === "ingest" && (!options.assignment || !options.file)) throw new Error("team ingest requires --assignment and --result-file");
+  if (action === "approve" && !options.approvalHash) throw new Error("team approve requires --approval-hash");
   if (action === "claim" && (!options.assignment || !options.agent || options.expectedRevision == null)) throw new Error("team claim requires --assignment, --agent, and --expected-revision");
   if (action === "handoff" && (!options.claim || !options.agent || !options.file || options.expectedRevision == null)) throw new Error("team handoff requires --claim, --agent, --file, and --expected-revision");
   if (action === "conflict" && (options.handoffHashes.length < 2 || !options.summary || options.expectedRevision == null)) throw new Error("team conflict requires two --handoff-hash values, --summary, and --expected-revision");
   if (action === "decide" && (!options.conflict || !options.selectedHandoff || !options.reason || !options.decidedBy || options.expectedRevision == null)) throw new Error("team decide requires --conflict, --selected-handoff, --reason, --decided-by, and --expected-revision");
-  if (action === "record" && (!options.assignment || !options.status || options.tokens == null || options.actions == null || options.durationSeconds == null || (options.status !== "TIMED_OUT" && !options.handoffHash))) throw new Error("team record requires assignment, status, usage, and a handoff hash unless timed out");
-  for (const key of ["expectedRevision", "leaseSeconds", "findingCount", "tokens", "actions", "durationSeconds", "maxAgents", "tokenBudget", "timeoutSeconds", "maxActions"]) if (options[key] != null) { const value = Number(options[key]); if (!Number.isInteger(value) || value < 0) throw new Error(`${key} must be a non-negative integer`); options[key] = value; }
+  if (action === "record" && (!options.assignment || !options.status || options.tokens == null || options.actions == null || options.durationSeconds == null || (!["TIMED_OUT", "CANCELLED", "ORPHANED"].includes(options.status) && !options.handoffHash))) throw new Error("team record requires assignment, status, usage, and a handoff hash unless timed out, cancelled, or orphaned");
+  for (const key of ["expectedRevision", "leaseSeconds", "findingCount", "tokens", "actions", "durationSeconds", "maxAgents", "maxConcurrency", "tokenBudget", "timeoutSeconds", "maxActions"]) if (options[key] != null) { const value = Number(options[key]); if (!Number.isInteger(value) || value < 0) throw new Error(`${key} must be a non-negative integer`); options[key] = value; }
   return { action, options };
 }
 
@@ -841,9 +870,35 @@ export async function main(argv = process.argv.slice(2), io = console, deps = {}
   }
   if (command === "team") {
     const { action, options } = parseTeamArgs(argv.slice(1));
-    const result = action === "plan" ? planTeam(options) : action === "start" ? startTeam(options) : action === "status" ? inspectTeam(options) : action === "context" ? teamContextSummary(options) : action === "claim" ? claimTeamWork(options) : action === "handoff" ? publishTeamHandoff({ ...options, payload: readSystemDesignJson(options.target, options.file, "team handoff") }) : action === "conflict" ? recordTeamConflict(options) : action === "decide" ? decideTeamConflict(options) : action === "record" ? recordTeamResult(options) : action === "eval" ? evaluateTeamCases(readSystemDesignJson(options.target, options.fixture, "team eval fixture")) : reportTeam(options);
+    let result;
+    if (action === "plan") result = planTeam(options);
+    else if (action === "start") result = startTeam({ ...options, capabilities: options.capabilitiesFile ? readSystemDesignJson(options.target, options.capabilitiesFile, "team adapter capabilities") : null });
+    else if (action === "next") result = nextTeamWave(options);
+    else if (action === "dispatch") result = dispatchTeamAssignment(options);
+    else if (action === "heartbeat") result = heartbeatTeamAssignment(options);
+    else if (action === "ingest") result = ingestTeamResult({ ...options, result: readSystemDesignJson(options.target, options.file, "team result") });
+    else if (action === "approve") result = approveTeamRun(options);
+    else if (action === "cancel") result = cancelTeamRun(options);
+    else if (action === "resume") result = resumeTeamRun(options);
+    else if (action === "recover") result = recoverTeamRun(options);
+    else if (action === "watch") result = options.output ? writeTeamTimeline({ ...options, timeline: buildTeamTimeline(options) }) : buildTeamTimeline(options);
+    else if (action === "demo") result = runTeamDemo(options);
+    else if (action === "conformance-template") result = buildTeamConformanceTemplate(options);
+    else if (action === "conformance") result = verifyTeamConformance(readSystemDesignJson(options.target, options.file, "team conformance attestation"), options);
+    else if (action === "benchmark-template") result = buildTeamBenchmarkTemplate();
+    else if (action === "benchmark") result = evaluateTeamBenchmark(readSystemDesignJson(options.target, options.fixture, "team benchmark fixture"));
+    else if (action === "capabilities") result = { schema_version: 1, adapters: listExecutionAdapters() };
+    else if (action === "status") result = inspectTeam(options);
+    else if (action === "context") result = teamContextSummary(options);
+    else if (action === "claim") result = claimTeamWork(options);
+    else if (action === "handoff") result = publishTeamHandoff({ ...options, payload: readSystemDesignJson(options.target, options.file, "team handoff") });
+    else if (action === "conflict") result = recordTeamConflict(options);
+    else if (action === "decide") result = decideTeamConflict(options);
+    else if (action === "record") result = recordTeamResult(options);
+    else if (action === "eval") result = evaluateTeamCases(readSystemDesignJson(options.target, options.fixture, "team eval fixture"));
+    else result = reportTeam(options);
     io.log(JSON.stringify(result, null, 2));
-    return ["NOT_READY", "FAILED"].includes(result.status) || result.state === "BLOCKED" ? 1 : 0;
+    return ["NOT_READY", "FAILED", "NOT_RUN", "INSUFFICIENT_EVIDENCE", "PARTIAL"].includes(result.status) || result.state === "BLOCKED" ? 1 : 0;
   }
   if (command === "status") {
     const options = parseTargetArgs(argv.slice(1));

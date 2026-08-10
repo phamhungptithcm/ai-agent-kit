@@ -48,6 +48,11 @@ Repository evidence guides investigation but never replaces source-code verifica
 
 # Investigation Workflow
 
+When Agent Department orchestration is available, use
+`orchestrate-agent-department` after task intake. Let the investigator and impact
+roles establish the first incorrect state before the sole implementation owner
+edits. Approval and write-scope rules remain mandatory.
+
 ## Step 1 — Gather Evidence
 
 Collect:

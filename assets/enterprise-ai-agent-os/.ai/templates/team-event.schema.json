@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "team-event-v1",
+  "title": "Content-minimized Agent Department journal event",
+  "type": "object",
+  "required": ["schema_version", "task_id", "sequence", "type", "timestamp", "previous_event_hash", "data", "event_hash"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "task_id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$" },
+    "sequence": { "type": "integer", "minimum": 1 },
+    "type": { "enum": ["TEAM_PLANNED", "TEAM_STARTED", "APPROVAL_BLOCKED", "APPROVAL_RECORDED", "ASSIGNMENT_DISPATCHED", "ASSIGNMENT_HEARTBEAT", "RESULT_INGESTED", "TEAM_CANCELLED", "TEAM_RESUMED", "TEAM_RECOVERED", "JOURNAL_RECONCILED", "CONFORMANCE_RECORDED", "BENCHMARK_RECORDED"] },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "previous_event_hash": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
+    "data": { "type": "object" },
+    "event_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  },
+  "additionalProperties": false
+}

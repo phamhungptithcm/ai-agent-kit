@@ -461,36 +461,64 @@ remain separate governed actions.
 
 ## Agent Department Orchestration
 
-After repository inspection, every task receives an orchestration decision.
-The classifier selects a solo path, product workcell, bug workcell, or assurance
-workcell from task intent, risk, and approved change areas. It always chooses
-the smallest team that preserves an independent review.
+Every task receives a provisional decision at creation and a context-aware
+decision after repository inspection. Immediately before dispatch, the planner
+reconciles goal, approved paths, facts, assumptions, risk, and evidence. It
+selects a solo path, product workcell, bug workcell, or assurance workcell and
+adds conditional security, migration, API, performance/concurrency, or design
+specialists only when current signals justify them. It always chooses the
+smallest team that preserves an independent review.
 
 The workcell contract binds role objectives, dependencies, path ownership,
-write access, fan-out, depth, time, token, and action budgets. A single
-implementation assignment owns writes. Read-only specialists may work in
+write access, fan-out, depth, concurrency, retry, time, token, and action
+budgets. A single implementation assignment owns writes. Read-only specialists may work in
 parallel from one shared repository intelligence brief.
 
+```mermaid
+flowchart LR
+  Context[Current task context] --> Planner[Context-aware planner]
+  Planner --> DAG[Bounded assignment DAG]
+  Host[Host capability contract] --> Scheduler[Wave scheduler]
+  DAG --> Scheduler
+  Scheduler --> Claim[Claim and dispatch envelope]
+  Claim --> Native[Host-native subagent or serial persona]
+  Native --> Result[Structured result and handoff]
+  Result --> Validate[Validate, synthesize, advance]
+  Validate --> Scheduler
+  Validate --> Report[Evidence report]
+```
+
 The Team Context Protocol turns that brief into a versioned coordination bus.
-Assignments are claimed through bounded leases, publish immutable structured
-handoffs, and advance a separate knowledge revision. Optimistic concurrency
-rejects lost updates; dependency handoff hashes prevent agents from building on
+Assignments are claimed through bounded leases with heartbeats, publish
+immutable structured handoffs, and advance a separate knowledge revision.
+Cancellation releases active claims. Resume can retry stale read-only work
+within budget, while an orphaned writer blocks for Team Lead review. Optimistic
+concurrency rejects lost updates; dependency handoff hashes prevent agents from building on
 superseded findings. Claimed write paths cannot overlap or expand approved
 scope, and completed work without a matching handoff is not accepted.
 
-Conflicting findings remain explicit and block readiness until the Team Lead
-records an evidence-bound decision. Handoffs contain facts, findings, risks,
+Structured findings carry severity, confidence, category, location,
+recommendation, and evidence hashes. Deterministic fingerprints collapse exact
+duplicates and record confirmations without using majority vote; severity
+disagreement remains visible. Conflicting findings remain explicit and block
+readiness until the Team Lead records an evidence-bound decision. Handoffs contain facts, findings, risks,
 tests, unresolved questions, paths, and source references—not raw conversations,
 prompts, secrets, or chain-of-thought. Repository intelligence may be degraded
 when optional indexes are unavailable without blocking the workcell.
 
-Codex and Claude receive native subagent dispatch profiles. Other adapters use
-the same assignments as serial personas and report `SERIAL_PERSONAS`; absence
-of native subagents is degraded orchestration, not a blocker. Assignment
-results, handoff hashes, context revisions, and evidence hashes form a
+Planning adapters and execution capabilities are separate contracts. A host
+declares bridge kind, native spawn, parallelism, cancellation, structured
+results, enforcement, and concurrency. Codex and Claude may use a host-native
+bridge; other adapters use the same assignments as serial personas unless they
+provide a verified bridge. Repository code never pretends to spawn a host
+agent: it returns dependency-ready waves and trusted dispatch controls, while
+the host skill invokes its native primitive. Assignment results, handoff hashes,
+context revisions, external run identifiers, and evidence hashes form a
 tamper-evident team contract.
 
 Independent review is a dependency, not an optional persona. Findings reset the
-implementation and review assignments, preserving the result history until a
-new clean review completes. Agent Proof Replay binds the resulting team hash,
+implementation plus downstream QA and assurance assignments, preserving the
+result history until fresh verification and a new clean review complete.
+Optional specialists can degrade a report but cannot vanish silently. Agent
+Proof Replay binds the resulting team hash,
 execution mode, assignment status, review independence, and evidence summary.
