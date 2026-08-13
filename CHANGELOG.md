@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.0.1 - 2026-08-13
+
+- Published the redesigned npm README that presents AI Agent Kit as the
+  performance and assurance harness around AI coding agents, with a clearer
+  workflow, context model, capability map, honest adapter boundaries, and
+  installation paths.
+- Updated the npm package description to match the new product positioning.
+
 ## 1.0.0 - 2026-08-13
 
 - Added governed, client-neutral skill routing with a versioned single source,

@@ -1,6 +1,6 @@
 {
   "name": "@hunpeolabs/ai-agent-kit",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Performance and assurance harness for AI coding agents with repository intelligence, portable skills, governed memory, specialist coordination, security gates, and verifiable delivery.",
   "type": "module",
   "bin": {
