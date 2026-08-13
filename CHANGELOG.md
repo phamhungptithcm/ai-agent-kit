@@ -20,9 +20,9 @@ All notable changes to this project will be documented in this file.
 - Made runtime, evaluation, proof, and routing CLI failures return non-zero;
   required verified host capabilities before native subagent execution; and
   kept cancellation pending until the host confirms it.
-- Hardened package assembly and packed-package tests so local approval notes,
-  repository indexes, generated databases, npm logs, and Python bytecode cannot
-  enter the published tarball.
+- Hardened source and package hygiene plus packed-package tests so local
+  approval notes, repository indexes, generated databases, npm logs, and Python
+  bytecode cannot enter commits or the published tarball.
 - Added an evidence-backed additive AI change-assurance deep review and staged
   discovery plan covering repository intelligence, approval, execution,
   verification, and release-proof integration gaps.
