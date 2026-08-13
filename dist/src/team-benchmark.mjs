@@ -10,10 +10,15 @@ export function buildTeamBenchmarkTemplate() {
 
 export function evaluateTeamBenchmark(fixture) {
   if (!fixture || fixture.schema_version !== 1 || !Array.isArray(fixture.cases) || !fixture.cases.length) throw new Error("team benchmark fixture is invalid");
-  const problems = []; const normalized = [];
+  const problems = []; const normalized = []; const repetitions = fixture.methodology?.repetitions_per_mode;
+  if (!Number.isInteger(repetitions) || repetitions < 3 || repetitions > 100) problems.push("methodology requires 3-100 repetitions_per_mode");
   for (const item of fixture.cases) {
     const id = safe(item.id, "benchmark case id"); const runs = Array.isArray(item.runs) ? item.runs : [];
-    for (const mode of MODES) if (!runs.some((run) => run.mode === mode)) problems.push(`${id}: missing ${mode}`);
+    for (const mode of MODES) {
+      const count = runs.filter((run) => run.mode === mode).length;
+      if (!count) problems.push(`${id}: missing ${mode}`);
+      else if (Number.isInteger(repetitions) && count !== repetitions) problems.push(`${id}/${mode}: expected ${repetitions} repetitions, received ${count}`);
+    }
     for (const run of runs) {
       if (!MODES.includes(run.mode)) { problems.push(`${id}: invalid mode`); continue; }
       if (!new Set(["COMPLETED", "FAILED", "BLOCKED"]).has(run.status)) problems.push(`${id}/${run.mode}: invalid status`);

@@ -3,7 +3,7 @@
   "$id": "team-conformance-attestation-v1",
   "title": "Live host Agent Department conformance attestation",
   "type": "object",
-  "required": ["schema_version", "evidence_level", "adapter", "host_version", "task_id", "run_id", "observed_at", "journal_head", "capabilities_observed", "lifecycle", "evidence_hashes"],
+  "required": ["schema_version", "evidence_level", "adapter", "host_version", "task_id", "run_id", "observed_at", "journal_head", "capabilities_observed", "write_assignment_ids", "lifecycle", "evidence_hashes"],
   "properties": {
     "schema_version": { "const": 1 },
     "evidence_level": { "const": "LIVE_HOST" },
@@ -17,7 +17,7 @@
       "type": "object",
       "required": ["native_spawn", "parallel_dispatch", "cancellation", "resume", "structured_result"],
       "properties": {
-        "native_spawn": { "type": "boolean" },
+        "native_spawn": { "const": true },
         "parallel_dispatch": { "type": "boolean" },
         "cancellation": { "type": "boolean" },
         "resume": { "type": "boolean" },
@@ -25,6 +25,7 @@
       },
       "additionalProperties": false
     },
+    "write_assignment_ids": { "type": "array", "maxItems": 100, "uniqueItems": true, "items": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$" } },
     "lifecycle": {
       "type": "array",
       "minItems": 3,
@@ -34,7 +35,7 @@
         "properties": {
           "type": { "enum": ["TEAM_STARTED", "ASSIGNMENT_DISPATCHED", "ASSIGNMENT_HEARTBEAT", "RESULT_INGESTED", "TEAM_CANCELLED", "TEAM_RESUMED", "APPROVAL_BLOCKED", "APPROVAL_RECORDED"] },
           "timestamp": { "type": "string", "format": "date-time" },
-          "assignment_id": { "type": "string" },
+          "assignment_id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$" },
           "external_run_id": { "type": "string" },
           "spawn_id": { "type": "string" },
           "wave_id": { "type": "string" }

@@ -4,6 +4,7 @@ import { spawnSync } from "node:child_process";
 import { redactSensitive } from "./action-gateway.mjs";
 import { buildFinalTaskReport } from "./task-report.mjs";
 import { exportEvidence, inspectTask } from "./governed-runtime.mjs";
+import { adapterMap, loadAdapterRegistry } from "./adapter-sdk.mjs";
 
 function stable(value) {
   if (Array.isArray(value)) return value.map(stable);
@@ -50,9 +51,13 @@ export function buildPrEvidencePackage(options, deps = {}) {
   const facts = (task.context?.facts ?? []).map((entry) => ({ statement: safeSummary(entry.statement), statement_hash: digest(entry.statement), source_reference: safeSummary(entry.source), source_hash: entry.source ? digest(entry.source) : null, confidence: entry.confidence }));
   const assumptions = (task.context?.assumptions ?? []).map((entry) => ({ statement: safeSummary(entry.statement), statement_hash: digest(entry.statement), confidence: entry.confidence }));
   const ledgerReference = `.ai-agent-kit/runtime/evidence/${task.id}.jsonl`;
+  const adapterId = task.capability?.agent_adapter ?? "unknown";
+  const registry = loadAdapterRegistry();
+  const adapter = adapterMap(registry)[adapterId];
   const output = redactSensitive({
     schema_version: 1,
-    task: { id: task.id, goal: task.goal, state: task.state, acceptance_criteria: task.acceptance_criteria, repository_commit: report.task.repository_commit, policy_revision: task.capability?.policy_revision ?? null, adapter: task.capability?.agent_adapter ?? "unknown" },
+    task: { id: task.id, goal: task.goal, state: task.state, acceptance_criteria: task.acceptance_criteria, repository_commit: report.task.repository_commit, policy_revision: task.capability?.policy_revision ?? null, adapter: adapterId },
+    adapter: adapter ? { sdk_version: registry.sdk_version, capabilities: adapter.capabilities, limitations: adapter.limitations } : { status: "UNRECOGNIZED", limitations: ["No registered adapter capability contract was available for this task."] },
     context: { verified_facts: facts, assumptions },
     change: { files, allowed_paths: allowed, approval_to_diff: { status: drift.length ? "FAILED" : "PASSED", drift } },
     verification: { progress: report.progress, quality: report.quality, final_review: report.final_review, evidence: report.evidence, receipt_reference: ledgerReference, latest_receipt_hash: evidence.verification.latest_receipt_hash },
@@ -71,7 +76,8 @@ export function renderPrEvidenceMarkdown(pkg) {
   const files = pkg.change.files.map((file) => `- \`${file}\``).join("\n") || "- No changed files detected.";
   const gates = pkg.verification.quality.gates.map((gate) => `- ${gate.gate}: ${gate.status}`).join("\n") || "- No quality checks recorded.";
   const findings = (pkg.verification.final_review.finding_history ?? pkg.verification.final_review.findings ?? []).map((finding) => `- ${finding.cycle ? `Cycle ${finding.cycle} ` : ""}[${finding.severity}/${finding.status}] ${finding.id}: ${finding.summary}${finding.resolution ? ` — ${finding.resolution}` : ""}`).join("\n") || "- No findings recorded.";
-  return `# AI Change Evidence\n\n## Task\n\n${pkg.task.goal ?? "Goal unavailable."}\n\n- Task: \`${pkg.task.id}\`\n- State: \`${pkg.task.state}\`\n- Commit: \`${pkg.task.repository_commit ?? "UNAVAILABLE"}\`\n- Adapter: \`${pkg.task.adapter}\`\n\n## Acceptance criteria\n\n${criteria}\n\n## Changed files\n\n${files}\n\nApproval-to-diff: **${pkg.change.approval_to_diff.status}**\n${pkg.change.approval_to_diff.drift.length ? `\nOut of scope: ${pkg.change.approval_to_diff.drift.map((file) => `\`${file}\``).join(", ")}\n` : ""}\n## Verification\n\n${gates}\n\n- Final implementation review: ${pkg.verification.final_review.status}\n- Review cycles: ${pkg.verification.final_review.cycle_count ?? 0}\n- Evidence integrity: ${pkg.verification.evidence.status}\n- Receipt ledger: \`${pkg.verification.receipt_reference}\`\n- Latest receipt: \`${pkg.verification.latest_receipt_hash ?? "UNAVAILABLE"}\`\n\n### Review findings and fixes\n\n${findings}\n\n## Remaining risk\n\n- Production readiness: ${pkg.risks.production_readiness}\n- Remaining criteria: ${pkg.risks.remaining.length}\n- Raw logs are referenced, not embedded.\n\nPackage hash: \`${pkg.package_hash}\`\n`;
+  const adapterLimitations = (pkg.adapter?.limitations ?? []).map((item) => `- ${item}`).join("\n") || "- None declared.";
+  return `# AI Change Evidence\n\n## Task\n\n${pkg.task.goal ?? "Goal unavailable."}\n\n- Task: \`${pkg.task.id}\`\n- State: \`${pkg.task.state}\`\n- Commit: \`${pkg.task.repository_commit ?? "UNAVAILABLE"}\`\n- Adapter: \`${pkg.task.adapter}\`\n- Adapter SDK: \`${pkg.adapter?.sdk_version ?? "UNRECOGNIZED"}\`\n\n### Adapter limitations\n\n${adapterLimitations}\n\n## Acceptance criteria\n\n${criteria}\n\n## Changed files\n\n${files}\n\nApproval-to-diff: **${pkg.change.approval_to_diff.status}**\n${pkg.change.approval_to_diff.drift.length ? `\nOut of scope: ${pkg.change.approval_to_diff.drift.map((file) => `\`${file}\``).join(", ")}\n` : ""}\n## Verification\n\n${gates}\n\n- Final implementation review: ${pkg.verification.final_review.status}\n- Review cycles: ${pkg.verification.final_review.cycle_count ?? 0}\n- Evidence integrity: ${pkg.verification.evidence.status}\n- Receipt ledger: \`${pkg.verification.receipt_reference}\`\n- Latest receipt: \`${pkg.verification.latest_receipt_hash ?? "UNAVAILABLE"}\`\n\n### Review findings and fixes\n\n${findings}\n\n## Remaining risk\n\n- Production readiness: ${pkg.risks.production_readiness}\n- Remaining criteria: ${pkg.risks.remaining.length}\n- Raw logs are referenced, not embedded.\n\nPackage hash: \`${pkg.package_hash}\`\n`;
 }
 
 export function assertPrEvidenceScope(pkg) {

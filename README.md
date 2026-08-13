@@ -16,6 +16,10 @@ Code, Codex, Copilot, Cursor, and eight other coding agents. It combines
 repository intelligence, multi-agent coordination, system design, quality
 profiles, approval gates, and reviewable evidence in one local workflow.
 
+One canonical system now drives every adapter. A machine-readable capability
+matrix shows which host features are native, generated, bridged, advisory,
+preview, or unsupported—so portability claims stay honest and testable.
+
 ```bash
 # Codex only
 npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap --agents codex
@@ -227,6 +231,23 @@ passes. Release actions always require separate authorization.
 - Zero-trust MCP checks server identity, permissions, network access,
   credentials, timeouts, and rate limits.
 
+### Portable across agents
+
+- A versioned adapter SDK keeps instructions, skills, roles, hooks,
+  permissions, protected actions, and evidence mapped to one `.ai/` source.
+- `ai-agent-kit adapter matrix` shows the exact capability level and known
+  limitations for all 12 supported agents.
+- `ai-agent-kit adapter conformance --adapter copilot --target .` verifies the
+  installed surfaces instead of assuming they work.
+- GitHub Copilot gets repository and path-specific instructions, custom
+  planner/implementer/reviewer/security agents, native skill delivery, and an
+  approval hook that keeps read-only work moving while gating mutations and
+  protected release actions.
+- `ai-agent-kit standards verify` checks Agent Skills bundles, explicit MCP
+  compatibility, namespaced extensions, and the optional A2A profile.
+- A2A stays disabled by default. It is only relevant for explicitly approved,
+  authenticated delegation to an independently operated remote agent.
+
 ### One task. The right engineering team.
 
 Some changes need one focused agent. Others need an investigator, an
@@ -292,8 +313,9 @@ ai-agent-kit team benchmark --fixture team-benchmark.json
 
 The evaluator compares `SINGLE_AGENT`, `UNGOVERNED_MULTI_AGENT`, and
 `AGENT_DEPARTMENT` only when task, repository commit, host, and model are held
-constant. Missing fields return `INSUFFICIENT_EVIDENCE`; synthetic inputs never
-authorize a product-performance conclusion.
+constant with at least three equal repetitions per mode. Missing fields or
+unequal samples return `INSUFFICIENT_EVIDENCE`; synthetic inputs never authorize
+a product-performance conclusion.
 
 The workcell, shared handoffs, conflicts, review cycles, and evidence hashes
 appear in Agent Proof Replay, so the final report shows both what changed and
@@ -524,11 +546,18 @@ See [Agent Adapter Strategy](docs/AGENT_ADAPTER_STRATEGY.md) for details.
 | `0.6.1` | Human writing integrity, evidence-based website growth, portable skill references, and hardened resource synchronization. |
 | `0.7.0` | Replayable cross-agent evals, evidence-native PR packages, regression gates, and high-signal review measurement. |
 | `0.8.0` | Agent Department orchestration, shared Team Context, constraint-driven system design, signed policy overlays, local outcome analytics, memory lifecycle 2.0, Agent Proof Replay, Change Passports, Failure Lab, and Policy Playground. |
+| `0.9.0` | Versioned adapter SDK, honest capability matrix, full GitHub Copilot surfaces, portable conformance, Agent Skills compatibility, MCP versioning, and optional A2A boundaries. |
+| `0.9.1` | Durable Agent Department execution, approval-bound dispatch, idempotent results, recovery, hash-chained timelines, live-host conformance attestations, and evidence-gated three-mode benchmarks. |
+| `1.0.0` | Explainable skill routing, SEO/GEO evidence contracts, context-bound dispatch, recoverable result ingest, unified fail-closed release proof, verified host capability gates, and package-state isolation. |
 
 ## Documentation
 
 - [Adoption Guide](docs/ADOPTION_GUIDE.md)
 - [High-Level Design](docs/HIGH_LEVEL_DESIGN.md)
+- [Agent Department Proof Loop](docs/AGENT_DEPARTMENT_PROOF_LOOP.md)
+- [Skill Routing](docs/SKILL_ROUTING.md)
+- [Additive AI Change Assurance Deep Review](docs/ADDITIVE_AI_CHANGE_ASSURANCE_DEEP_REVIEW.md)
+- [Additive AI Change Assurance Discovery Plan](docs/ADDITIVE_AI_CHANGE_ASSURANCE_DISCOVERY_PLAN.md)
 - [Runtime Enforcement and MCP Trust](docs/RUNTIME_ENFORCEMENT_AND_MCP_TRUST.md)
 - [Code Quality Intelligence](docs/CODE_QUALITY_INTELLIGENCE.md)
 - [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md)

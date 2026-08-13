@@ -1,92 +1,17 @@
-const DEFINITIONS = [
-  {
-    id: "claude",
-    label: "Claude Code",
-    exactPaths: ["CLAUDE.md"],
-    pathPrefixes: [".claude/"],
-    skillRoots: [".claude/skills"]
-  },
-  {
-    id: "codex",
-    label: "OpenAI Codex",
-    exactPaths: ["AGENTS.md"],
-    pathPrefixes: [".codex/"],
-    skillRoots: [".agents/skills"],
-    sharedSkillRoots: [".agents/skills"]
-  },
-  {
-    id: "copilot",
-    label: "GitHub Copilot",
-    exactPaths: ["AGENTS.md", ".github/copilot-instructions.md"],
-    pathPrefixes: [],
-    skillRoots: [".agents/skills"],
-    sharedSkillRoots: [".agents/skills"]
-  },
-  {
-    id: "cursor",
-    label: "Cursor",
-    exactPaths: ["AGENTS.md"],
-    pathPrefixes: [".cursor/"],
-    skillRoots: [".cursor/skills"]
-  },
-  {
-    id: "windsurf",
-    label: "Windsurf / Cascade",
-    exactPaths: ["AGENTS.md"],
-    pathPrefixes: [".windsurf/"],
-    skillRoots: [".windsurf/skills"]
-  },
-  {
-    id: "gemini",
-    label: "Google Gemini CLI",
-    exactPaths: ["GEMINI.md"],
-    pathPrefixes: [],
-    skillRoots: []
-  },
-  {
-    id: "amazonq",
-    label: "Amazon Q Developer",
-    exactPaths: [],
-    pathPrefixes: [".amazonq/"],
-    skillRoots: []
-  },
-  {
-    id: "junie",
-    label: "JetBrains Junie",
-    exactPaths: ["AGENTS.md"],
-    pathPrefixes: [".junie/"],
-    skillRoots: []
-  },
-  {
-    id: "cline",
-    label: "Cline",
-    exactPaths: ["AGENTS.md"],
-    pathPrefixes: [".cline/", ".clinerules/"],
-    skillRoots: [".cline/skills"]
-  },
-  {
-    id: "devin",
-    label: "Devin",
-    exactPaths: ["AGENTS.md"],
-    pathPrefixes: [],
-    skillRoots: [".agents/skills"],
-    sharedSkillRoots: [".agents/skills"]
-  },
-  {
-    id: "aider",
-    label: "Aider",
-    exactPaths: ["CONVENTIONS.md", ".aider.conf.yml"],
-    pathPrefixes: [],
-    skillRoots: []
-  },
-  {
-    id: "continue",
-    label: "Continue",
-    exactPaths: [],
-    pathPrefixes: [".continue/"],
-    skillRoots: []
-  }
-];
+import { loadAdapterRegistry } from "./adapter-sdk.mjs";
+
+const REGISTRY = loadAdapterRegistry();
+const DEFINITIONS = REGISTRY.adapters.map((adapter) => ({
+  id: adapter.id,
+  label: adapter.label,
+  exactPaths: adapter.exact_paths,
+  pathPrefixes: adapter.path_prefixes,
+  skillRoots: adapter.skill_roots,
+  sharedSkillRoots: adapter.shared_skill_roots,
+  capabilities: adapter.capabilities,
+  requiredCapabilities: adapter.required_capabilities,
+  limitations: adapter.limitations
+}));
 
 export const ADAPTERS = Object.freeze(
   Object.fromEntries(DEFINITIONS.map((definition) => [
@@ -96,7 +21,10 @@ export const ADAPTERS = Object.freeze(
       exactPaths: Object.freeze(definition.exactPaths),
       pathPrefixes: Object.freeze(definition.pathPrefixes),
       skillRoots: Object.freeze(definition.skillRoots),
-      sharedSkillRoots: Object.freeze(definition.sharedSkillRoots ?? [])
+      sharedSkillRoots: Object.freeze(definition.sharedSkillRoots ?? []),
+      capabilities: Object.freeze(definition.capabilities),
+      requiredCapabilities: Object.freeze(definition.requiredCapabilities),
+      limitations: Object.freeze(definition.limitations)
     })
   ]))
 );

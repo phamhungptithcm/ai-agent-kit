@@ -17,6 +17,12 @@ function tempRoot() {
   return fs.mkdtempSync(path.join(os.tmpdir(), "aak-proof-"));
 }
 
+function assertPrivateKeyMode(file) {
+  if (process.platform !== "win32") {
+    assert.equal(fs.statSync(file).mode & 0o777, 0o600);
+  }
+}
+
 test("demo creates a complete redacted proof pack without network dependencies", () => {
   const root = tempRoot();
   const proof = demoProof();
@@ -59,7 +65,7 @@ test("policy CLI creates a trusted key, initializes, signs, and verifies a bundl
   const verified = verifyPolicyFile({ target: root, bundle: initialized.file, kitVersion: "0.8.0" });
   assert.equal(verified.status, "VERIFIED");
   assert.equal(verified.signer, "repo-owner");
-  assert.equal(fs.statSync(path.join(root, key.private_key)).mode & 0o777, 0o600);
+  assertPrivateKeyMode(path.join(root, key.private_key));
   assert.throws(() => initializePolicyBundle({ target: root, layer: "kit" }), /organization, team, repository, or task/);
 });
 
@@ -114,7 +120,7 @@ test("change passport signs READY proof and rejects tampering or untrusted ident
   execFileSync("git", ["add", "README.md"], { cwd: root });
   execFileSync("git", ["commit", "-qm", "passport fixture"], { cwd: root });
   const key = generatePassportKey({ target: root, keyId: "maintainer" });
-  assert.equal(fs.statSync(path.join(root, key.private_key)).mode & 0o777, 0o600);
+  assertPrivateKeyMode(path.join(root, key.private_key));
   const issued = issueChangePassport({ target: root, id: "PASS-1", keyId: "maintainer", privateKey: key.private_key, apply: true }, { buildProofReplay: () => demoProof() });
   const file = path.join(root, issued.file);
   assert.equal(verifyChangePassport({ target: root, file: issued.file }).status, "VERIFIED");

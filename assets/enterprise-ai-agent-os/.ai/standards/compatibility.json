@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "retrieved_on": "2026-08-09",
+  "namespace": "dev.hunpeolabs.ai-agent-kit",
+  "standards": {
+    "agent_skills": {
+      "version": "current-unversioned",
+      "source": "https://agentskills.io/specification",
+      "status": "required",
+      "skill_root": ".ai/skills-src",
+      "extension_metadata_namespace": "dev.hunpeolabs.ai-agent-kit"
+    },
+    "mcp": {
+      "version": "2026-07-28",
+      "source": "https://modelcontextprotocol.io/specification/2026-07-28",
+      "status": "supported",
+      "authorization": "host-enforced-through-zero-trust-broker",
+      "trust_registry": ".ai/context/mcp-trust-registry.json"
+    },
+    "a2a": {
+      "version": "0.3.0",
+      "source": "https://a2a-protocol.org/v0.3.0/specification/",
+      "status": "profile-only",
+      "required_for_single_agent": false,
+      "runtime_enabled": false,
+      "allowed_when": [
+        "A remote independently operated agent must be discovered or delegated to across a network boundary.",
+        "The user explicitly approves the remote agent, endpoint, scope, data class, budget, and action envelope.",
+        "Mutual authentication, least privilege, input validation, rate limits, cancellation, and receipt linkage are enforced."
+      ]
+    }
+  }
+}

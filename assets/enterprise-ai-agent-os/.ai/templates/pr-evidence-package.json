@@ -1,6 +1,7 @@
 {
   "schema_version": 1,
   "task": {},
+  "adapter": { "sdk_version": "TODO", "capabilities": {}, "limitations": [] },
   "context": { "verified_facts": [], "assumptions": [] },
   "change": { "files": [], "allowed_paths": [], "approval_to_diff": { "status": "NOT_RUN", "drift": [] } },
   "verification": { "quality": {}, "final_review": {}, "evidence": {} },

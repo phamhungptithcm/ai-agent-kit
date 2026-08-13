@@ -2,23 +2,75 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 1.0.0 - 2026-08-13
 
-- Added governed, client-neutral skill routing with a versioned single-source
-  config, weighted literal rules, explainable match evidence, fail-closed
-  abstention, path and symlink coherence checks, and regression fixtures for
-  accuracy, coverage, false-positive rate, and per-route recall.
-- Unified proof, final-report, passport, and release readiness so missing
-  acceptance evidence, required gates, clean Git state, compiled context, or
-  healthy orchestration cannot fail open.
+- Added governed, client-neutral skill routing with a versioned single source,
+  weighted literal rules, explainable match evidence, fail-closed abstention,
+  path and symlink coherence checks, and regression fixtures for accuracy,
+  coverage, false-positive rate, and per-route recall.
+- Added a versioned SEO/GEO evidence contract with schema validation, a worked
+  example, a measurement plan, and stricter claim, indexing, structured-data,
+  localization, accessibility, performance, and security review boundaries.
+- Unified Agent Proof Replay, final task reports, Change Passports, and release
+  readiness so missing acceptance evidence, required gates, clean Git state,
+  compiled context, or healthy orchestration cannot fail open.
 - Bound canonical skill routing and context-pack hashes into task and team
   dispatch contracts, and added recoverable hash-bound team ingest
   transactions across handoff, state, analytics, and journal updates.
-- Made runtime and proof CLI failures return non-zero, required verified host
-  capabilities for native subagents, and kept cancellation pending until the
-  host confirms it.
-- Hardened package assembly so local approval notes, repository indexes,
-  generated databases, and Python bytecode cannot enter the npm tarball.
+- Made runtime, evaluation, proof, and routing CLI failures return non-zero;
+  required verified host capabilities before native subagent execution; and
+  kept cancellation pending until the host confirms it.
+- Hardened package assembly and packed-package tests so local approval notes,
+  repository indexes, generated databases, npm logs, and Python bytecode cannot
+  enter the published tarball.
+- Added an evidence-backed additive AI change-assurance deep review and staged
+  discovery plan covering repository intelligence, approval, execution,
+  verification, and release-proof integration gaps.
+
+## 0.9.1 - 2026-08-09
+
+- Upgraded Agent Department from plan-only orchestration to a host-bridged,
+  dependency-aware execution loop with dispatch, heartbeat, structured result
+  ingestion, cancellation, bounded retries, and explicit orphaned-writer
+  handling.
+- Added content-minimized hash-chained team journals, optimistic team-contract
+  writes, idempotent result retries, state/journal reconciliation, and
+  fail-closed recovery for stale or unsafe work.
+- Added an offline `team demo` that exercises the real planner, approval gate,
+  shared context, assurance rejection, fix loop, and fresh independent review
+  while clearly identifying simulated host behavior.
+- Added `team watch` JSON, text, and standalone HTML timelines for reviewable
+  execution proof without prompts, conversations, source content, secrets, or
+  chain-of-thought.
+- Added evidence-bound live Codex and Claude conformance attestations that keep
+  declared adapter capability, deterministic contract tests, and observed host
+  execution as separate evidence levels.
+- Added a three-mode benchmark contract for single-agent, ungoverned
+  multi-agent, and Agent Department runs with fixed task/commit/host/model
+  bindings and explicit `INSUFFICIENT_EVIDENCE`, `PARTIAL`, and
+  `SYNTHETIC_ONLY` outcomes.
+- Expanded canonical policy, schemas, skills, generated adapter surfaces,
+  documentation, tests, and value-first product copy for the Agent Department
+  proof loop.
+
+## 0.9.0 - 2026-08-09
+
+- Added a versioned adapter SDK and canonical capability registry covering
+  instructions, skills, roles, hooks, permissions, the governed action
+  gateway, evidence, ownership, limitations, and required capabilities for all
+  12 supported coding agents.
+- Added adapter discovery, inspection, capability-matrix, and executable
+  conformance commands with fail-closed validation for missing or unsafe
+  adapter surfaces.
+- Expanded the GitHub Copilot adapter with repository-wide and path-specific
+  instructions, focused custom agents, native skill delivery, and a scoped
+  pre-tool approval hook that does not block read-only inspection or tests.
+- Added explicit Agent Skills, MCP 2026-07-28, and optional A2A 0.3.0
+  compatibility contracts, namespaced extensions, and executable standards
+  conformance. A2A remains disabled and unnecessary for single-agent work.
+- Added regression coverage for registry integrity, missing surfaces, Copilot
+  bootstrap assets, hook decisions, standards versions, and portable skill
+  conformance while preserving existing Claude and Codex behavior.
 
 ## 0.8.0 - 2026-08-04
 

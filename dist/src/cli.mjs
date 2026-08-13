@@ -1,5 +1,7 @@
 import { bootstrap } from "./bootstrap.mjs";
 import { ADAPTER_IDS, resolveAdapterIds } from "./adapters.mjs";
+import { capabilityMatrix, evaluateAdapterConformance, loadAdapterRegistry } from "./adapter-sdk.mjs";
+import { evaluateStandardsConformance } from "./standards-conformance.mjs";
 import {
   findInstalledDependency,
   renderActivationMenu,
@@ -111,6 +113,10 @@ Usage:
   ai-agent-kit tools install --apply [--target <path>]
   ai-agent-kit prompts
   ai-agent-kit prompt <name>
+  ai-agent-kit adapter list|matrix
+  ai-agent-kit adapter inspect --adapter <id>
+  ai-agent-kit adapter conformance --adapter <id> [--target <path>]
+  ai-agent-kit standards verify [--target <path>]
   ai-agent-kit skills route --config <file> --hint <task>
   ai-agent-kit skills verify --config <file> --skills-root <directory> [--fixture <file>]
   ai-agent-kit skills eval --config <file> --skills-root <directory> --fixture <file>
@@ -216,6 +222,36 @@ Safety:
   bootstrap is local only. It never stages, commits, pushes, creates branches,
   creates merge requests, updates Jira, deploys, or edits application source code.
   By default it is fast and policy-only: it does not install tools or refresh indexes.`;
+}
+
+export function parseAdapterArgs(argv) {
+  const action = argv[0];
+  if (!new Set(["list", "matrix", "inspect", "conformance"]).has(action)) throw new Error("adapter requires list, matrix, inspect, or conformance");
+  const options = { target: process.cwd() };
+  for (let index = 1; index < argv.length; index += 1) {
+    const flag = argv[index];
+    if (!new Set(["--adapter", "--target"]).has(flag)) throw new Error(`Unknown adapter option: ${flag}`);
+    const value = argv[++index];
+    if (!value) throw new Error(`${flag} requires a value`);
+    options[flag.slice(2)] = value;
+  }
+  if (["inspect", "conformance"].includes(action) && !options.adapter) throw new Error(`adapter ${action} requires --adapter`);
+  if (options.adapter && !ADAPTER_IDS.includes(options.adapter)) throw new Error(`Unknown adapter: ${options.adapter}. Available: ${ADAPTER_IDS.join(", ")}`);
+  if (["list", "matrix"].includes(action) && argv.length > 1) throw new Error(`adapter ${action} does not accept options`);
+  return { action, options };
+}
+
+export function parseStandardsArgs(argv) {
+  if (argv[0] !== "verify") throw new Error("standards requires verify");
+  const options = { root: undefined };
+  for (let index = 1; index < argv.length; index += 1) {
+    const flag = argv[index];
+    if (flag !== "--target") throw new Error(`Unknown standards option: ${flag}`);
+    const value = argv[++index];
+    if (!value) throw new Error("--target requires a value");
+    options.root = path.resolve(value);
+  }
+  return options;
 }
 
 export function parseEvalArgs(argv) {
@@ -799,6 +835,25 @@ export async function main(argv = process.argv.slice(2), io = console, deps = {}
     }
     io.log(renderNamedPrompt(name));
     return 0;
+  }
+  if (command === "adapter") {
+    const { action, options } = parseAdapterArgs(argv.slice(1));
+    const registry = loadAdapterRegistry();
+    const result = action === "list"
+      ? { schema_version: 1, sdk_version: registry.sdk_version, adapters: registry.adapters.map(({ id, label }) => ({ id, label })) }
+      : action === "matrix"
+        ? capabilityMatrix(registry)
+        : action === "inspect"
+          ? registry.adapters.find((adapter) => adapter.id === options.adapter)
+          : evaluateAdapterConformance({ adapterId: options.adapter, root: path.resolve(options.target), registry });
+    io.log(JSON.stringify(result, null, 2));
+    return result.status === "FAILED" ? 1 : 0;
+  }
+  if (command === "standards") {
+    const options = parseStandardsArgs(argv.slice(1));
+    const result = evaluateStandardsConformance(options.root ? { root: options.root } : {});
+    io.log(JSON.stringify(result, null, 2));
+    return result.status === "FAILED" ? 1 : 0;
   }
   if (command === "skills") {
     const { action, options } = parseSkillRoutingArgs(argv.slice(1));

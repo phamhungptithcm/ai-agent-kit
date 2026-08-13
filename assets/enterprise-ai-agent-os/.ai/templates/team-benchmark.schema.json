@@ -9,13 +9,13 @@
     "synthetic": { "type": "boolean" },
     "methodology": {
       "type": "object",
-      "required": ["same_task", "same_repository_commit", "same_host", "same_model"],
+      "required": ["same_task", "same_repository_commit", "same_host", "same_model", "repetitions_per_mode"],
       "properties": {
         "same_task": { "const": true },
         "same_repository_commit": { "const": true },
         "same_host": { "const": true },
         "same_model": { "const": true },
-        "repetitions_per_mode": { "type": "integer", "minimum": 1 }
+        "repetitions_per_mode": { "type": "integer", "minimum": 3, "maximum": 100 }
       },
       "additionalProperties": false
     },

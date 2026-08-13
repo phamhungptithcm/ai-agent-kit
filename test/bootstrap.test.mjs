@@ -383,6 +383,10 @@ test("multi-adapter selection installs only requested native surfaces", async ()
   assert.equal(installation.adapters.claude, false);
   assert.equal(installation.adapters.codex, false);
   assert.ok(fs.existsSync(path.join(root, ".github", "copilot-instructions.md")));
+  assert.ok(fs.existsSync(path.join(root, ".github", "instructions", "source.instructions.md")));
+  assert.ok(fs.existsSync(path.join(root, ".github", "agents", "reviewer.agent.md")));
+  assert.ok(fs.existsSync(path.join(root, ".github", "hooks", "ai-agent-kit.json")));
+  assert.ok(fs.existsSync(path.join(root, ".github", "skills", "code-review", "SKILL.md")));
   assert.ok(fs.existsSync(path.join(root, ".cursor", "rules", "ai-agent-kit.mdc")));
   assert.ok(fs.existsSync(path.join(root, ".cursor", "skills", "start-task", "SKILL.md")));
   assert.ok(fs.existsSync(path.join(root, "GEMINI.md")));
