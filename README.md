@@ -1,4 +1,4 @@
-# AI Agent Kit — Governed AI Coding Agents
+# AI Agent Kit — The Performance & Assurance Harness for AI Coding Agents
 
 [![npm version](https://img.shields.io/npm/v/@hunpeolabs/ai-agent-kit?color=cb3837)](https://www.npmjs.com/package/@hunpeolabs/ai-agent-kit)
 [![npm downloads](https://img.shields.io/npm/dm/@hunpeolabs/ai-agent-kit?label=downloads%2Fmonth&color=2563eb)](https://www.npmjs.com/package/@hunpeolabs/ai-agent-kit)
@@ -7,18 +7,24 @@
 [![MIT license](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Node.js 20+](https://img.shields.io/badge/node-%3E%3D20-43853d)](package.json)
 
-Give every AI coding agent the same way to understand a repository, plan a
-change, coordinate specialist subagents, work within approval boundaries, and
-show what it actually verified.
+Your coding agent can write code. AI Agent Kit gives it the engineering system
+around the code: repository research, task-specific context, portable skills,
+stack-aware quality instincts, specialist coordination, security boundaries,
+tests, fresh-context review, governed memory, and proof of what actually
+passed.
 
-AI Agent Kit is an open-source governance and orchestration layer for Claude
-Code, Codex, Copilot, Cursor, and eight other coding agents. It combines
-repository intelligence, multi-agent coordination, system design, quality
-profiles, approval gates, and reviewable evidence in one local workflow.
+Install it once. Every supported agent starts from the same canonical `.ai/`
+system while using only the capabilities its host really provides.
 
-One canonical system now drives every adapter. A machine-readable capability
-matrix shows which host features are native, generated, bridged, advisory,
-preview, or unsupported—so portability claims stay honest and testable.
+AI Agent Kit is MIT-licensed open source. Claude Code and Codex have the most
+complete integration today; every other adapter publishes its limitations
+instead of implying feature parity.
+
+```text
+Research → Context → Plan → Approve → Build → Test → Fresh review → Evidence → Learn
+```
+
+> **Optimize the active context. Persist approved knowledge and evidence.**
 
 ```bash
 # Codex only
@@ -31,33 +37,82 @@ npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap --agents claude
 Bootstrap is local. It does not edit application code, commit, push, open a
 pull request, update a ticket, or deploy.
 
-[What it does](#what-it-does) · [Install](#install-for-the-agents-you-use) · [Everything included](#whats-included) · [Supported agents](#supported-agents) · [Documentation](#documentation) · [npm](https://www.npmjs.com/package/@hunpeolabs/ai-agent-kit)
+[Why it is different](#a-system-not-another-prompt) · [Context model](#keep-the-context-focused) · [What ships](#what-ships-today) · [Install](#install-for-the-agents-you-use) · [Supported agents](#supported-agents) · [Documentation](#documentation) · [npm](https://www.npmjs.com/package/@hunpeolabs/ai-agent-kit)
 
 ![AI Agent Kit bootstrap flow](https://raw.githubusercontent.com/phamhungptithcm/ai-agent-kit/main/docs/assets/bootstrap-demo.gif)
 
-## Why use it?
+## A system, not another prompt
 
-Coding agents are useful, but each one can approach the same repository
-differently. Important context gets missed, plans drift from implementation,
-and a confident answer can look more complete than the evidence supports.
+Prompts are temporary. AI Agent Kit installs a reusable engineering harness in
+the repository, so planning, context selection, verification, review, memory,
+and safety do not depend on one long conversation.
 
-AI Agent Kit gives them the same path:
-
-```text
-Understand → Inspect → Plan → Approve → Execute → Verify → Report
-```
-
-| Rules or prompts alone | AI Agent Kit |
+| Without an engineering system | With AI Agent Kit |
 | --- | --- |
-| Instructions are available if the agent remembers to use them | The task workflow selects the relevant context, rules, and quality profiles |
-| Approval lives in conversation history | Approval is tied to the task, repository state, scope, and protected action |
-| “Done” may describe intent or local output | Completion reports separate verified work, missing evidence, and remaining risk |
-| Optional indexing can become a blocker | CodeGraph and CocoIndex fall back to bounded `DEGRADED` repository inspection |
+| Plans disappear into chat history | Plans become scoped, reviewable artifacts before implementation starts |
+| “Please test this” is a reminder the model may skip | Repository-defined tests and quality gates produce explicit pass, fail, not-run, or blocked evidence |
+| The same context writes and approves the change | A fresh reviewer who did not own the write checks regressions, blind spots, security, and remaining risk |
+| Memory means saving a large transcript | Only approved, provenance-bound knowledge is retrieved; stale, revoked, sensitive, and speculative entries stay out |
+| Quality depends on repeatedly pasting standards | Stack-aware quality profiles, rules, skills, and hooks apply the relevant checks for the task |
+| Every task gets the same agent shape | Agent Department chooses solo, product, bug, or assurance workcells and keeps one write owner |
+| Agent configuration is trusted by default | Adapter conformance, config validation, supply-chain checks, capability gates, and evidence receipts make trust inspectable |
 
-The kit does not decide what your team should approve. It makes the boundary
-clear, keeps normal work moving, and leaves evidence another person can review.
+The kit does not replace human judgment or decide what a team should approve.
+It makes the workflow reproducible and the evidence reviewable.
 
-### See the Agent Department make a decision
+## Keep the context focused
+
+Rules, skills, workcells, hooks, memory, and evidence solve different problems.
+Keeping them separate lets the agent load what the task needs without carrying
+the entire engineering system in every prompt.
+
+| Layer | What it does | Context behavior |
+| --- | --- | --- |
+| **Skills** | Reusable workflows for implementation, review, security, architecture, incidents, performance, design, SEO/GEO, and delivery | Explainable routing selects them when task evidence matches; low-confidence matches abstain |
+| **Workcells** | Bounded specialist roles with separate assignments, tools, budgets, and one write owner | Isolates investigation, implementation, QA, assurance, and fresh review |
+| **Rules and quality profiles** | Durable engineering standards plus language, framework, platform, and risk-specific checks | Mandatory rules stay loaded; task-specific profiles are compiled selectively |
+| **Hooks and action gateway** | Deterministic checks for supported hosts and protected operations | Run outside model reasoning and return `allow`, `ask`, or `deny` receipts |
+| **Approved memory** | Stable decisions, conventions, recurring failures, and validated patterns | Retrieval is scoped, bounded, provenance-aware, and excludes raw transcripts and unapproved candidates |
+| **Evidence** | Tests, reviews, receipts, reports, replay, benchmarks, and release proof | Stored as inspectable artifacts instead of consuming the working context |
+
+The context compiler records why every source was selected, its hash, the
+repository commit, token estimate, and exclusions. Missing mandatory context
+blocks implementation; missing optional indexes produce an explicit
+`DEGRADED` state.
+
+## What ships today
+
+| Capability | Included in AI Agent Kit 1.0 |
+| --- | --- |
+| Canonical skills | **34** skill sources, installed only where the selected adapter supports skill surfaces |
+| Engineering workflows | **25** workflows for research, planning, implementation, review, incidents, architecture, delivery, policy, memory, and proof |
+| Quality intelligence | **22** stack/risk profiles plus **17** durable engineering rules |
+| Enforcement | **15** guards for approval, capability, repository intelligence, memory, data, dependencies, orchestration, and protected actions |
+| Reusable artifacts | **62** templates and schemas for plans, reviews, evidence, system design, teams, memory, marketing, SEO/GEO, and release assurance |
+| Agent ecosystem | **12** versioned adapters with machine-readable `native`, `generated`, `bridged`, `advisory`, `preview`, or `unsupported` capability states |
+| Coordination | Four workcell modes, dependency-ready waves, leases, heartbeats, cancellation, bounded retries, recovery, and independent review |
+| Verification | Behavioral evals, adapter/standards conformance, tests, Failure Lab, Agent Proof Replay, Change Passports, and fail-closed readiness |
+
+Claude Code and Codex currently have the most complete native instruction,
+skill, role, hook, and permission surfaces. GitHub Copilot has native
+instructions, skills, and roles with a preview hook. The remaining adapters are
+capability-limited by their hosts; run `ai-agent-kit adapter matrix` before
+assuming feature parity.
+
+### Capability map
+
+| Area | What AI Agent Kit provides | Honest boundary |
+| --- | --- | --- |
+| **Context optimization** | Deterministic task packs, token budgets, source reasons, exclusions, hashes, and optional indexed retrieval | Does not automatically choose the model or claim that a smaller prompt alone improves outcomes |
+| **Memory persistence** | Proposed → approved → retrieved lifecycle with provenance, expiry, revocation, supersession, and source-commit checks | Does not retain raw sessions, secrets, personal data, or unreviewed conclusions |
+| **Continuous improvement** | Outcome analytics, memory candidates, golden cases, routing fixtures, quality profiles, and reusable skills | Repeated wins are promoted through review; the kit does not silently learn from every session |
+| **Verification loops** | Repository tests, explicit gates, behavioral evals, review → fix → verify cycles, replay, and evidence-backed release status | Unrun checks remain unrun; local or synthetic evidence is not production proof |
+| **Parallel execution** | Risk-sized workcells, dependency waves, bounded concurrency, one writer, structured handoffs, and serial fallback | Native parallel execution requires verified host capabilities and a host-bound attestation |
+| **Security** | Command policy, approval-to-diff checks, zero-trust MCP, capability tokens, adapter/config validation, SBOM, supply-chain checks, threat modeling, and security review | AI Agent Kit does not bundle AgentShield or replace independent security testing |
+
+## See the system work
+
+### Agent Department: plan, coordinate, verify, review
 
 ```bash
 ai-agent-kit team demo

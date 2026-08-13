@@ -1,7 +1,7 @@
 {
   "name": "@hunpeolabs/ai-agent-kit",
   "version": "1.0.0",
-  "description": "Governed AI agent orchestration with repository intelligence, approval gates, specialist workcells, and reviewable evidence.",
+  "description": "Performance and assurance harness for AI coding agents with repository intelligence, portable skills, governed memory, specialist coordination, security gates, and verifiable delivery.",
   "type": "module",
   "bin": {
     "ai-agent-kit": "./dist/bin/ai-agent-kit.mjs"
