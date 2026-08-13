@@ -393,8 +393,9 @@ deterministic, while the health report exposes lifecycle counts and conflicting
 approved knowledge without returning private memory content.
 
 Agent Proof Replay composes these contracts into a redacted proof model. It
-derives readiness from current task state, policy decisions, quality checks,
-final-review cycles, evidence receipts, and memory health. The same model
+uses the same production-readiness evaluation as the final task report and
+Change Passport, including acceptance criteria, required quality gates, Git
+state, orchestration health, final-review cycles, and evidence integrity. The same model
 renders standalone offline HTML, a PR card, a trust badge, and an optional
 OpenTelemetry-compatible trace. None of those outputs can grant approval or
 change runtime state.
@@ -508,11 +509,13 @@ when optional indexes are unavailable without blocking the workcell.
 
 Planning adapters and execution capabilities are separate contracts. A host
 declares bridge kind, native spawn, parallelism, cancellation, structured
-results, enforcement, and concurrency. Codex and Claude may use a host-native
+results, enforcement, and concurrency. Codex and Claude are unverified and
+serial by default; they may use a host-native
 bridge; other adapters use the same assignments as serial personas unless they
 provide a verified bridge. Repository code never pretends to spawn a host
-agent: it returns dependency-ready waves and trusted dispatch controls, while
-the host skill invokes its native primitive. Assignment results, handoff hashes,
+agent: it invokes an injected host bridge or requires a host-provided external
+run identifier before recording native work as running. Cancellation remains
+pending until the host confirms it. Assignment results, handoff hashes,
 context revisions, external run identifiers, and evidence hashes form a
 tamper-evident team contract.
 

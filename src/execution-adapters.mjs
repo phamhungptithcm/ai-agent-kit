@@ -1,16 +1,16 @@
 const BRIDGE_KINDS = new Set(["HOST_NATIVE", "SERIAL_PERSONAS", "CLI_SUBPROCESS"]);
 const ENFORCEMENT = new Set(["hard", "advisory", "none"]);
 
-const HOST_NATIVE = Object.freeze({
+const HOST_CAPABLE_UNVERIFIED = Object.freeze({
   bridge_kind: "HOST_NATIVE",
-  native_spawn: true,
-  parallel_dispatch: true,
-  cancellation: true,
+  native_spawn: false,
+  parallel_dispatch: false,
+  cancellation: false,
   structured_result: true,
   read_only_enforcement: "hard",
   write_scope_enforcement: "advisory",
-  max_concurrency: 3,
-  capability_source: "kit-registry"
+  max_concurrency: 1,
+  capability_source: "requires-host-probe"
 });
 
 const SERIAL = Object.freeze({
@@ -26,8 +26,8 @@ const SERIAL = Object.freeze({
 });
 
 export const EXECUTION_ADAPTERS = Object.freeze({
-  codex: Object.freeze({ id: "codex", ...HOST_NATIVE }),
-  claude: Object.freeze({ id: "claude", ...HOST_NATIVE }),
+  codex: Object.freeze({ id: "codex", ...HOST_CAPABLE_UNVERIFIED }),
+  claude: Object.freeze({ id: "claude", ...HOST_CAPABLE_UNVERIFIED }),
   copilot: Object.freeze({ id: "copilot", ...SERIAL }),
   cursor: Object.freeze({ id: "cursor", ...SERIAL }),
   windsurf: Object.freeze({ id: "windsurf", ...SERIAL }),

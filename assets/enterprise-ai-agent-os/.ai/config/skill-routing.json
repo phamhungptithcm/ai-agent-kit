@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "id": "ai-agent-kit-canonical-router-v1",
+  "fallback_route": "start-task",
+  "thresholds": {
+    "minimum_score": 2,
+    "minimum_margin": 1
+  },
+  "priority": [
+    "security-review",
+    "fix-bug",
+    "code-review",
+    "orchestrate-agent-department",
+    "design-scalable-systems",
+    "seo-geo-website",
+    "implement-feature",
+    "start-task"
+  ],
+  "routes": {
+    "security-review": {
+      "label": "Review security boundaries",
+      "skill": "security-review/SKILL.md",
+      "rules": [
+        { "any": ["security review", "audit security", "threat", "authorization", "bảo mật"], "weight": 3 }
+      ]
+    },
+    "fix-bug": {
+      "label": "Fix a defect",
+      "skill": "fix-bug/SKILL.md",
+      "rules": [
+        { "any": ["bug", "defect", "regression", "broken", "sửa lỗi", "lỗi"], "weight": 2 },
+        { "all": ["fix", "test"], "weight": 2 }
+      ]
+    },
+    "code-review": {
+      "label": "Review a code change",
+      "skill": "code-review/SKILL.md",
+      "rules": [
+        { "any": ["code review", "review pull request", "review pr", "review code", "kiểm tra code"], "exclude": ["fix"], "weight": 3 }
+      ]
+    },
+    "orchestrate-agent-department": {
+      "label": "Coordinate an agent workcell",
+      "skill": "orchestrate-agent-department/SKILL.md",
+      "rules": [
+        { "any": ["multi-agent", "subagents", "agent team", "agent department", "nhiều agent"], "weight": 3 }
+      ]
+    },
+    "design-scalable-systems": {
+      "label": "Design a scalable system",
+      "skill": "design-scalable-systems/SKILL.md",
+      "rules": [
+        { "any": ["system design", "scalability", "capacity planning", "throughput", "kiến trúc hệ thống"], "weight": 3 }
+      ]
+    },
+    "seo-geo-website": {
+      "label": "Review website SEO and GEO",
+      "skill": "seo-geo-website/SKILL.md",
+      "rules": [
+        { "any": ["seo", "geo", "search visibility", "structured data", "crawler"], "weight": 2 },
+        { "all": ["website", "search"], "weight": 2 }
+      ]
+    },
+    "implement-feature": {
+      "label": "Implement a feature",
+      "skill": "implement-feature/SKILL.md",
+      "rules": [
+        { "any": ["implement feature", "build feature", "add feature", "phát triển tính năng", "thêm tính năng"], "weight": 3 }
+      ]
+    },
+    "start-task": {
+      "label": "Start a governed task",
+      "skill": "start-task/SKILL.md",
+      "rules": [
+        { "any": ["start task", "new task", "plan task", "bắt đầu task", "lập kế hoạch"], "weight": 2 }
+      ]
+    }
+  }
+}

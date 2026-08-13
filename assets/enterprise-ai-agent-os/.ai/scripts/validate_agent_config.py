@@ -199,6 +199,9 @@ def required_paths() -> list[str]:
         ".ai/templates/demo-evidence-workbook.yaml",
         ".ai/templates/screenshot-placeholders.md",
         ".ai/templates/seo-geo-review.md",
+        ".ai/templates/seo-geo-contract.schema.json",
+        ".ai/templates/seo-geo-contract.example.json",
+        ".ai/templates/seo-geo-measurement-plan.md",
         ".ai/templates/design-brief.md",
         ".ai/templates/design-direction.md",
         ".ai/templates/visual-design-review.md",
@@ -236,11 +239,13 @@ def required_paths() -> list[str]:
         ".ai/evals/e2e/eval-case.schema.json",
         ".ai/evals/e2e/review-quality.schema.json",
         ".ai/evals/e2e/final-implementation-review.schema.json",
+        ".ai/evals/e2e/seo-geo-contract-invalid.json",
         ".ai/scripts/enforce_command_policy.py",
         ".ai/scripts/evaluate_agent_behavior.py",
         ".ai/scripts/sync_agent_assets.py",
         ".ai/scripts/validate_agent_config.py",
         ".ai/scripts/validate_implementation_approval.py",
+        ".ai/scripts/validate_seo_geo_contract.py",
         ".ai/scripts/test_agent_policies.py",
         ".ai/scripts/generate_delivery_artifacts.py",
         ".ai/scripts/repository_intelligence_lib.py",
@@ -279,6 +284,8 @@ def required_paths() -> list[str]:
         ".ai/skills-src/humanize-writing/references/voices.md",
         ".ai/skills-src/marketing-growth-website/SKILL.md",
         ".ai/skills-src/marketing-growth-website/references/evidence-and-measurement.md",
+        ".ai/skills-src/seo-geo-website/SKILL.md",
+        ".ai/skills-src/seo-geo-website/references/contract-and-measurement.md",
         ".ai/skills-src/final-implementation-review/SKILL.md",
         ".ai/skills-src/final-implementation-review/agents/openai.yaml",
         ".ai/templates/final-implementation-review.json",
@@ -408,6 +415,9 @@ def validate_json_toml(root: Path, errors: list[str]) -> None:
         root / ".claude" / "settings.json",
         root / ".mcp.json",
         root / ".ai" / "context" / "mcp-trust-registry.json",
+        root / ".ai" / "templates" / "seo-geo-contract.schema.json",
+        root / ".ai" / "templates" / "seo-geo-contract.example.json",
+        root / ".ai" / "evals" / "e2e" / "seo-geo-contract-invalid.json",
     ]:
         try:
             json.loads(read(json_file))
@@ -493,7 +503,8 @@ def validate_delivery_templates(root: Path, errors: list[str]) -> None:
         ".ai/templates/demo-deck.yaml": ["required_slides", "Manual screenshot placeholders"],
         ".ai/templates/demo-evidence-workbook.yaml": ["required_worksheets", "Screenshot Placeholders"],
         ".ai/templates/screenshot-placeholders.md": ["Placeholder ID", "Exact screen or evidence"],
-        ".ai/templates/seo-geo-review.md": ["Mode And Scope", "Evidence And Limitations", "Discovery Contract", "Crawler And Usage Policy", "Structured Data Integrity", "Claims Boundary"],
+        ".ai/templates/seo-geo-review.md": ["Mode And Scope", "Evidence And Limitations", "Contract Validation", "Discovery Contract", "Signal Consistency", "Crawler And Usage Policy", "Provider Surface Registry", "Structured Data And Entity Integrity", "Content And Claim Integrity", "Measurement Summary", "Claims Boundary"],
+        ".ai/templates/seo-geo-measurement-plan.md": ["Scope And Decision", "Baseline And Change Boundary", "Technical eligibility", "AI Probe Protocol", "Privacy, Consent, And Access", "Decision Rule", "Claims Boundary"],
         ".ai/templates/design-brief.md": ["Product Surface", "Audience And Outcome", "Content And Information Architecture", "Brand And Assets", "References", "Constraints", "Unknowns And Approval Needs"],
         ".ai/templates/design-direction.md": ["Design Read", "Direction Controls", "Principles And Anti-Goals", "Inspiration Boundary", "Design System", "Responsive Composition", "State Coverage", "Approval Boundary"],
         ".ai/templates/visual-design-review.md": ["Scope And Direction", "Evidence", "Findings", "System Consistency", "Interaction And State Coverage", "Responsive And Inclusive Design", "Performance And Delivery"],
@@ -743,6 +754,7 @@ def validate_code_quality_profiles(root: Path, errors: list[str]) -> None:
         "typescript-javascript.yaml": ["id: typescript-javascript", "tsc --noEmit", "event-loop", "Promise"],
         "frontend-html-css.yaml": ["id: frontend-html-css", "accessibility", "bundle"],
         "web-app.yaml": ["id: web-app", "Core Web Vitals", "XSS", "accessibility"],
+        "seo-geo.yaml": ["id: seo-geo", "truth", "validate_seo_geo_contract.py", "canonical graphs", "crawler_and_provider_policy", "integrity guardrails", "fail closed"],
         "mobile-app.yaml": ["id: mobile-app", "application lifecycle", "permissions", "battery"],
         "desktop-app.yaml": ["id: desktop-app", "code signing", "auto-update", "native resource cleanup"],
         "infrastructure.yaml": ["id: infrastructure", "terraform plan", "least privilege", "drift"],
@@ -794,6 +806,67 @@ def validate_prompt_catalog(root: Path, errors: list[str]) -> None:
     ]:
         if fragment not in catalog:
             fail(errors, f"prompt catalog missing required fragment: {fragment}")
+
+
+def validate_seo_geo_assets(root: Path, errors: list[str]) -> None:
+    rule = read(root / ".ai" / "rules" / "seo-geo.md")
+    for fragment in [
+        "Truth Contract",
+        "Discovery Consistency",
+        "Signal And Security Precedence",
+        "Crawler And Provider Policy",
+        "Measurement And Effectiveness",
+        "VERIFIED",
+        "QUALIFIED",
+        "provider-specific",
+    ]:
+        if fragment not in rule:
+            fail(errors, f"SEO/GEO rule missing required fragment: {fragment}")
+
+    skill = read(root / ".ai" / "skills-src" / "seo-geo-website" / "SKILL.md")
+    for fragment in [
+        "contract-and-measurement.md",
+        "validate_seo_geo_contract.py",
+        "stable entities",
+        "AI visibility",
+        "INCONCLUSIVE",
+        "generated skill resources",
+    ]:
+        if fragment not in skill:
+            fail(errors, f"SEO/GEO skill missing required fragment: {fragment}")
+
+    validator = root / ".ai" / "scripts" / "validate_seo_geo_contract.py"
+    valid = root / ".ai" / "templates" / "seo-geo-contract.example.json"
+    invalid = root / ".ai" / "evals" / "e2e" / "seo-geo-contract-invalid.json"
+    valid_result = subprocess.run(
+        [sys.executable, "-B", str(validator), str(valid)],
+        cwd=root,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if valid_result.returncode != 0:
+        fail(errors, f"valid SEO/GEO contract fixture failed: {valid_result.stderr.strip()}")
+    invalid_result = subprocess.run(
+        [sys.executable, "-B", str(validator), str(invalid)],
+        cwd=root,
+        text=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        check=False,
+    )
+    if invalid_result.returncode == 0:
+        fail(errors, "invalid SEO/GEO contract fixture unexpectedly passed")
+    for fragment in [
+        "redirect routes must be non-indexable",
+        "references unknown id",
+        "is stale as of",
+        "claim 'claim:stale' is not publishable",
+        "must be omitted unless status is MEASURED",
+    ]:
+        if fragment not in invalid_result.stderr:
+            fail(errors, f"invalid SEO/GEO contract fixture missing regression evidence: {fragment}")
 
 
 def validate_agent_adapter_strategy(root: Path, errors: list[str]) -> None:
@@ -1158,6 +1231,7 @@ def validate(quick: bool = False) -> int:
     validate_team_ready_governance(root, errors)
     validate_code_quality_profiles(root, errors)
     validate_prompt_catalog(root, errors)
+    validate_seo_geo_assets(root, errors)
     validate_agent_adapter_strategy(root, errors)
     validate_native_adapters(root, errors)
     validate_delivery_artifact_generator(root, errors)

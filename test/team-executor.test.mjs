@@ -10,6 +10,8 @@ import { briefHash, inspectTeamContext } from "../src/team-context.mjs";
 import { inspectTeam, planTeam, reportTeam, startTeam } from "../src/team-orchestrator.mjs";
 import { cancelTeamRun, dispatchTeamAssignment, heartbeatTeamAssignment, ingestTeamResult, nextTeamWave, resumeTeamRun, validateTeamResult } from "../src/team-executor.mjs";
 
+const HOST_CAPABILITIES = { bridge_kind: "HOST_NATIVE", native_spawn: true, parallel_dispatch: true, cancellation: true, structured_result: true, max_concurrency: 3 };
+
 function setup(id, options = {}) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "aak-team-executor-"));
   fs.mkdirSync(path.join(root, "src")); fs.writeFileSync(path.join(root, "src", "feature.mjs"), "export const ready = true;\n");
@@ -45,7 +47,9 @@ function dispatchAndIngest(root, id, assignment, extra = {}) {
 
 test("execution adapter capabilities are explicit and validated", () => {
   const codex = resolveExecutionAdapter("codex");
-  assert.equal(codex.bridge_kind, "HOST_NATIVE"); assert.equal(codex.parallel_dispatch, true);
+  assert.equal(codex.bridge_kind, "HOST_NATIVE"); assert.equal(codex.native_spawn, false); assert.equal(codex.parallel_dispatch, false);
+  const probed = resolveExecutionAdapter("codex", HOST_CAPABILITIES);
+  assert.equal(probed.native_spawn, true); assert.equal(probed.parallel_dispatch, true); assert.equal(probed.capability_source, "host-probe");
   const serial = resolveExecutionAdapter("cursor");
   assert.equal(serial.bridge_kind, "SERIAL_PERSONAS"); assert.equal(serial.max_concurrency, 1);
   assert.throws(() => resolveExecutionAdapter("codex", { structured_result: false }), /structured result/);
@@ -65,18 +69,20 @@ test("planner reconciles repository context immediately before dispatch", () => 
 });
 
 test("host bridge dispatches dependency waves and ingests evidence-bound results", () => {
-  const root = setup("TEAM-RUN"); const team = startTeam({ target: root, id: "TEAM-RUN", adapter: "codex", maxConcurrency: 2 });
+  const root = setup("TEAM-RUN"); const team = startTeam({ target: root, id: "TEAM-RUN", adapter: "codex", capabilities: HOST_CAPABILITIES, maxConcurrency: 2 });
+  const hostBridge = { spawn: ({ assignment_id }) => ({ external_run_id: `host-${assignment_id}` }) };
   assert.equal(team.run.state, "READY"); assert.equal(team.execution_mode, "NATIVE_SUBAGENTS");
   const first = nextTeamWave({ target: root, id: "TEAM-RUN" });
   assert.deepEqual(first.assignments.map((item) => item.assignment_id), ["domain-analyst", "impact-explorer"]);
-  const domain = dispatchTeamAssignment({ target: root, id: "TEAM-RUN", assignment: "domain-analyst", agent: "domain-agent" });
+  const domain = dispatchTeamAssignment({ target: root, id: "TEAM-RUN", assignment: "domain-analyst", agent: "domain-agent" }, { hostBridge });
   assert.match(domain.spawn_id, /^spawn-/); assert.equal(domain.input_trust.repository_context, "UNTRUSTED_DATA");
-  dispatchTeamAssignment({ target: root, id: "TEAM-RUN", assignment: "impact-explorer", agent: "impact-agent" });
+  assert.equal(domain.host_execution, "EXECUTED_BY_BRIDGE");
+  dispatchTeamAssignment({ target: root, id: "TEAM-RUN", assignment: "impact-explorer", agent: "impact-agent" }, { hostBridge });
   ingestTeamResult({ target: root, id: "TEAM-RUN", assignment: "domain-analyst", result: result(root, "TEAM-RUN", "domain-analyst") });
   ingestTeamResult({ target: root, id: "TEAM-RUN", assignment: "impact-explorer", result: result(root, "TEAM-RUN", "impact-explorer") });
 
   assert.deepEqual(nextTeamWave({ target: root, id: "TEAM-RUN" }).assignments.map((item) => item.assignment_id), ["implementation-engineer"]);
-  const implementation = dispatchTeamAssignment({ target: root, id: "TEAM-RUN", assignment: "implementation-engineer", agent: "implementation-agent" });
+  const implementation = dispatchTeamAssignment({ target: root, id: "TEAM-RUN", assignment: "implementation-engineer", agent: "implementation-agent", externalRunId: "host-implementation" });
   const heartbeat = heartbeatTeamAssignment({ target: root, id: "TEAM-RUN", assignment: "implementation-engineer" });
   assert.equal(heartbeat.spawn_id, implementation.spawn_id);
   ingestTeamResult({ target: root, id: "TEAM-RUN", assignment: "implementation-engineer", result: result(root, "TEAM-RUN", "implementation-engineer") });
@@ -97,7 +103,7 @@ test("implementation waits for recorded approval while read-only discovery proce
 });
 
 test("structured findings are schema-validated, deduplicated, and preserve disagreement", () => {
-  const root = setup("TEAM-FINDINGS", { goal: "Change authorization API behavior", risk: "high" }); startTeam({ target: root, id: "TEAM-FINDINGS", adapter: "claude", maxConcurrency: 3 });
+  const root = setup("TEAM-FINDINGS", { goal: "Change authorization API behavior", risk: "high" }); startTeam({ target: root, id: "TEAM-FINDINGS", adapter: "claude", capabilities: HOST_CAPABILITIES, maxConcurrency: 3 });
   for (const assignment of nextTeamWave({ target: root, id: "TEAM-FINDINGS" }).assignments) dispatchAndIngest(root, "TEAM-FINDINGS", assignment.assignment_id);
   dispatchAndIngest(root, "TEAM-FINDINGS", "implementation-engineer");
   const finding = { severity: "HIGH", confidence: 0.8, category: "authorization", summary: "Tenant authorization is not verified", path: "src/feature.mjs", line: 1, recommendation: "Verify tenant ownership" };
@@ -138,6 +144,7 @@ test("timeouts retry bounded read work and orphan a writer", () => {
   const timedOut = { schema_version: 1, assignment_id: "domain-analyst", status: "TIMED_OUT", usage: { tokens: 10, actions: 1, duration_seconds: 10 } };
   const retry = ingestTeamResult({ target: readRoot, id: "TEAM-READ-TIMEOUT", assignment: "domain-analyst", result: timedOut });
   assert.equal(retry.team.assignments.find((item) => item.id === "domain-analyst").status, "PENDING");
+  assert.equal(ingestTeamResult({ target: readRoot, id: "TEAM-READ-TIMEOUT", assignment: "domain-analyst", result: timedOut }).duplicate, true);
   assert.ok(nextTeamWave({ target: readRoot, id: "TEAM-READ-TIMEOUT" }).assignments.some((item) => item.assignment_id === "domain-analyst"));
   dispatchTeamAssignment({ target: readRoot, id: "TEAM-READ-TIMEOUT", assignment: "domain-analyst", agent: "domain-agent-2" });
   const exhausted = ingestTeamResult({ target: readRoot, id: "TEAM-READ-TIMEOUT", assignment: "domain-analyst", result: timedOut });

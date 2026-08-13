@@ -14,7 +14,7 @@
     "read_only_enforcement": { "enum": ["hard", "advisory", "none"] },
     "write_scope_enforcement": { "enum": ["hard", "advisory", "none"] },
     "max_concurrency": { "type": "integer", "minimum": 1, "maximum": 32 },
-    "capability_source": { "enum": ["kit-registry", "host-probe"] }
+    "capability_source": { "enum": ["kit-registry", "requires-host-probe", "host-probe"] }
   },
   "additionalProperties": false
 }

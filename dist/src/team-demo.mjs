@@ -40,8 +40,13 @@ export function runTeamDemo(options = {}) {
     createTask({ target: demoRoot, id, goal: "Change a tenant authorization API safely and verify failure recovery", acceptanceCriteria: ["Tenant isolation is preserved", "Independent review is clean"], paths: ["src/**"], tools: ["read", "edit", "test"], risk: "high", approvalHash: null });
     startTeam({ target: demoRoot, id, adapter: "codex", maxConcurrency: 3, now: "2026-08-09T12:00:00.000Z" });
 
-    for (const item of nextTeamWave({ target: demoRoot, id }).assignments) runAssignment(demoRoot, id, item.assignment_id, { now: "2026-08-09T12:01:00.000Z" });
-    const blocked = nextTeamWave({ target: demoRoot, id });
+    let blocked;
+    while (true) {
+      const wave = nextTeamWave({ target: demoRoot, id });
+      for (const item of wave.assignments) runAssignment(demoRoot, id, item.assignment_id, { now: "2026-08-09T12:01:00.000Z" });
+      blocked = nextTeamWave({ target: demoRoot, id });
+      if (!blocked.assignments.length) break;
+    }
     if (!blocked.blocked_by_approval.includes("implementation-engineer")) throw new Error("synthetic demo failed to exercise the approval gate");
     recordTeamEvent({ target: demoRoot, id, type: "APPROVAL_BLOCKED", now: "2026-08-09T12:02:00.000Z", data: { run_id: blocked.run_id, assignment_id: "implementation-engineer", status: "BLOCKED", reason_code: "APPROVAL_REQUIRED" } });
     approveTeamRun({ target: demoRoot, id, approvalHash: "a".repeat(64), now: "2026-08-09T12:03:00.000Z" });
@@ -49,9 +54,12 @@ export function runTeamDemo(options = {}) {
     runAssignment(demoRoot, id, "implementation-engineer", { now: "2026-08-09T12:04:00.000Z", attempt: 1 });
     runAssignment(demoRoot, id, "qa-lead", { now: "2026-08-09T12:05:00.000Z", status: "REJECTED", attempt: 1 });
     runAssignment(demoRoot, id, "implementation-engineer", { now: "2026-08-09T12:06:00.000Z", attempt: 2 });
-    for (const item of nextTeamWave({ target: demoRoot, id }).assignments) runAssignment(demoRoot, id, item.assignment_id, { now: "2026-08-09T12:07:00.000Z", attempt: 2 });
-    const finalWave = nextTeamWave({ target: demoRoot, id });
-    for (const item of finalWave.assignments) runAssignment(demoRoot, id, item.assignment_id, { now: "2026-08-09T12:08:00.000Z" });
+    while (true) {
+      const wave = nextTeamWave({ target: demoRoot, id });
+      if (!wave.assignments.length) break;
+      for (const item of wave.assignments) runAssignment(demoRoot, id, item.assignment_id, { now: "2026-08-09T12:07:00.000Z", attempt: 2 });
+      if (reportTeam({ target: demoRoot, id }).status === "READY") break;
+    }
 
     const report = reportTeam({ target: demoRoot, id }); const timeline = buildTeamTimeline({ target: demoRoot, id, synthetic: true });
     if (report.status !== "READY") throw new Error(`synthetic demo did not reach READY: ${report.blockers.join(", ")}`);

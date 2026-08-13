@@ -2,7 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## 1.0.0 - 2026-08-13
+
+- Added governed, client-neutral skill routing with a versioned single source,
+  weighted literal rules, explainable match evidence, fail-closed abstention,
+  path and symlink coherence checks, and regression fixtures for accuracy,
+  coverage, false-positive rate, and per-route recall.
+- Added a versioned SEO/GEO evidence contract with schema validation, a worked
+  example, a measurement plan, and stricter claim, indexing, structured-data,
+  localization, accessibility, performance, and security review boundaries.
+- Unified Agent Proof Replay, final task reports, Change Passports, and release
+  readiness so missing acceptance evidence, required gates, clean Git state,
+  compiled context, or healthy orchestration cannot fail open.
+- Bound canonical skill routing and context-pack hashes into task and team
+  dispatch contracts, and added recoverable hash-bound team ingest
+  transactions across handoff, state, analytics, and journal updates.
+- Made runtime, evaluation, proof, and routing CLI failures return non-zero;
+  required verified host capabilities before native subagent execution; and
+  kept cancellation pending until the host confirms it.
+- Hardened source and package hygiene plus packed-package tests so local
+  approval notes, repository indexes, generated databases, npm logs, and Python
+  bytecode cannot enter commits or the published tarball.
+- Added an evidence-backed additive AI change-assurance deep review and staged
+  discovery plan covering repository intelligence, approval, execution,
+  verification, and release-proof integration gaps.
 
 ## 0.9.1 - 2026-08-09
 

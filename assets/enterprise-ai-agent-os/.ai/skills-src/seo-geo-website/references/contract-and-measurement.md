@@ -1,0 +1,31 @@
+# SEO/GEO Contract And Measurement Guide
+
+## Contract Roles
+
+- `routes` is the source of truth for status, canonical, indexing, robots, sitemap, locale, alternates, entities, and structured data intent.
+- `entities` assigns stable IDs and canonical URLs to the visible things a page describes.
+- `claims` stores exact public facts with status, source, owner, dates, scope, and structured-data mappings.
+- `sources` records reviewable repository, first-party, primary, regulatory, or official-provider evidence with freshness.
+- `crawler_policies` separates user agents by purpose and decision.
+- `provider_surfaces` records time-bounded feature support without turning provider guidance into universal truth.
+- `measurements` keeps eligibility, visibility, outcomes, and integrity from collapsing into one score.
+
+Run:
+
+```text
+python3 -B .ai/scripts/validate_seo_geo_contract.py path/to/seo-geo-contract.json
+```
+
+JSON Schema checks shape. The validator also resolves references and rejects stale sources, unpublishable claims, invalid sitemap entries, redirect/indexing conflicts, canonical cycles, non-reciprocal alternates, unsupported crawler policies, duplicate provider features, and outcomes whose evidence does not match their status.
+
+## Measurement Layers
+
+| Layer | Example evidence | Does not prove |
+| --- | --- | --- |
+| Technical eligibility | raw HTML, headers, valid sitemap/schema, provider inspection | indexing, ranking, citation |
+| Search visibility | provider-reported impressions, selected canonical, qualified clicks | conversion or AI citation |
+| AI visibility | provider-reported citations or repeated documented probes | authority, fidelity, traffic |
+| Business outcome | consented analytics, qualified lead, conversion | causality without a valid comparison |
+| Integrity guardrail | stale-claim rate, citation fidelity, canonical conflicts | visibility growth |
+
+Never average these layers into an unsupported universal SEO/GEO score. Keep metric semantics, baseline, observation window, sample, provider, locale, environment, privacy boundary, and limitations reviewable.

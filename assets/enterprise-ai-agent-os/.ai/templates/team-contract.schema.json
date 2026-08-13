@@ -18,7 +18,9 @@
         "signal_hash": { "$ref": "#/$defs/hash" },
         "signals": { "type": "object" },
         "requested_shape": { "type": ["string", "null"] },
-        "risk": { "type": "string" }
+        "risk": { "type": "string" },
+        "skill_routing": { "type": ["object", "null"] },
+        "execution_context": { "type": ["object", "null"] }
       },
       "additionalProperties": false
     },
@@ -78,8 +80,8 @@
       "type": ["object", "null"],
       "properties": {
         "run_id": { "type": "string" },
-        "state": { "enum": ["READY", "RUNNING", "BLOCKED", "CANCELLED", "COMPLETED"] },
-        "dispatch_state": { "enum": ["READY_FOR_HOST", "HOST_DISPATCH_ACTIVE", "HUMAN_REVIEW_REQUIRED", "CANCELLED", "COMPLETED"] },
+        "state": { "enum": ["READY", "RUNNING", "BLOCKED", "CANCELLATION_PENDING", "CANCELLED", "COMPLETED"] },
+        "dispatch_state": { "enum": ["READY_FOR_HOST", "HOST_DISPATCH_ACTIVE", "HOST_ACTION_REQUIRED", "HUMAN_REVIEW_REQUIRED", "CANCELLED", "COMPLETED"] },
         "max_concurrency": { "type": "integer", "minimum": 1 },
         "active_assignments": { "type": "integer", "minimum": 0 }
       },
@@ -105,7 +107,13 @@
         "status": { "enum": ["PENDING", "RUNNING", "COMPLETED", "BLOCKED", "REJECTED", "TIMED_OUT", "CANCELLED", "ORPHANED"] },
         "attempts": { "type": "integer", "minimum": 0 },
         "max_attempts": { "type": "integer", "minimum": 1 },
-        "execution": { "type": "object" }
+        "execution": {
+          "type": "object",
+          "properties": {
+            "host_execution": { "enum": ["SERIAL_PERSONA", "ATTESTED_EXTERNAL", "EXECUTED_BY_BRIDGE"] }
+          },
+          "additionalProperties": true
+        }
       },
       "additionalProperties": true
     }

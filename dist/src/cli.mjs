@@ -17,6 +17,7 @@ import {
   renderUninstallPreview
 } from "./inspection.mjs";
 import { renderNamedPrompt, renderPromptCatalog, renderPromptList } from "./prompt-catalog.mjs";
+import { evaluateSkillRouting, loadSkillRoutingConfig, loadSkillRoutingFixture, routeSkill, verifySkillRouting } from "./skill-routing.mjs";
 import { applyToolPlan, inspectToolPlan, renderToolInstall, renderToolPlan } from "./tool-lifecycle.mjs";
 import { getPackageVersion } from "./version.mjs";
 import { applyUpdate, planUpdate, renderUpdatePlan } from "./update.mjs";
@@ -24,6 +25,7 @@ import { compileContext, inspectContextPack } from "./context-compiler.mjs";
 import {
   authorizeMcpRequest,
   authorizeMcpStart,
+  executeMcpRequest,
   inspectMcpTrust
 } from "./mcp-broker.mjs";
 import {
@@ -32,6 +34,7 @@ import {
   authorizeAction,
   createTask,
   evaluateAction,
+  executeAuthorizedAction,
   exportEvidence,
   inspectTask,
   proposeMemory,
@@ -114,6 +117,9 @@ Usage:
   ai-agent-kit adapter inspect --adapter <id>
   ai-agent-kit adapter conformance --adapter <id> [--target <path>]
   ai-agent-kit standards verify [--target <path>]
+  ai-agent-kit skills route --config <file> --hint <task>
+  ai-agent-kit skills verify --config <file> --skills-root <directory> [--fixture <file>]
+  ai-agent-kit skills eval --config <file> --skills-root <directory> --fixture <file>
   ai-agent-kit eval replay --fixture <file>
   ai-agent-kit eval compare|gate --baseline <file> --candidate <file>
   ai-agent-kit eval review-score|review-baseline --fixture <file>
@@ -168,7 +174,8 @@ Usage:
   ai-agent-kit runtime usage record|summary [options]
   ai-agent-kit runtime context add [options]
   ai-agent-kit runtime plan revise [options]
-  ai-agent-kit runtime gateway authorize|verify [options]
+  ai-agent-kit runtime gateway authorize|execute|verify [options]
+  ai-agent-kit runtime mcp authorize|execute [options]
   ai-agent-kit runtime mcp inspect|start|authorize [options]
   ai-agent-kit runtime policy evaluate [options]
   ai-agent-kit runtime evidence verify|export [options]
@@ -263,6 +270,24 @@ export function parseEvalArgs(argv) {
   return { action, options };
 }
 
+export function parseSkillRoutingArgs(argv) {
+  const action = argv[0];
+  if (!new Set(["route", "verify", "eval"]).has(action)) throw new Error("skills requires route, verify, or eval");
+  const options = {};
+  for (let index = 1; index < argv.length; index += 1) {
+    const flag = argv[index];
+    if (!["--config", "--hint", "--fixture", "--skills-root"].includes(flag)) throw new Error(`Unknown skills option: ${flag}`);
+    const value = argv[++index];
+    if (!value) throw new Error(`${flag} requires a value`);
+    options[flag.slice(2).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase())] = value;
+  }
+  if (!options.config) throw new Error(`${action} requires --config`);
+  if (action === "route" && !options.hint) throw new Error("route requires --hint");
+  if (["verify", "eval"].includes(action) && !options.skillsRoot) throw new Error(`${action} requires --skills-root`);
+  if (action === "eval" && !options.fixture) throw new Error("eval requires --fixture");
+  return { action, options };
+}
+
 export function parsePrEvidenceArgs(argv) {
   if (argv[0] !== "pr-package") throw new Error("evidence requires pr-package");
   const options = { target: process.cwd(), format: "markdown", requiredGates: [] };
@@ -306,7 +331,8 @@ export function parseRuntimeArgs(argv) {
     "--batch", "--requests", "--input-tokens", "--cached-input-tokens",
     "--cache-read-input-tokens", "--cache-write-input-tokens",
     "--cache-write-5m-input-tokens", "--cache-write-1h-input-tokens",
-    "--output-tokens", "--reasoning-tokens", "--file", "--reason", "--replacement-id", "--limit", "--trust-tier"
+    "--output-tokens", "--reasoning-tokens", "--file", "--reason", "--replacement-id", "--limit", "--trust-tier",
+    "--routing-config", "--skills-root"
   ]);
   for (let index = 2; index < argv.length; index += 1) {
     const flag = argv[index];
@@ -348,15 +374,22 @@ export function parseRuntimeArgs(argv) {
   return { area, action, options };
 }
 
-function runRuntime(argv, deps = {}) {
+function runRuntime(argv, deps = {}, meta = {}) {
   const { area, action, options } = parseRuntimeArgs(argv);
   if (area === "task" && action === "create") {
-    return createTask({ ...options, tools: options.tools, paths: options.paths, domains: options.domains });
+    const root = path.resolve(options.target);
+    const defaultConfig = path.join(root, ".ai", "config", "skill-routing.json");
+    const routingFile = options.routingConfig ? path.resolve(root, options.routingConfig) : fs.existsSync(defaultConfig) ? defaultConfig : null;
+    if (routingFile && (path.relative(root, routingFile).startsWith("..") || path.isAbsolute(path.relative(root, routingFile)))) throw new Error("skill routing config must remain inside the target repository");
+    const skillsRoot = path.resolve(root, options.skillsRoot ?? ".ai/skills-src");
+    if (path.relative(root, skillsRoot).startsWith("..") || path.isAbsolute(path.relative(root, skillsRoot))) throw new Error("skills root must remain inside the target repository");
+    return createTask({ ...options, tools: options.tools, paths: options.paths, domains: options.domains, routingConfig: routingFile ? loadSkillRoutingConfig(routingFile) : null, skillsRoot });
   }
   if (area === "task" && action === "status") return inspectTask(options);
   if (area === "task" && action === "transition") return transitionTask({ ...options, deps });
   if (area === "task" && action === "report") {
     const report = buildFinalTaskReport(options, deps);
+    meta.exitCode = report.production_readiness.status === "READY" || report.production_readiness.status === "NOT_APPLICABLE" ? 0 : 1;
     if (options.format === "json") return report;
     return renderFinalTaskReport(report, { compact: options.format === "compact" });
   }
@@ -383,6 +416,10 @@ function runRuntime(argv, deps = {}) {
     });
   }
   if (area === "gateway" && action === "verify") return recordActionVerification(options);
+  if (area === "gateway" && action === "execute") {
+    if (typeof deps.actionExecutor !== "function") throw new Error("gateway execute requires an injected host action executor");
+    return executeAuthorizedAction({ ...options, tool: options.tools[0], path: options.paths[0], domain: options.domains[0] }, deps.actionExecutor);
+  }
   if (area === "mcp" && action === "inspect") return inspectMcpTrust(options);
   if (area === "mcp" && action === "start") return authorizeMcpStart(options);
   if (area === "mcp" && action === "authorize") {
@@ -393,6 +430,10 @@ function runRuntime(argv, deps = {}) {
       tool: options.tools[0],
       timeoutMs: options.timeoutMs
     });
+  }
+  if (area === "mcp" && action === "execute") {
+    if (typeof deps.mcpExecutor !== "function") throw new Error("mcp execute requires an injected host MCP executor");
+    return executeMcpRequest({ ...options, path: options.paths[0], domain: options.domains[0], tool: options.tools[0], timeoutMs: options.timeoutMs }, deps.mcpExecutor, deps);
   }
   if (area === "policy" && action === "evaluate") {
     return evaluateAction({
@@ -412,6 +453,17 @@ function runRuntime(argv, deps = {}) {
   if (area === "memory" && action === "health") return inspectMemoryHealth(options);
   if (area === "eval" && action === "score") return scoreTask(options);
   throw new Error(`Unknown runtime command: ${area} ${action ?? ""}`.trim());
+}
+
+function resultExitCode(result) {
+  if (!result || typeof result !== "object") return 0;
+  if (result.decision && result.decision !== "allow") return 1;
+  const rejected = new Set(["DENY", "ASK", "FAILED", "REJECTED", "STALE", "NOT_READY", "NOT_RUN", "BLOCKED", "DEGRADED", "UNAVAILABLE", "INSUFFICIENT_EVIDENCE", "PARTIAL"]);
+  if (rejected.has(String(result.status ?? "").toUpperCase())) return 1;
+  if (rejected.has(String(result.readiness?.status ?? "").toUpperCase())) return 1;
+  if (rejected.has(String(result.production_readiness?.status ?? "").toUpperCase())) return 1;
+  if (rejected.has(String(result.orchestration?.status ?? "").toUpperCase())) return 1;
+  return 0;
 }
 
 export function parseToolArgs(argv) {
@@ -803,6 +855,18 @@ export async function main(argv = process.argv.slice(2), io = console, deps = {}
     io.log(JSON.stringify(result, null, 2));
     return result.status === "FAILED" ? 1 : 0;
   }
+  if (command === "skills") {
+    const { action, options } = parseSkillRoutingArgs(argv.slice(1));
+    const config = loadSkillRoutingConfig(options.config);
+    const fixture = options.fixture ? loadSkillRoutingFixture(options.fixture) : null;
+    const result = action === "route"
+      ? routeSkill({ config, hint: options.hint })
+      : action === "eval"
+        ? evaluateSkillRouting({ config, fixture, skillsRoot: options.skillsRoot })
+        : verifySkillRouting({ config, fixture, skillsRoot: options.skillsRoot });
+    io.log(JSON.stringify(result, null, 2));
+    return ["FAILED", "ABSTAIN"].includes(result.status) ? 1 : 0;
+  }
   if (command === "eval") {
     const { action, options } = parseEvalArgs(argv.slice(1));
     const result = action === "replay" ? replayEvalFixture(options)
@@ -811,7 +875,7 @@ export async function main(argv = process.argv.slice(2), io = console, deps = {}
           : action === "review-compare" ? compareReviewQuality(options)
             : scoreReviewQuality(options);
     io.log(JSON.stringify(result, null, 2));
-    return 0;
+    return resultExitCode(result);
   }
   if (command === "evidence") {
     const options = parsePrEvidenceArgs(argv.slice(1));
@@ -844,8 +908,9 @@ export async function main(argv = process.argv.slice(2), io = console, deps = {}
   }
   if (command === "proof") {
     const options = parseProofArgs(argv.slice(1));
-    io.log(JSON.stringify(writeProofArtifacts({ ...options, proof: buildProofReplay(options, deps) }), null, 2));
-    return 0;
+    const proof = buildProofReplay(options, deps);
+    io.log(JSON.stringify(writeProofArtifacts({ ...options, proof }), null, 2));
+    return proof.readiness.status === "READY" ? 0 : 1;
   }
   if (command === "demo") {
     const options = parseProofArgs(argv.slice(1), { demo: true });
@@ -874,11 +939,11 @@ export async function main(argv = process.argv.slice(2), io = console, deps = {}
     if (action === "plan") result = planTeam(options);
     else if (action === "start") result = startTeam({ ...options, capabilities: options.capabilitiesFile ? readSystemDesignJson(options.target, options.capabilitiesFile, "team adapter capabilities") : null });
     else if (action === "next") result = nextTeamWave(options);
-    else if (action === "dispatch") result = dispatchTeamAssignment(options);
+    else if (action === "dispatch") result = dispatchTeamAssignment(options, deps);
     else if (action === "heartbeat") result = heartbeatTeamAssignment(options);
-    else if (action === "ingest") result = ingestTeamResult({ ...options, result: readSystemDesignJson(options.target, options.file, "team result") });
+    else if (action === "ingest") result = ingestTeamResult({ ...options, result: readSystemDesignJson(options.target, options.file, "team result") }, deps);
     else if (action === "approve") result = approveTeamRun(options);
-    else if (action === "cancel") result = cancelTeamRun(options);
+    else if (action === "cancel") result = cancelTeamRun(options, deps);
     else if (action === "resume") result = resumeTeamRun(options);
     else if (action === "recover") result = recoverTeamRun(options);
     else if (action === "watch") result = options.output ? writeTeamTimeline({ ...options, timeline: buildTeamTimeline(options) }) : buildTeamTimeline(options);
@@ -942,9 +1007,10 @@ export async function main(argv = process.argv.slice(2), io = console, deps = {}
     return 0;
   }
   if (command === "runtime") {
-    const result = runRuntime(argv.slice(1), deps);
+    const meta = {};
+    const result = runRuntime(argv.slice(1), deps, meta);
     io.log(typeof result === "string" ? result : JSON.stringify(result, null, 2));
-    return 0;
+    return meta.exitCode ?? resultExitCode(result);
   }
   if (command !== "bootstrap") {
     throw new Error(`Unknown command: ${command}`);

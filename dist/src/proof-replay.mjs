@@ -3,12 +3,12 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { hasSymlinkComponent } from "./paths.mjs";
-import { inspectFinalReview } from "./final-review.mjs";
 import { memoryHealth } from "./memory-lifecycle.mjs";
 import { loadRepositoryPolicyOverlays } from "./policy-overlays.mjs";
 import { getPackageVersion } from "./version.mjs";
 import { verifyArchitectureArtifact } from "./system-design.mjs";
 import { inspectTeam, reportTeam } from "./team-orchestrator.mjs";
+import { buildFinalTaskReport } from "./task-report.mjs";
 
 function safeId(value) {
   if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(value ?? "")) throw new Error("proof task id must be 1-128 safe characters");
@@ -56,15 +56,9 @@ function latestBy(items, key) {
   return [...result.values()];
 }
 
-function proofStatus(task, review, checks, evidenceIntegrity, architecture, team) {
-  const blockers = [];
-  if (!task) blockers.push("Task record is missing.");
-  if (evidenceIntegrity.status !== "VERIFIED") blockers.push("Evidence ledger integrity is not verified.");
-  if (!review || review.status !== "PASSED") blockers.push(`Final review is ${review?.status ?? "NOT_RUN"}.`);
-  for (const check of checks.filter((item) => item.required && !["PASSED", "NOT_APPLICABLE"].includes(item.status))) blockers.push(`${check.gate} is ${check.status}.`);
-  if (task && !["REVIEW_READY", "RELEASED"].includes(task.state)) blockers.push(`Task state is ${task.state}.`);
+function proofStatus(report, architecture) {
+  const blockers = [...report.production_readiness.blockers];
   if (architecture && architecture.status !== "VERIFIED") blockers.push(`Architecture evidence is ${architecture.status}.`);
-  if (team && team.status !== "READY") blockers.push(`Agent workcell is ${team.status}.`);
   return { status: blockers.length ? "NOT_READY" : "READY", blockers };
 }
 
@@ -79,10 +73,11 @@ export function buildProofReplay(options, deps = {}) {
   const id = safeId(options.id);
   const task = readJson(guarded(root, `tasks/${id}.json`), "task record", true);
   const receipts = readJsonl(guarded(root, `evidence/${id}.jsonl`), "evidence ledger");
+  const report = buildFinalTaskReport({ ...options, target: root, id, productionTarget: true }, deps);
   const commitResult = (deps.spawnSync ?? spawnSync)("git", ["rev-parse", "HEAD"], { cwd: root, encoding: "utf8", timeout: 30000 });
   const currentCommit = commitResult.status === 0 ? commitResult.stdout.trim() : null;
-  const checks = latestBy(readJsonl(guarded(root, `checks/${id}.jsonl`), "quality ledger"), "gate").map((item) => ({ gate: item.gate, status: item.status === "PASSED" && item.repository_commit && currentCommit && item.repository_commit !== currentCommit ? "STALE" : item.status, required: Boolean(item.required) }));
-  const review = inspectFinalReview({ target: root, id }, deps);
+  const checks = report.quality.gates;
+  const review = report.final_review;
   const policies = loadRepositoryPolicyOverlays({ target: root, kitVersion: getPackageVersion() });
   const memory = memoryHealth({ target: root });
   const architectureArtifact = readJson(architecturePath(root, id), "architecture artifact");
@@ -101,19 +96,8 @@ export function buildProofReplay(options, deps = {}) {
     { stage: "Review", status: review.status === "PASSED" ? "complete" : "blocked", detail: `${review.cycle_count ?? 0} cycles · ${review.finding_history?.length ?? review.findings?.length ?? 0} findings` },
     { stage: "Report", status: ["REVIEW_READY", "RELEASED"].includes(task.state) ? "complete" : "blocked", detail: `Task state ${task.state}` }
   ];
-  const evidenceErrors = [];
-  let previousReceiptHash = null;
-  for (const receipt of receipts) {
-    const copy = { ...receipt };
-    const claimed = copy.receipt_hash;
-    delete copy.receipt_hash;
-    if (receipt.previous_receipt_hash !== previousReceiptHash) evidenceErrors.push(`broken receipt chain at ${claimed ?? "unknown"}`);
-    if (hash(copy) !== claimed) evidenceErrors.push(`invalid receipt hash ${claimed ?? "unknown"}`);
-    previousReceiptHash = claimed;
-  }
-  if (task.capability_hash && hash(task.capability) !== task.capability_hash) evidenceErrors.push("capability hash mismatch");
-  const evidenceIntegrity = { status: evidenceErrors.length ? "REJECTED" : "VERIFIED", errors: evidenceErrors };
-  const readiness = proofStatus(task, review, checks, evidenceIntegrity, architecture, team);
+  const evidenceIntegrity = report.evidence;
+  const readiness = proofStatus(report, architecture);
   const proof = {
     schema_version: 1,
     generated_at: task.updated_at ?? receipts.at(-1)?.timestamp ?? new Date(0).toISOString(),

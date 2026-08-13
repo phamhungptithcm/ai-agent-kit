@@ -9,6 +9,8 @@ import { main, parseTeamArgs } from "../src/cli.mjs";
 import { evaluateTeamCases, inspectTeam, planTeam, recordTeamResult, reportTeam, startTeam } from "../src/team-orchestrator.mjs";
 import { briefHash, claimTeamWork, inspectTeamContext, publishTeamHandoff } from "../src/team-context.mjs";
 
+const HOST_CAPABILITIES = { bridge_kind: "HOST_NATIVE", native_spawn: true, parallel_dispatch: true, cancellation: true, structured_result: true, max_concurrency: 3 };
+
 function fixture(id, goal, paths = ["src/**"], risk = "medium") {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "aak-team-"));
   fs.writeFileSync(path.join(root, "evidence.txt"), "grounded team evidence\n");
@@ -49,7 +51,7 @@ test("task creation automatically plans orchestration without requiring a second
 test("native and serial dispatch preserve one write owner and independent review", () => {
   const root = fixture("TEAM-NATIVE", "Implement a new API feature");
   planTeam({ target: root, id: "TEAM-NATIVE" });
-  const native = startTeam({ target: root, id: "TEAM-NATIVE", adapter: "codex" });
+  const native = startTeam({ target: root, id: "TEAM-NATIVE", adapter: "codex", capabilities: HOST_CAPABILITIES });
   assert.equal(native.execution_mode, "NATIVE_SUBAGENTS");
   assert.equal(native.assignments.filter((item) => item.write_access).length, 1);
   assert.equal(native.assignments.find((item) => item.id === "independent-reviewer").write_access, false);

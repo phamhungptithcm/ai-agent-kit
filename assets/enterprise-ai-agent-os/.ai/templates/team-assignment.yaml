@@ -29,6 +29,7 @@ execution:
   state: PENDING
   spawn_id: null
   external_run_id: null
+  host_execution: null
   agent_id: null
   last_heartbeat_at: null
 status: PENDING

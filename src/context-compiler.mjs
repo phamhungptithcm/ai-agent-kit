@@ -5,6 +5,7 @@ import { requireGitRoot, getCommit } from "./git.mjs";
 import { createRunner } from "./runner.mjs";
 import { hasSymlinkComponent, normalizeRelPath } from "./paths.mjs";
 import { queryEligibleMemory } from "./memory-lifecycle.mjs";
+import { bindTaskContextPack } from "./governed-runtime.mjs";
 
 const MANDATORY_CORE = [
   ".ai/core/instruction-precedence.md",
@@ -153,6 +154,27 @@ export function compileContext(options, deps = {}) {
     const content = fs.readFileSync(path.join(root, relPath), "utf8");
     candidates.push({ path: relPath, content, mandatory: false, score: scoreCandidate(relPath, content, intent) });
   }
+  if (task.skill_routing?.status === "ROUTED" && task.skill_routing.skill) {
+    const routedPath = normalizeRelPath(path.posix.join(".ai/skills-src", task.skill_routing.skill));
+    const routedFile = path.join(root, routedPath);
+    if (!fs.existsSync(routedFile) || hasSymlinkComponent(root, routedPath) || !fs.lstatSync(routedFile).isFile()) {
+      throw new Error(`routed skill is unavailable or unsafe: ${routedPath}`);
+    }
+    const existing = candidates.find((item) => item.path === routedPath);
+    if (existing) {
+      existing.mandatory = true;
+      existing.score = Number.MAX_SAFE_INTEGER;
+      existing.provenance = `skill-route://${task.skill_routing.config_hash}/${task.skill_routing.route_id}`;
+    } else {
+      candidates.push({
+        path: routedPath,
+        content: fs.readFileSync(routedFile, "utf8"),
+        provenance: `skill-route://${task.skill_routing.config_hash}/${task.skill_routing.route_id}`,
+        mandatory: true,
+        score: Number.MAX_SAFE_INTEGER
+      });
+    }
+  }
   for (const fact of task.context?.facts ?? []) {
     candidates.push({
       path: `task://${task.id}/fact/${digest(fact).slice(0, 12)}`,
@@ -212,9 +234,10 @@ export function compileContext(options, deps = {}) {
       goal: task.goal,
       acceptanceCriteria: task.acceptance_criteria ?? [],
       state: task.state,
+      skillRouting: task.skill_routing,
       taskContractHash: digest({
         id: task.id, goal: task.goal, acceptanceCriteria: task.acceptance_criteria ?? [],
-        context: task.context, plan: task.plan
+        context: task.context, plan: task.plan, skillRouting: task.skill_routing
       })
     },
     repository: { root, commit, intelligence },
@@ -230,6 +253,7 @@ export function compileContext(options, deps = {}) {
   const markdownPath = path.join(outputRoot, `${pack.contentHash}.md`);
   fs.writeFileSync(jsonPath, `${JSON.stringify(pack, null, 2)}\n`, { encoding: "utf8", mode: 0o600 });
   fs.writeFileSync(markdownPath, markdownFor(pack), { encoding: "utf8", mode: 0o600 });
+  bindTaskContextPack({ target: root, id: task.id, contentHash: pack.contentHash, status: pack.status, repositoryCommit: commit, intelligenceMode: intelligence.mode });
   return { pack, jsonPath, markdownPath };
 }
 

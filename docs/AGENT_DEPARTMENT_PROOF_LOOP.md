@@ -5,9 +5,11 @@ when it starts more agents. Its proof loop has four separate layers:
 
 1. The team contract is authoritative state: roles, dependencies, budgets,
    claims, approval, lifecycle, and evidence bindings.
-2. The content-minimized event journal is an append-only audit chain. Each event
-   binds its predecessor. Recovery reconciles journal gaps without pretending
-   that the local filesystem is a distributed queue.
+2. A hash-bound ingest transaction makes handoff, team state, analytics, and
+   journal progress recoverable. The content-minimized event journal remains an
+   append-only audit chain; recovery reconciles journal gaps and exposes pending
+   transactions without pretending that the local filesystem is a distributed
+   queue.
 3. The timeline renders the journal as JSON, text, and standalone HTML for
    review, demos, and incident reconstruction.
 4. Conformance and benchmark artifacts control what can be claimed publicly.

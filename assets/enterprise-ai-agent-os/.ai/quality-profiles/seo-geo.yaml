@@ -1,91 +1,97 @@
-version: 1
+version: 2
 
 id: seo-geo
 
-name: SEO And Generative Engine Optimization Quality Profile
+name: SEO And Generative Discovery Quality Profile
 
 description:
-  Mandatory discoverability, content-integrity, and verification standards for
-  public websites intended for search indexing, rich results, AI-assisted
-  search retrieval, or accurate machine understanding.
+  Mandatory truth, consistency, content-integrity, provider-policy, and
+  verification standards for public websites intended for search indexing,
+  rich results, AI-assisted retrieval, accurate machine understanding, or
+  measurable qualified discovery.
 
 applies_when:
-  - "public routes, pages, layouts, landing pages, articles, documentation, product pages, category pages, or localized content change"
-  - "titles, descriptions, canonical URLs, robots directives, hreflang, social metadata, or structured data change"
-  - "robots.txt, XML sitemaps, redirects, URL structures, internal links, HTTP headers, or crawler access policy change"
+  - "public routes, layouts, landing pages, articles, documentation, product pages, category pages, or localized content change"
+  - "titles, descriptions, canonical URLs, robots directives, hreflang, social metadata, entities, claims, or structured data change"
+  - "robots.txt, XML sitemaps, redirects, URL structures, internal links, HTTP headers, feeds, or crawler policy change"
   - "SSR, SSG, prerendering, hydration, or client rendering changes the HTML available to non-browser clients"
-  - "llms.txt or another machine-readable discovery surface is introduced or changed"
+  - "llms.txt, provider feeds, AI crawler policy, AI visibility measurement, or another machine-readable discovery surface changes"
 
 compose_with:
   - ".ai/quality-profiles/universal.yaml"
   - ".ai/quality-profiles/web-app.yaml"
   - ".ai/quality-profiles/frontend-html-css.yaml"
+  - ".ai/quality-profiles/human-writing.yaml"
+  - ".ai/quality-profiles/marketing-growth.yaml when public claims or outcomes are in scope"
   - ".ai/rules/seo-geo.md"
 
-detect:
-  files:
-    - "robots.txt"
-    - "public/robots.txt"
-    - "static/robots.txt"
-    - "sitemap.xml"
-    - "public/sitemap*.xml"
-    - "static/sitemap*.xml"
-    - "llms.txt"
-    - "public/llms.txt"
-    - "static/llms.txt"
-    - "app/**/page.*"
-    - "app/**/layout.*"
-    - "pages/**"
-    - "routes/**"
-    - "content/**"
-    - "docs/**"
-    - "next-sitemap.config.*"
-    - "astro.config.*"
-    - "nuxt.config.*"
-    - "gatsby-config.*"
+contract:
+  schema: ".ai/templates/seo-geo-contract.schema.json"
+  example: ".ai/templates/seo-geo-contract.example.json"
+  validator: "python3 -B .ai/scripts/validate_seo_geo_contract.py <contract.json>"
+  required_sections:
+    - "site and route discovery intent"
+    - "stable entities and provenance-bound claims"
+    - "dated source registry"
+    - "purpose-specific crawler decisions"
+    - "provider capability support states"
+    - "layered measurements and integrity guardrails"
 
 required_review:
   discovery_contract:
-    - "public, canonical, indexable, localized, redirected, and excluded routes are explicit"
-    - "page types and primary site entities are identified from verified project evidence"
-    - "titles, descriptions, canonical URLs, robots directives, and social metadata are page-appropriate"
-    - "canonical, sitemap, hreflang, navigation, and redirect signals do not conflict"
+    - "public, redirected, excluded, private, canonical, indexable, localized, and sitemap states are explicit"
+    - "only public, indexable, self-canonical URLs appear in sitemaps"
+    - "redirects, noindex, canonical, hreflang, navigation, and sitemap signals do not conflict"
+    - "canonical targets resolve and canonical graphs have no multi-URL cycles"
+    - "hreflang alternates are public, indexable, locale-correct, and reciprocal"
   crawlability_and_rendering:
     - "primary content, headings, metadata, structured data, and crawlable internal links exist in raw or built HTML where required"
-    - "robots.txt, robots meta tags, and HTTP crawler directives match documented intent"
+    - "robots.txt, robots meta tags, HTTP crawler directives, response status, and access controls match documented intent"
     - "important public pages are reachable without requiring site search or non-crawlable interactions"
     - "mobile and desktop experiences preserve important content and navigation"
-  structured_data:
-    - "schema types match the visible page purpose and verified data"
-    - "required and recommended properties are validated with current authoritative guidance"
-    - "reviews, ratings, prices, availability, authorship, credentials, and organization facts are not fabricated"
-    - "structured data outcomes are described as eligibility, not guaranteed display or ranking"
+  claims_entities_and_structured_data:
+    - "entity IDs, names, canonical URLs, locale variants, visible content, metadata, and structured data remain consistent"
+    - "every material public claim has exact text, status, source, owner, verification date, review date, and scope"
+    - "only VERIFIED or visibly QUALIFIED claims enter metadata or structured data"
+    - "schema types match visible page purpose and current provider-specific requirements"
+    - "reviews, ratings, prices, availability, authorship, credentials, sameAs identities, and organization facts are not fabricated"
+    - "structured data outcomes are described as eligibility, not guaranteed display, ranking, retrieval, or citation"
   content_and_geo:
-    - "important user questions receive clear, direct, self-contained answers where appropriate"
-    - "entity names, authorship, dates, sources, and update history are consistent and verifiable"
-    - "facts, inferences, assumptions, and recommendations are distinguished"
-    - "no unsupported scoring formula, passage-length threshold, authority signal, or visibility promise is presented as fact"
-  emerging_surfaces:
-    - "llms.txt is optional and labeled as an emerging proposal"
-    - "llms.txt contains only public, verified information and is not treated as crawler access control"
-    - "search indexing, AI search retrieval, model training, and preview controls are evaluated separately"
+    - "content is original, useful, people-first, non-commodity, and proportionate to a verified audience task"
+    - "facts, repository evidence, assumptions, recommendations, and unavailable information are distinguished"
+    - "no scaled query-variation pages, AI-only rewrites, fabricated mentions, unsupported scores, or visibility promises are used"
+  crawler_and_provider_policy:
+    - "search retrieval, model training, preview, user-triggered fetch, and other purposes are evaluated separately"
+    - "each decision records exact user agent, official source, owner, dates, expiry, privacy, licensing, security, and capacity intent"
+    - "provider features are marked SUPPORTED, IGNORED, UNVERIFIED, or NOT_APPLICABLE from current official evidence"
+    - "llms.txt remains optional, public-only, provider-specific, and never acts as access control"
+  effectiveness:
+    - "technical eligibility, search visibility, AI visibility, business outcomes, and integrity guardrails are measured separately"
+    - "MEASURED, INCONCLUSIVE, INVALID, NOT_MEASURED, and UNAVAILABLE are used honestly"
+    - "metric semantics, source, observation window, sample, environment, consent, and limitations are recorded"
+    - "AI probes use repeated prompts, paraphrases, dates, locales, and providers when authorized"
+    - "citation is not represented as ranking, authority, fidelity, qualified traffic, or conversion"
   verification:
+    - "contract and cross-record invariants pass before implementation completion"
     - "source or build output is inspected before deployment"
-    - "deployed URL checks record URL, date, environment, user agent or tool, and limitations"
-    - "field data, lab data, estimates, and unavailable measurements are clearly separated"
+    - "deployed checks record URL, date, environment, user agent or tool, authorization, and limitations"
+    - "field, provider-reported, lab, synthetic, estimated, qualitative, and unavailable evidence are separated"
 
 preferred_evidence:
+  - "validated SEO/GEO truth contract and negative regression fixtures"
   - "repository-defined build and prerender output"
-  - "raw HTML and HTTP response headers"
+  - "raw HTML, response status, redirects, and HTTP headers"
   - "robots.txt and XML sitemap validation"
-  - "schema.org validation and supported search-platform structured-data tests"
   - "canonical and hreflang graph inspection"
+  - "schema.org validation plus current intended-provider structured-data tests"
   - "mobile and desktop browser smoke tests"
-  - "repository-defined Lighthouse or web performance checks"
+  - "authorized Search Console, Bing Webmaster, log, analytics, and conversion evidence"
+  - "repeated provider probes with preserved prompts, dates, outputs, and limitations"
 
 agent_constraints:
-  - "do not make live-site changes during an audit"
-  - "do not fabricate business, author, product, review, rating, or authority data"
-  - "do not promise rankings, rich results, indexing, AI visibility, traffic, conversions, or citations"
-  - "do not describe llms.txt as a ratified standard or guaranteed discovery mechanism"
-  - "report missing external access or measurement as unavailable rather than inferring success"
+  - "do not make live-site or external-account changes during an audit"
+  - "do not fabricate business, author, product, review, rating, source, measurement, or authority data"
+  - "do not promise rankings, rich results, indexing, AI visibility, traffic, conversions, revenue, or citations"
+  - "do not describe llms.txt or another provider feature as universal without current official evidence"
+  - "report missing access or measurement as unavailable rather than inferring success"
+  - "fail closed when route, entity, claim, source, crawler, provider, or measurement truth is stale or contradictory"

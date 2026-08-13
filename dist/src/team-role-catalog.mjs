@@ -123,5 +123,14 @@ export function buildTeamAssignments({ type, paths, signals, maxAgents }) {
 }
 
 export function teamPlanningHash({ goal, paths, task, risk, shape, maxAgents }) {
-  return digest({ goal, paths, context: task.context ?? {}, risk, shape: shape ?? null, max_agents: maxAgents });
+  return digest({
+    goal,
+    paths,
+    context: task.context ?? {},
+    skill_routing: task.skill_routing ?? null,
+    execution_context: task.execution_context ?? null,
+    risk,
+    shape: shape ?? null,
+    max_agents: maxAgents
+  });
 }

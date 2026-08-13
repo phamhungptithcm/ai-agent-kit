@@ -1,7 +1,7 @@
 # Generate Agent Proof
 
-1. Verify the governed task, evidence ledger, quality checks, and final-review
-   hash chain.
+1. Build the canonical final task report and reuse its acceptance, Git,
+   orchestration, required-gate, evidence, and final-review readiness result.
 2. Resolve current policy overlays and memory health.
 3. Remove source, prompts, secrets, raw logs, memory content, and direct personal
    identifiers from the proof model.

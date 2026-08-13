@@ -22,8 +22,11 @@ Every lifecycle mutation emits a content-minimized append-only event with a
 sequence number, previous-event hash, and event hash. The team contract remains
 the authoritative state; the journal is the audit and reconciliation plane.
 Result ingestion binds an idempotency key to task, assignment, spawn, and
-validated result so client retries cannot double-apply a completed handoff.
-Recovery verifies both planes, records state-ahead reconciliation, retries only
+validated result so client retries cannot double-apply a completed handoff. A
+hash-bound transaction advances through `PREPARED`, `HANDOFF_PUBLISHED`,
+`STATE_COMMITTED`, and `COMMITTED`, allowing a retry to resume after a partial
+cross-ledger write without publishing the handoff twice. Recovery exposes any
+unfinished ingest transaction instead of hiding it. It verifies both planes, records state-ahead reconciliation, retries only
 bounded read work, and blocks when a writer may be orphaned.
 
 Keep evidence levels separate:

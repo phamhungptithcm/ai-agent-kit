@@ -263,10 +263,12 @@ workcell.
 - A shared, versioned brief lets specialists reuse facts instead of scanning the
   same code again. Claims prevent duplicate work; one write owner prevents
   agents from editing over each other.
-- Execution is capability-driven. Codex and Claude can use host-native
-  subagents when the bridge declares structured results, cancellation, scope
-  enforcement, and safe concurrency. Other hosts run the same assignments as
-  serial personas, so missing subagent support never blocks useful work.
+- Execution is capability-driven. Codex and Claude default to an unverified
+  serial contract; host-native spawning is enabled only after a host probe
+  declares structured results, cancellation, scope enforcement, and safe
+  concurrency. A native dispatch must carry an external run ID or be executed
+  by an injected bridge. Other hosts run the same assignments as serial
+  personas, so missing subagent support never blocks useful work.
 - The planner reconciles against current paths, facts, assumptions, risk, and
   approval immediately before dispatch. Security, migration, API, performance,
   concurrency, and design specialists are selected only when signals justify
@@ -546,12 +548,16 @@ See [Agent Adapter Strategy](docs/AGENT_ADAPTER_STRATEGY.md) for details.
 | `0.8.0` | Agent Department orchestration, shared Team Context, constraint-driven system design, signed policy overlays, local outcome analytics, memory lifecycle 2.0, Agent Proof Replay, Change Passports, Failure Lab, and Policy Playground. |
 | `0.9.0` | Versioned adapter SDK, honest capability matrix, full GitHub Copilot surfaces, portable conformance, Agent Skills compatibility, MCP versioning, and optional A2A boundaries. |
 | `0.9.1` | Durable Agent Department execution, approval-bound dispatch, idempotent results, recovery, hash-chained timelines, live-host conformance attestations, and evidence-gated three-mode benchmarks. |
+| `1.0.0` | Explainable skill routing, SEO/GEO evidence contracts, context-bound dispatch, recoverable result ingest, unified fail-closed release proof, verified host capability gates, and package-state isolation. |
 
 ## Documentation
 
 - [Adoption Guide](docs/ADOPTION_GUIDE.md)
 - [High-Level Design](docs/HIGH_LEVEL_DESIGN.md)
 - [Agent Department Proof Loop](docs/AGENT_DEPARTMENT_PROOF_LOOP.md)
+- [Skill Routing](docs/SKILL_ROUTING.md)
+- [Additive AI Change Assurance Deep Review](docs/ADDITIVE_AI_CHANGE_ASSURANCE_DEEP_REVIEW.md)
+- [Additive AI Change Assurance Discovery Plan](docs/ADDITIVE_AI_CHANGE_ASSURANCE_DISCOVERY_PLAN.md)
 - [Runtime Enforcement and MCP Trust](docs/RUNTIME_ENFORCEMENT_AND_MCP_TRUST.md)
 - [Code Quality Intelligence](docs/CODE_QUALITY_INTELLIGENCE.md)
 - [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md)

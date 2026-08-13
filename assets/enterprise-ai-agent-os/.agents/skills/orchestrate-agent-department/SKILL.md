@@ -147,12 +147,10 @@ For product evidence, keep these levels distinct:
 - `team demo` is synthetic local control-plane evidence.
 - deterministic tests prove contracts and routing, not a live provider.
 - `team conformance` passes only for a populated live Codex or Claude
-  attestation bound to host version, run id, ordered dispatch-result lifecycle,
-  approval before write dispatch, journal head, and evidence hashes.
+  attestation bound to host version, run id, journal head, and evidence hashes.
 - `team benchmark` allows comparison only when task, repository commit, host,
-  and model are held constant with at least three equal repetitions per mode.
-  Never turn `SYNTHETIC_ONLY`, `PARTIAL`, or `INSUFFICIENT_EVIDENCE` into a
-  public performance claim.
+  and model are held constant. Never turn `SYNTHETIC_ONLY`, `PARTIAL`, or
+  `INSUFFICIENT_EVIDENCE` into a public performance claim.
 
 Report success only when blocking assignments are complete, optional failures
 are explicit, claims and context are current, conflicts are resolved, evidence
