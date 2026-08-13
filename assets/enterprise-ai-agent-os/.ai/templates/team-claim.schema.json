@@ -1,1 +1,24 @@
-{"$schema":"https://json-schema.org/draft/2020-12/schema","title":"Team assignment lease","type":"object","required":["claim_id","assignment_id","agent_id","paths","write_access","context_revision","status","claimed_at","expires_at"],"properties":{"claim_id":{"type":"string"},"assignment_id":{"type":"string"},"agent_id":{"type":"string"},"paths":{"type":"array","maxItems":100,"items":{"type":"string"}},"write_access":{"type":"boolean"},"context_revision":{"type":"integer","minimum":0},"dependency_handoff_hashes":{"type":"array","items":{"type":"string","pattern":"^[a-f0-9]{64}$"}},"status":{"enum":["ACTIVE","RELEASED","EXPIRED"]},"claimed_at":{"type":"string","format":"date-time"},"expires_at":{"type":"string","format":"date-time"}},"additionalProperties":false}
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "team-claim-v2",
+  "title": "Team assignment lease",
+  "type": "object",
+  "required": ["claim_id", "assignment_id", "agent_id", "paths", "write_access", "context_revision", "status", "claimed_at", "expires_at"],
+  "properties": {
+    "claim_id": { "type": "string" },
+    "assignment_id": { "type": "string" },
+    "agent_id": { "type": "string" },
+    "paths": { "type": "array", "maxItems": 100, "items": { "type": "string" } },
+    "write_access": { "type": "boolean" },
+    "context_revision": { "type": "integer", "minimum": 0 },
+    "dependency_handoff_hashes": { "type": "array", "items": { "$ref": "#/$defs/hash" } },
+    "status": { "enum": ["ACTIVE", "RELEASED", "EXPIRED", "CANCELLED"] },
+    "claimed_at": { "type": "string", "format": "date-time" },
+    "heartbeat_at": { "type": "string", "format": "date-time" },
+    "expires_at": { "type": "string", "format": "date-time" },
+    "released_at": { "type": "string", "format": "date-time" },
+    "cancellation_reason": { "type": "string", "maxLength": 1000 }
+  },
+  "$defs": { "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" } },
+  "additionalProperties": false
+}

@@ -1,1 +1,122 @@
-{"$schema":"https://json-schema.org/draft/2020-12/schema","title":"Agent workcell contract","type":"object","required":["schema_version","task_id","state","team_type","execution_mode","context_protocol_required","context_hash","context_revision","budgets","assignments","team_hash"],"properties":{"schema_version":{"const":1},"task_id":{"type":"string"},"state":{"enum":["PLANNED","DISPATCH_READY","IN_PROGRESS","BLOCKED","COMPLETED"]},"team_type":{"enum":["SOLO","PRODUCT_WORKCELL","BUG_WORKCELL","ASSURANCE_WORKCELL"]},"execution_mode":{"enum":["UNSELECTED","NATIVE_SUBAGENTS","SERIAL_PERSONAS"]},"context_protocol_required":{"const":true},"context_hash":{"type":"string","pattern":"^[a-f0-9]{64}$"},"context_revision":{"type":"integer","minimum":1},"budgets":{"type":"object"},"assignments":{"type":"array","minItems":2,"maxItems":6},"team_hash":{"type":"string","pattern":"^[a-f0-9]{64}$"}}}
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "team-contract-v2",
+  "title": "Agent Department workcell contract",
+  "type": "object",
+  "required": ["schema_version", "task_id", "state", "team_type", "planning", "execution_mode", "context_protocol_required", "context_hash", "context_revision", "budgets", "assignments", "team_hash"],
+  "properties": {
+    "schema_version": { "const": 2 },
+    "task_id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$" },
+    "state": { "enum": ["PLANNED", "DISPATCH_READY", "IN_PROGRESS", "BLOCKED", "CANCELLED", "COMPLETED"] },
+    "team_type": { "enum": ["SOLO", "PRODUCT_WORKCELL", "BUG_WORKCELL", "ASSURANCE_WORKCELL"] },
+    "planning": {
+      "type": "object",
+      "required": ["revision", "planning_hash", "signal_hash", "signals", "risk"],
+      "properties": {
+        "revision": { "type": "integer", "minimum": 1 },
+        "planning_hash": { "$ref": "#/$defs/hash" },
+        "signal_hash": { "$ref": "#/$defs/hash" },
+        "signals": { "type": "object" },
+        "requested_shape": { "type": ["string", "null"] },
+        "risk": { "type": "string" },
+        "skill_routing": { "type": ["object", "null"] },
+        "execution_context": { "type": ["object", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "execution_mode": { "enum": ["UNSELECTED", "NATIVE_SUBAGENTS", "CLI_SUBPROCESS", "SERIAL_PERSONAS"] },
+    "adapter_capabilities": { "anyOf": [{ "$ref": "execution-adapter.schema.json" }, { "type": "null" }] },
+    "context_protocol_required": { "const": true },
+    "approval_required_before_writes": { "const": true },
+    "context_hash": { "$ref": "#/$defs/hash" },
+    "context_revision": { "type": "integer", "minimum": 1 },
+    "budgets": {
+      "type": "object",
+      "required": ["max_agents", "max_depth", "token_budget", "timeout_seconds", "max_actions", "max_concurrency"],
+      "properties": {
+        "max_agents": { "type": "integer", "minimum": 2, "maximum": 6 },
+        "max_depth": { "const": 1 },
+        "token_budget": { "type": "integer", "minimum": 1000 },
+        "timeout_seconds": { "type": "integer", "minimum": 30 },
+        "max_actions": { "type": "integer", "minimum": 1 },
+        "max_concurrency": { "type": "integer", "minimum": 1, "maximum": 32 }
+      },
+      "additionalProperties": false
+    },
+    "assignments": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 6,
+      "items": { "$ref": "#/$defs/assignment" }
+    },
+    "result_history": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["assignment_id", "status", "evidence_hash", "handoff_hash", "idempotency_key", "finding_count", "usage", "timestamp"],
+        "properties": {
+          "assignment_id": { "type": "string" },
+          "status": { "enum": ["COMPLETED", "BLOCKED", "REJECTED", "TIMED_OUT", "CANCELLED", "ORPHANED"] },
+          "evidence_hash": { "anyOf": [{ "$ref": "#/$defs/hash" }, { "type": "null" }] },
+          "handoff_hash": { "anyOf": [{ "$ref": "#/$defs/hash" }, { "type": "null" }] },
+          "idempotency_key": { "anyOf": [{ "$ref": "#/$defs/hash" }, { "type": "null" }] },
+          "finding_count": { "type": "integer", "minimum": 0 },
+          "usage": {
+            "type": "object",
+            "required": ["tokens", "actions", "duration_seconds"],
+            "properties": {
+              "tokens": { "type": "integer", "minimum": 0 },
+              "actions": { "type": "integer", "minimum": 0 },
+              "duration_seconds": { "type": "integer", "minimum": 0 }
+            },
+            "additionalProperties": false
+          },
+          "timestamp": { "type": "string", "format": "date-time" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "run": {
+      "type": ["object", "null"],
+      "properties": {
+        "run_id": { "type": "string" },
+        "state": { "enum": ["READY", "RUNNING", "BLOCKED", "CANCELLATION_PENDING", "CANCELLED", "COMPLETED"] },
+        "dispatch_state": { "enum": ["READY_FOR_HOST", "HOST_DISPATCH_ACTIVE", "HOST_ACTION_REQUIRED", "HUMAN_REVIEW_REQUIRED", "CANCELLED", "COMPLETED"] },
+        "max_concurrency": { "type": "integer", "minimum": 1 },
+        "active_assignments": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    },
+    "team_hash": { "$ref": "#/$defs/hash" }
+  },
+  "$defs": {
+    "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "assignment": {
+      "type": "object",
+      "required": ["id", "role", "objective", "write_access", "allowed_paths", "depends_on", "required", "blocking", "phase", "status", "attempts", "max_attempts", "execution"],
+      "properties": {
+        "id": { "type": "string" },
+        "role": { "type": "string" },
+        "objective": { "type": "string" },
+        "write_access": { "type": "boolean" },
+        "allowed_paths": { "type": "array", "items": { "type": "string" } },
+        "depends_on": { "type": "array", "items": { "type": "string" } },
+        "required": { "type": "boolean" },
+        "blocking": { "type": "boolean" },
+        "phase": { "enum": ["DISCOVERY", "IMPLEMENTATION", "ASSURANCE", "REVIEW"] },
+        "status": { "enum": ["PENDING", "RUNNING", "COMPLETED", "BLOCKED", "REJECTED", "TIMED_OUT", "CANCELLED", "ORPHANED"] },
+        "attempts": { "type": "integer", "minimum": 0 },
+        "max_attempts": { "type": "integer", "minimum": 1 },
+        "execution": {
+          "type": "object",
+          "properties": {
+            "host_execution": { "enum": ["SERIAL_PERSONA", "ATTESTED_EXTERNAL", "EXECUTED_BY_BRIDGE"] }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

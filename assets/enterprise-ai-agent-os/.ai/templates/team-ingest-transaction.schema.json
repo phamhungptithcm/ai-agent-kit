@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "team-ingest-transaction-v1",
+  "title": "Recoverable team-result ingest transaction",
+  "type": "object",
+  "required": ["schema_version", "transaction_id", "task_id", "assignment_id", "state", "result_hash", "prepared_at", "transaction_hash"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "transaction_id": { "$ref": "#/$defs/hash" },
+    "task_id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$" },
+    "assignment_id": { "type": "string" },
+    "spawn_id": { "type": ["string", "null"] },
+    "claim_id": { "type": ["string", "null"] },
+    "state": { "enum": ["PREPARED", "HANDOFF_PUBLISHED", "STATE_COMMITTED", "COMMITTED"] },
+    "result_hash": { "$ref": "#/$defs/hash" },
+    "handoff_hash": { "anyOf": [{ "$ref": "#/$defs/hash" }, { "type": "null" }] },
+    "evidence_hash": { "anyOf": [{ "$ref": "#/$defs/hash" }, { "type": "null" }] },
+    "team_hash": { "anyOf": [{ "$ref": "#/$defs/hash" }, { "type": "null" }] },
+    "prepared_at": { "type": "string", "format": "date-time" },
+    "transaction_hash": { "$ref": "#/$defs/hash" }
+  },
+  "$defs": {
+    "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  },
+  "additionalProperties": true
+}

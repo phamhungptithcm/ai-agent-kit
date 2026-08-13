@@ -53,6 +53,30 @@ Understand → Inspect → Plan → Approve → Execute → Verify → Report
 The kit does not decide what your team should approve. It makes the boundary
 clear, keeps normal work moving, and leaves evidence another person can review.
 
+### See the Agent Department make a decision
+
+```bash
+ai-agent-kit team demo
+```
+
+The offline demo runs the real planner, dependency scheduler, shared claims,
+approval gate, assurance rejection, fix loop, fresh independent review, and
+hash-chained timeline. It is explicitly marked synthetic: it proves the local
+control plane, not the quality or behavior of a live AI host.
+
+The result is a standalone HTML timeline plus JSON and text evidence under
+`.ai-agent-kit/demo/agent-department/`. For live Codex or Claude claims, create
+an attestation template and verify it against the task journal:
+
+```bash
+ai-agent-kit team conformance-template --adapter codex > conformance.json
+ai-agent-kit team conformance --file conformance.json
+```
+
+An empty template is not a pass. Live conformance requires observed spawn and
+result lifecycle events, host/run binding, evidence hashes, and the current
+journal head.
+
 See the complete loop without touching a real project:
 
 ```bash
@@ -218,23 +242,58 @@ workcell.
 - A shared, versioned brief lets specialists reuse facts instead of scanning the
   same code again. Claims prevent duplicate work; one write owner prevents
   agents from editing over each other.
-- Codex and Claude can use their native subagents. Other hosts run the same
-  assignments as serial personas, so missing subagent support never blocks the
-  task.
+- Execution is capability-driven. Codex and Claude default to an unverified
+  serial contract; host-native spawning is enabled only after a host probe
+  declares structured results, cancellation, scope enforcement, and safe
+  concurrency. A native dispatch must carry an external run ID or be executed
+  by an injected bridge. Other hosts run the same assignments as serial
+  personas, so missing subagent support never blocks useful work.
+- The planner reconciles against current paths, facts, assumptions, risk, and
+  approval immediately before dispatch. Security, migration, API, performance,
+  concurrency, and design specialists are selected only when signals justify
+  them.
 - Review stays independent. Findings go back to the implementation owner, then
-  the kit verifies and reviews again before it accepts the result.
+  downstream QA and assurance run again before a fresh review is accepted.
 - Fan-out, depth, time, tokens, actions, paths, and external operations remain
   bounded. Subagents cannot quietly expand scope or release on their own.
-- Handoffs carry evidence, risks, tests, and open questions—not chat history.
-  They are treated as untrusted data and bound to file hashes. Conflicts stay
-  visible until the Team Lead resolves them.
+- Handoffs carry evidence, structured findings, risks, tests, and open
+  questions—not prompts, chat history, credentials, or chain-of-thought. They
+  are treated as untrusted data and bound to file hashes. Duplicate findings
+  are synthesized while confidence and severity disagreements stay visible.
+- Every lifecycle mutation writes a content-minimized, hash-chained event.
+  Retried result ingestion is idempotent; recovery verifies the journal,
+  reconciles state-ahead gaps, and stops for possible orphaned writes.
 
 ```bash
 ai-agent-kit team plan --id TASK-123
 ai-agent-kit team start --id TASK-123 --adapter codex
-ai-agent-kit team context --id TASK-123
+ai-agent-kit team next --id TASK-123
+ai-agent-kit team dispatch --id TASK-123 --assignment impact-explorer --agent explorer-1
+ai-agent-kit team heartbeat --id TASK-123 --assignment impact-explorer
+ai-agent-kit team ingest --id TASK-123 --assignment impact-explorer --result-file result.json
+ai-agent-kit team watch --id TASK-123 --output .ai-agent-kit/proof/TASK-123
+ai-agent-kit team recover --id TASK-123
 ai-agent-kit team report --id TASK-123
 ```
+
+`team next` exposes only the dependency-ready wave. The host-native bridge
+spawns that wave, and `dispatch` claims each assignment before execution.
+`cancel` releases active claims; `resume` retries bounded read-only work but
+stops for Team Lead review when a writer may be orphaned. Write dispatch always
+requires the current approval hash.
+
+To compare coordination modes without marketing-by-anecdote, use the
+three-mode benchmark contract:
+
+```bash
+ai-agent-kit team benchmark-template > team-benchmark.json
+ai-agent-kit team benchmark --fixture team-benchmark.json
+```
+
+The evaluator compares `SINGLE_AGENT`, `UNGOVERNED_MULTI_AGENT`, and
+`AGENT_DEPARTMENT` only when task, repository commit, host, and model are held
+constant. Missing fields return `INSUFFICIENT_EVIDENCE`; synthetic inputs never
+authorize a product-performance conclusion.
 
 The workcell, shared handoffs, conflicts, review cycles, and evidence hashes
 appear in Agent Proof Replay, so the final report shows both what changed and

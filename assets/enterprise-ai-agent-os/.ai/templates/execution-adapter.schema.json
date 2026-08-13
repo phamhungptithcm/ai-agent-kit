@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "execution-adapter-v1",
+  "title": "Host execution capability contract",
+  "type": "object",
+  "required": ["id", "bridge_kind", "native_spawn", "parallel_dispatch", "cancellation", "structured_result", "read_only_enforcement", "write_scope_enforcement", "max_concurrency", "capability_source"],
+  "properties": {
+    "id": { "type": "string" },
+    "bridge_kind": { "enum": ["HOST_NATIVE", "SERIAL_PERSONAS", "CLI_SUBPROCESS"] },
+    "native_spawn": { "type": "boolean" },
+    "parallel_dispatch": { "type": "boolean" },
+    "cancellation": { "type": "boolean" },
+    "structured_result": { "const": true },
+    "read_only_enforcement": { "enum": ["hard", "advisory", "none"] },
+    "write_scope_enforcement": { "enum": ["hard", "advisory", "none"] },
+    "max_concurrency": { "type": "integer", "minimum": 1, "maximum": 32 },
+    "capability_source": { "enum": ["kit-registry", "requires-host-probe", "host-probe"] }
+  },
+  "additionalProperties": false
+}

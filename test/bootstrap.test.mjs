@@ -163,6 +163,11 @@ test("bootstrap creates local AI-agent files without staging, branch, commit, pu
   assert.ok(fs.existsSync(path.join(root, ".ai", "quality-profiles", "marketing-growth.yaml")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "quality-profiles", "system-design.yaml")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "templates", "seo-geo-review.md")));
+  assert.ok(fs.existsSync(path.join(root, ".ai", "templates", "seo-geo-contract.schema.json")));
+  assert.ok(fs.existsSync(path.join(root, ".ai", "templates", "seo-geo-contract.example.json")));
+  assert.ok(fs.existsSync(path.join(root, ".ai", "templates", "seo-geo-measurement-plan.md")));
+  assert.ok(fs.existsSync(path.join(root, ".ai", "scripts", "validate_seo_geo_contract.py")));
+  assert.ok(fs.existsSync(path.join(root, ".ai", "evals", "e2e", "seo-geo-contract-invalid.json")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "templates", "design-brief.md")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "templates", "design-direction.md")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "templates", "visual-design-review.md")));
@@ -177,6 +182,7 @@ test("bootstrap creates local AI-agent files without staging, branch, commit, pu
   assert.ok(fs.existsSync(path.join(root, ".ai", "templates", "marketing-experiment.md")));
   assert.ok(fs.existsSync(path.join(root, ".agents", "skills", "seo-geo-website", "SKILL.md")));
   assert.ok(fs.existsSync(path.join(root, ".claude", "skills", "seo-geo-website", "SKILL.md")));
+  assert.ok(fs.existsSync(path.join(root, ".agents", "skills", "seo-geo-website", "references", "contract-and-measurement.md")));
   assert.ok(fs.existsSync(path.join(root, ".agents", "skills", "design-taste-website", "SKILL.md")));
   assert.ok(fs.existsSync(path.join(root, ".claude", "skills", "design-taste-website", "SKILL.md")));
   assert.ok(fs.existsSync(path.join(root, ".agents", "skills", "animation-design-engineering", "SKILL.md")));
@@ -798,7 +804,7 @@ test("prompt commands print the catalog and named prompts", async () => {
   logs.length = 0;
   await main(["prompt", "seo"], io);
   assert.match(logs.join("\n"), /# build-seo-geo-website/);
-  assert.match(logs.join("\n"), /Treat llms\.txt as optional and experimental/);
+  assert.match(logs.join("\n"), /Treat llms\.txt and other provider features as optional, provider-specific/);
 
   logs.length = 0;
   await main(["prompt", "taste"], io);

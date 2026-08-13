@@ -3,9 +3,9 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "@hunpeolabs/ai-agent-kit-0.8.0",
-  "documentNamespace": "https://github.com/phamhungptithcm/ai-agent-kit/sbom/0.8.0/a78c27d8-5809-4f8a-b441-6eb5c8ff3b28",
+  "documentNamespace": "https://github.com/phamhungptithcm/ai-agent-kit/sbom/0.8.0/4855bb1d-0db9-48ff-8f97-d5c44137f729",
   "creationInfo": {
-    "created": "2026-08-04T14:57:37.393Z",
+    "created": "2026-08-13T16:53:30.238Z",
     "creators": [
       "Tool: @hunpeolabs/ai-agent-kit"
     ]

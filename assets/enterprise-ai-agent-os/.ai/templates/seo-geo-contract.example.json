@@ -1,0 +1,271 @@
+{
+  "schema_version": 1,
+  "as_of": "2026-08-13",
+  "site": {
+    "id": "site:example",
+    "type": "SAAS",
+    "base_url": "https://example.com",
+    "owner": "website-team",
+    "locales": ["en", "fr"]
+  },
+  "routes": [
+    {
+      "id": "route:home-en",
+      "url": "https://example.com/en",
+      "status": "PUBLIC",
+      "locale": "en",
+      "canonical": "https://example.com/en",
+      "indexable": true,
+      "robots": "INDEX_FOLLOW",
+      "sitemap": true,
+      "redirect_target": null,
+      "primary_entity_ids": ["entity:example"],
+      "alternates": [
+        { "locale": "fr", "url": "https://example.com/fr" }
+      ],
+      "structured_data": [
+        {
+          "type": "Organization",
+          "entity_ids": ["entity:example"],
+          "claim_ids": ["claim:legal-name"]
+        }
+      ],
+      "verified_at": "2026-08-13",
+      "review_due_at": "2027-02-13"
+    },
+    {
+      "id": "route:home-fr",
+      "url": "https://example.com/fr",
+      "status": "PUBLIC",
+      "locale": "fr",
+      "canonical": "https://example.com/fr",
+      "indexable": true,
+      "robots": "INDEX_FOLLOW",
+      "sitemap": true,
+      "redirect_target": null,
+      "primary_entity_ids": ["entity:example"],
+      "alternates": [
+        { "locale": "en", "url": "https://example.com/en" }
+      ],
+      "structured_data": [
+        {
+          "type": "Organization",
+          "entity_ids": ["entity:example"],
+          "claim_ids": ["claim:legal-name"]
+        }
+      ],
+      "verified_at": "2026-08-13",
+      "review_due_at": "2027-02-13"
+    },
+    {
+      "id": "route:legacy",
+      "url": "https://example.com/old",
+      "status": "REDIRECT",
+      "locale": "en",
+      "canonical": null,
+      "indexable": false,
+      "robots": "NOINDEX_FOLLOW",
+      "sitemap": false,
+      "redirect_target": "https://example.com/en",
+      "primary_entity_ids": [],
+      "alternates": [],
+      "structured_data": []
+    },
+    {
+      "id": "route:account",
+      "url": "https://example.com/account",
+      "status": "PRIVATE",
+      "locale": "en",
+      "canonical": null,
+      "indexable": false,
+      "robots": "NOINDEX_NOFOLLOW",
+      "sitemap": false,
+      "redirect_target": null,
+      "primary_entity_ids": [],
+      "alternates": [],
+      "structured_data": []
+    }
+  ],
+  "entities": [
+    {
+      "id": "entity:example",
+      "type": "Organization",
+      "canonical_url": "https://example.com/en",
+      "names": {
+        "en": "Example Company",
+        "fr": "Example Company"
+      }
+    }
+  ],
+  "claims": [
+    {
+      "id": "claim:legal-name",
+      "exact_claim": "The verified public organization name is Example Company.",
+      "status": "VERIFIED",
+      "source_ids": ["source:site-config"],
+      "owner": "legal-content-owner",
+      "verified_at": "2026-08-13",
+      "review_due_at": "2027-02-13",
+      "qualification": null,
+      "scopes": ["route:home-en", "route:home-fr"],
+      "structured_data_fields": ["Organization.name"]
+    }
+  ],
+  "sources": [
+    {
+      "id": "source:site-config",
+      "type": "REPOSITORY",
+      "status": "CURRENT",
+      "locator": "content/site.ts",
+      "publisher": "website-team",
+      "verified_at": "2026-08-13",
+      "review_due_at": "2027-02-13"
+    },
+    {
+      "id": "source:google-ai-search",
+      "type": "OFFICIAL_PROVIDER",
+      "status": "CURRENT",
+      "locator": "https://developers.google.com/search/docs/fundamentals/ai-optimization-guide",
+      "publisher": "Google Search Central",
+      "verified_at": "2026-08-13",
+      "review_due_at": "2026-11-13"
+    },
+    {
+      "id": "source:openai-crawlers",
+      "type": "OFFICIAL_PROVIDER",
+      "status": "CURRENT",
+      "locator": "https://developers.openai.com/api/docs/bots",
+      "publisher": "OpenAI",
+      "verified_at": "2026-08-13",
+      "review_due_at": "2026-11-13"
+    },
+    {
+      "id": "source:bing-ai-performance",
+      "type": "OFFICIAL_PROVIDER",
+      "status": "CURRENT",
+      "locator": "https://www.bing.com/webmasters/help/ai-performance-9f8e7d6c",
+      "publisher": "Microsoft Bing Webmaster Tools",
+      "verified_at": "2026-08-13",
+      "review_due_at": "2026-11-13"
+    }
+  ],
+  "crawler_policies": [
+    {
+      "id": "crawler:openai-search",
+      "provider": "OpenAI",
+      "user_agent": "OAI-SearchBot",
+      "purpose": "SEARCH_RETRIEVAL",
+      "decision": "ALLOW",
+      "official_source_id": "source:openai-crawlers",
+      "owner": "website-team",
+      "reviewed_at": "2026-08-13",
+      "review_due_at": "2026-11-13",
+      "notes": "Search retrieval is a separate decision from model training."
+    },
+    {
+      "id": "crawler:openai-training",
+      "provider": "OpenAI",
+      "user_agent": "GPTBot",
+      "purpose": "MODEL_TRAINING",
+      "decision": "BLOCK",
+      "official_source_id": "source:openai-crawlers",
+      "owner": "website-team",
+      "reviewed_at": "2026-08-13",
+      "review_due_at": "2026-11-13",
+      "notes": "Example policy only; each site owner must make its own licensing and product decision."
+    },
+    {
+      "id": "crawler:openai-user",
+      "provider": "OpenAI",
+      "user_agent": "ChatGPT-User",
+      "purpose": "USER_TRIGGERED",
+      "decision": "UNSPECIFIED",
+      "official_source_id": "source:openai-crawlers",
+      "owner": "website-team",
+      "reviewed_at": "2026-08-13",
+      "review_due_at": "2026-11-13",
+      "notes": "User-triggered fetches are not represented as automatic crawl or search controls."
+    }
+  ],
+  "provider_surfaces": [
+    {
+      "id": "surface:google-llms-txt",
+      "provider": "Google Search",
+      "feature": "llms.txt",
+      "support_status": "IGNORED",
+      "official_source_id": "source:google-ai-search",
+      "owner": "website-team",
+      "reviewed_at": "2026-08-13",
+      "review_due_at": "2026-11-13",
+      "notes": "The cited provider guidance states that Google Search does not use llms.txt."
+    },
+    {
+      "id": "surface:openai-search-crawler",
+      "provider": "OpenAI",
+      "feature": "OAI-SearchBot robots control",
+      "support_status": "SUPPORTED",
+      "official_source_id": "source:openai-crawlers",
+      "owner": "website-team",
+      "reviewed_at": "2026-08-13",
+      "review_due_at": "2026-11-13",
+      "notes": "This records crawler control support, not ranking or citation success."
+    },
+    {
+      "id": "surface:bing-ai-performance",
+      "provider": "Microsoft Bing",
+      "feature": "AI Performance reporting",
+      "support_status": "SUPPORTED",
+      "official_source_id": "source:bing-ai-performance",
+      "owner": "website-team",
+      "reviewed_at": "2026-08-13",
+      "review_due_at": "2026-11-13",
+      "notes": "Citation activity does not establish ranking, authority, or conversion."
+    }
+  ],
+  "measurements": [
+    {
+      "id": "measurement:contract-validation",
+      "layer": "TECHNICAL_ELIGIBILITY",
+      "metric": "SEO/GEO contract validator pass",
+      "status": "MEASURED",
+      "value": 1,
+      "unit": "boolean",
+      "evidence_source": "python3 -B .ai/scripts/validate_seo_geo_contract.py .ai/templates/seo-geo-contract.example.json",
+      "observed_from": "2026-08-13",
+      "observed_to": "2026-08-13",
+      "sample_size": 1,
+      "limitations": ["Local contract validation does not prove deployed crawler behavior or visibility."]
+    },
+    {
+      "id": "measurement:search-visibility",
+      "layer": "SEARCH_VISIBILITY",
+      "metric": "Search impressions and qualified clicks",
+      "status": "NOT_MEASURED"
+    },
+    {
+      "id": "measurement:ai-citations",
+      "layer": "AI_VISIBILITY",
+      "metric": "Repeated provider-reported citation activity",
+      "status": "NOT_MEASURED"
+    },
+    {
+      "id": "measurement:qualified-conversion",
+      "layer": "BUSINESS_OUTCOME",
+      "metric": "Qualified conversion attributable within the approved measurement model",
+      "status": "NOT_MEASURED"
+    },
+    {
+      "id": "measurement:claim-integrity",
+      "layer": "INTEGRITY_GUARDRAIL",
+      "metric": "Stale or unsupported public claims detected",
+      "status": "MEASURED",
+      "value": 0,
+      "unit": "claims",
+      "evidence_source": "SEO/GEO contract validation",
+      "observed_from": "2026-08-13",
+      "observed_to": "2026-08-13",
+      "sample_size": 1,
+      "limitations": ["Covers only claims represented in this contract."]
+    }
+  ]
+}

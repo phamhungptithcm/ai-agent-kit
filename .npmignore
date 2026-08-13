@@ -1,2 +1,7 @@
-**/__pycache__/
-**/*.py[cod]
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.ai/local
+.codegraph
+.cocoindex_code

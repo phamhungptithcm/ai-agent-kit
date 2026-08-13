@@ -304,20 +304,25 @@ Website scope:
 Business facts and constraints:
 [provide verified entity, product, author, location, content, crawler, privacy, and licensing context; mark unknowns]
 
+Contract:
+[provide or create a path based on `.ai/templates/seo-geo-contract.example.json`; include an as-of date and accountable owners]
+
 Return:
 - repository intelligence gate status
 - site type, framework, rendering model, public page types, locales, and primary entities
-- public/canonical/indexable/redirected/excluded route contract
+- validated public/redirected/excluded/private/canonical/indexable/localized/sitemap route contract
+- stable entity, exact claim, dated source, crawler-purpose, and provider-surface registries
 - selected web and SEO/GEO quality profiles
-- metadata, canonical, hreflang, sitemap, redirect, internal-link, and crawler-policy review
+- status, redirect, robots, metadata, canonical graph, hreflang reciprocity, sitemap, internal-link, and crawler-policy consistency review
 - raw/build HTML discoverability review
-- structured-data integrity review based only on visible verified facts
-- content, authorship, source, date, and entity-integrity review
+- structured-data integrity review mapped only to visible VERIFIED or QUALIFIED claims
+- original/non-commodity content, authorship, source, date, claim, and entity-integrity review
+- technical eligibility, search visibility, AI visibility, business outcome, and integrity guardrail measurements
 - measured, source-verified, inferred, unavailable, and not-applicable evidence separated
 - smallest safe implementation or prioritized findings
 - tests, quality gates, deployment verification, and rollback
 
-Treat llms.txt as optional and experimental. Do not promise indexing, rankings, rich results, traffic, conversions, AI visibility, or citations.
+Treat llms.txt and other provider features as optional, provider-specific, dated capabilities with SUPPORTED, IGNORED, UNVERIFIED, or NOT_APPLICABLE status. Do not promise indexing, canonical selection, rankings, rich results, crawler compliance, traffic, conversions, revenue, AI visibility, or citations.
 
 In plan or audit mode, do not edit website files. In implement mode, require approval evidence and remain inside approved scope.
 ```

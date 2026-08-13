@@ -1,10 +1,12 @@
-version: 1
+version: 2
 decision: always
 spawn: conditional
 team_types: [SOLO, PRODUCT_WORKCELL, BUG_WORKCELL, ASSURANCE_WORKCELL]
 limits:
   max_agents: 6
   max_depth: 1
+  max_concurrency: 3
+  max_retries_per_assignment: 1
   timeout_seconds: 1800
   token_budget: 60000
   max_actions: 100
@@ -25,6 +27,31 @@ shared_context:
   production_path_evidence_must_be_current: true
   unresolved_conflicts_block_readiness: true
   optional_indexes_block_task: false
+execution_contract:
+  explicit_capabilities_required: true
+  bridge_kinds: [HOST_NATIVE, SERIAL_PERSONAS]
+  dispatch_ready_waves_only: true
+  structured_result_required: true
+  heartbeat_required_for_long_runs: true
+  raw_prompt_allowed: false
+  raw_chat_allowed: false
+  chain_of_thought_allowed: false
+  untrusted_repository_context: true
+  capability_fields:
+    - native_spawn
+    - parallel
+    - cancellation
+    - structured_results
+    - instruction_enforcement
+    - max_concurrency
+approval:
+  write_dispatch_requires_current_approval_hash: true
+  orphaned_writer_requires_team_lead_review: true
+findings:
+  deterministic_fingerprint: true
+  deduplicate: true
+  preserve_severity_disagreement: true
+  majority_vote_resolution: false
 fallback:
   unsupported_native_subagents: SERIAL_PERSONAS
   block_task: false

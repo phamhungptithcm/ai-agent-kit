@@ -161,7 +161,7 @@ test("proof binds workcell type, execution mode, and incomplete team readiness",
   execFileSync("git", ["init", "-q"], { cwd: root });
   createTask({ target: root, id: "TEAM-PROOF", goal: "Implement a new API feature", risk: "medium", paths: ["src/**"] });
   planTeam({ target: root, id: "TEAM-PROOF" });
-  startTeam({ target: root, id: "TEAM-PROOF", adapter: "codex" });
+  startTeam({ target: root, id: "TEAM-PROOF", adapter: "codex", capabilities: { bridge_kind: "HOST_NATIVE", native_spawn: true, parallel_dispatch: true, cancellation: true, structured_result: true, max_concurrency: 3 } });
   const proof = buildProofReplay({ target: root, id: "TEAM-PROOF" });
   assert.equal(proof.team.team_type, "PRODUCT_WORKCELL");
   assert.equal(proof.team.execution_mode, "NATIVE_SUBAGENTS");

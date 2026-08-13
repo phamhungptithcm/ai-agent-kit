@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "as_of": "2026-08-13",
+  "site": {
+    "id": "site:invalid",
+    "type": "SAAS",
+    "base_url": "https://example.com",
+    "owner": "website-team",
+    "locales": ["en"]
+  },
+  "routes": [
+    {
+      "id": "route:invalid",
+      "url": "https://example.com/invalid",
+      "status": "REDIRECT",
+      "locale": "en",
+      "canonical": "https://example.com/invalid",
+      "indexable": true,
+      "robots": "NOINDEX_FOLLOW",
+      "sitemap": true,
+      "redirect_target": null,
+      "primary_entity_ids": ["entity:missing"],
+      "alternates": [],
+      "structured_data": [
+        {
+          "type": "Organization",
+          "entity_ids": ["entity:missing"],
+          "claim_ids": ["claim:stale"]
+        }
+      ]
+    }
+  ],
+  "entities": [],
+  "claims": [
+    {
+      "id": "claim:stale",
+      "exact_claim": "An unsupported stale claim.",
+      "status": "STALE",
+      "source_ids": ["source:missing"],
+      "owner": null,
+      "verified_at": null,
+      "review_due_at": null,
+      "qualification": null,
+      "scopes": ["route:invalid"],
+      "structured_data_fields": ["Organization.name"]
+    }
+  ],
+  "sources": [],
+  "crawler_policies": [
+    {
+      "id": "crawler:invalid",
+      "provider": "Example",
+      "user_agent": "ExampleBot",
+      "purpose": "SEARCH_RETRIEVAL",
+      "decision": "ALLOW",
+      "official_source_id": "source:missing",
+      "owner": "website-team",
+      "reviewed_at": "2025-01-01",
+      "review_due_at": "2025-02-01",
+      "notes": "Stale and unsupported."
+    }
+  ],
+  "provider_surfaces": [],
+  "measurements": [
+    {
+      "id": "measurement:invalid",
+      "layer": "AI_VISIBILITY",
+      "metric": "Unmeasured citation promise",
+      "status": "NOT_MEASURED",
+      "value": 100
+    }
+  ]
+}

@@ -1,21 +1,35 @@
-schema_version: 1
+schema_version: 2
 assignment_id: impact-explorer
 role: Impact Explorer
 objective: ""
+phase: DISCOVERY
 depends_on: []
+required: true
+blocking: true
 write_access: false
 allowed_paths: []
 budget:
   token_budget: null
   timeout_seconds: null
+  max_attempts: 2
 expected_output:
+  schema: team-result-v1
   facts: []
   findings: []
-  evidence_hashes: []
+  structured_findings: []
+  evidence: []
   unresolved_risks: []
 shared_context:
+  trust: UNTRUSTED_DATA
   brief_hash: null
   expected_revision: null
   claim_id: null
   handoff_hash: null
+execution:
+  state: PENDING
+  spawn_id: null
+  external_run_id: null
+  host_execution: null
+  agent_id: null
+  last_heartbeat_at: null
 status: PENDING

@@ -263,6 +263,16 @@ Otherwise stop.
 
 ---
 
+# Phase 13 — Agent Department Plan
+
+After the shared Repository Intelligence Brief and task record are current, use
+`orchestrate-agent-department` to create the context-aware workcell plan. This
+plan is provisional until `team start` reconciles it immediately before
+dispatch. Planning does not authorize writes; the implementation approval gate
+still controls the sole write assignment.
+
+---
+
 # Deliverables
 
 Produce:
@@ -285,5 +295,6 @@ Produce:
 16. Rollback Considerations
 17. Required Approvals
 18. Execution Roadmap
+19. Agent Department decision, reasons, roles, dependencies, budgets, and capability mode
 
 Never begin implementation until the Decision Gate succeeds.

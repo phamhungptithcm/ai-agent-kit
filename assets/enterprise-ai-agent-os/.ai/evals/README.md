@@ -18,6 +18,14 @@ python .ai/scripts/evaluate_agent_behavior.py --responses-dir path/to/responses
 
 Keep live model execution outside default CI so evaluation remains credential-free, reproducible, and provider-neutral. A scheduled or manually approved external harness may populate response files for multi-model comparison.
 
+Agent Department tests replay planning, dependency waves, approval blocking,
+claims, heartbeats, structured-result ingestion, finding synthesis,
+cancellation, resume, and writer-orphan behavior without provider credentials.
+This proves the deterministic orchestration contract, not that a particular
+host successfully spawned a live subagent. Host-native conformance requires a
+separately recorded run with the execution capability declaration and external
+run identifiers.
+
 ## Replayable end-to-end evaluations
 
 Use `e2e/eval-case.schema.json` for versioned task, trajectory, outcome,

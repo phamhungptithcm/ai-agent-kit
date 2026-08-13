@@ -17,7 +17,12 @@ function execute(command, args, cwd) {
   const result = spawnSync(command, spawnArgs, {
     cwd,
     encoding: "utf8",
-    shell: process.platform === "win32"
+    shell: process.platform === "win32",
+    env: {
+      ...process.env,
+      npm_config_cache: path.join(temporaryRoot, "npm-cache"),
+      npm_config_logs_dir: path.join(temporaryRoot, "npm-logs")
+    }
   });
   if (result.status !== 0) {
     throw new Error(
@@ -31,6 +36,15 @@ try {
   const packOutput = execute(npmCommand, ["pack", "--json", "--pack-destination", temporaryRoot], workspace).stdout;
   const jsonStart = Math.max(0, packOutput.lastIndexOf("\n[") + 1);
   const packResult = JSON.parse(packOutput.slice(jsonStart));
+  const packedPaths = packResult[0].files.map((entry) => entry.path);
+  const forbiddenPackageState = packedPaths.filter((entry) =>
+    entry.includes("/.ai/local/")
+    || entry.includes("/.codegraph/")
+    || entry.includes("/.cocoindex_code/")
+    || entry.includes("/__pycache__/")
+    || /\.py[co]$/.test(entry)
+  );
+  assert.deepEqual(forbiddenPackageState, [], `package contains local or generated state: ${forbiddenPackageState.join(", ")}`);
   const tarball = path.join(temporaryRoot, packResult[0].filename);
   const fixture = path.join(temporaryRoot, "fixture");
   fs.mkdirSync(fixture);

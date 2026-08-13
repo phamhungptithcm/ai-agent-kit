@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "team-conformance-attestation-v1",
+  "title": "Live host Agent Department conformance attestation",
+  "type": "object",
+  "required": ["schema_version", "evidence_level", "adapter", "host_version", "task_id", "run_id", "observed_at", "journal_head", "capabilities_observed", "lifecycle", "evidence_hashes"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "evidence_level": { "const": "LIVE_HOST" },
+    "adapter": { "enum": ["codex", "claude"] },
+    "host_version": { "type": "string", "minLength": 1 },
+    "task_id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$" },
+    "run_id": { "type": "string", "minLength": 1 },
+    "observed_at": { "type": "string", "format": "date-time" },
+    "journal_head": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "capabilities_observed": {
+      "type": "object",
+      "required": ["native_spawn", "parallel_dispatch", "cancellation", "resume", "structured_result"],
+      "properties": {
+        "native_spawn": { "type": "boolean" },
+        "parallel_dispatch": { "type": "boolean" },
+        "cancellation": { "type": "boolean" },
+        "resume": { "type": "boolean" },
+        "structured_result": { "const": true }
+      },
+      "additionalProperties": false
+    },
+    "lifecycle": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["type", "timestamp"],
+        "properties": {
+          "type": { "enum": ["TEAM_STARTED", "ASSIGNMENT_DISPATCHED", "ASSIGNMENT_HEARTBEAT", "RESULT_INGESTED", "TEAM_CANCELLED", "TEAM_RESUMED", "APPROVAL_BLOCKED", "APPROVAL_RECORDED"] },
+          "timestamp": { "type": "string", "format": "date-time" },
+          "assignment_id": { "type": "string" },
+          "external_run_id": { "type": "string" },
+          "spawn_id": { "type": "string" },
+          "wave_id": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "evidence_hashes": { "type": "array", "minItems": 1, "items": { "type": "string", "pattern": "^[a-f0-9]{64}$" } },
+    "notes": { "type": "string" }
+  },
+  "additionalProperties": false
+}

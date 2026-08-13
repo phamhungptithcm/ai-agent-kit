@@ -65,6 +65,11 @@ Do not expand scope.
 
 If implementation exceeds the approved boundary, stop and generate a delta impact assessment.
 
+When Agent Department orchestration is available, use
+`orchestrate-agent-department` after scope approval. Let its context-aware plan
+select discovery and assurance specialists. Only its implementation assignment
+may edit files; this skill must not create a second writer.
+
 ---
 
 # Phase 2 — Repository Analysis

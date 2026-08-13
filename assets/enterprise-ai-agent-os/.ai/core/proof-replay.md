@@ -18,5 +18,7 @@ the same redacted proof model.
 
 Proof is explanatory evidence, not an authorization token. It cannot approve a
 task, grant a capability, publish an artifact, or make a release ready by
-itself. Stale review, missing required gates, or incomplete task state produces
-`NOT_READY`.
+itself. Proof uses the same fail-closed readiness contract as the final task
+report and Change Passport. Unverified acceptance criteria, missing required
+gates, dirty Git state, degraded or missing planned orchestration, stale review,
+unsafe compiled context, or incomplete task state produces `NOT_READY`.

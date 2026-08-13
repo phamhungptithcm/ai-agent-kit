@@ -9,7 +9,7 @@ const SCAFFOLD_CANDIDATES = [
 ];
 export const SCAFFOLD_ROOT = SCAFFOLD_CANDIDATES.find((candidate) => fs.existsSync(candidate)) ?? SCAFFOLD_CANDIDATES[0];
 
-const SKIP_PARTS = new Set(["__pycache__", ".ai-agent-kit", ".codegraph", ".cocoindex_code"]);
+const SKIP_PARTS = new Set(["__pycache__", ".ai-agent-kit", ".codegraph", ".cocoindex_code", ".npmignore"]);
 const SKIP_SUFFIXES = [".pyc", ".pyo"];
 
 export function loadScaffoldFiles(root = SCAFFOLD_ROOT) {

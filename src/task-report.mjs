@@ -357,7 +357,7 @@ function qualityReport(root, task, commit, requiredGates) {
   return { gates, counts, known_issues: knownIssues };
 }
 
-function productionReadiness(task, progress, evidence, git, quality, finalReview, team, productionTarget) {
+export function evaluateProductionReadiness(task, progress, evidence, git, quality, finalReview, team, productionTarget = true) {
   if (!productionTarget) {
     return { status: "NOT_APPLICABLE", blockers: [], rationale: "Task is not a production target." };
   }
@@ -371,6 +371,21 @@ function productionReadiness(task, progress, evidence, git, quality, finalReview
   }
   if (git.status !== "CLEAN") blockers.push(`Git worktree is ${git.status}.`);
   if (finalReview.status !== "PASSED") blockers.push(`Final implementation review is ${finalReview.status}.`);
+  if (task.orchestration?.status === "DEGRADED") {
+    blockers.push(`Agent orchestration is DEGRADED (${task.orchestration.reason_code ?? "UNKNOWN"}).`);
+  }
+  if (task.orchestration?.status === "PLANNED" && !team) {
+    blockers.push("Agent orchestration was planned but its team contract is missing.");
+  }
+  if (task.skill_routing && task.skill_routing.status !== "ROUTED") {
+    blockers.push(`Skill routing is ${task.skill_routing.status} (${task.skill_routing.reason ?? "UNKNOWN"}).`);
+  }
+  if (task.skill_routing?.status === "ROUTED" && !task.execution_context) {
+    blockers.push("A routed skill exists but no compiled context pack is bound to the task.");
+  }
+  if (task.execution_context && task.execution_context.status !== "READY") {
+    blockers.push(`Compiled context is ${task.execution_context.status}.`);
+  }
   if (team && team.status !== "READY") blockers.push(`Agent workcell is ${team.status}; the latest independent review must complete cleanly.`);
   for (const gate of quality.gates.filter((candidate) => candidate.required)) {
     if (!["PASSED", "NOT_APPLICABLE"].includes(gate.status)) {
@@ -418,7 +433,7 @@ export function buildFinalTaskReport(options, deps = {}) {
   const productionTarget = booleanValue(options.productionTarget, "production target", true);
   let team = null;
   try { const contract = inspectTeam({ target: root, id: task.id }); team = { ...reportTeam({ target: root, id: task.id }), state: contract.state }; } catch (error) { if (!/team contract is missing/.test(error.message)) team = { status: "REJECTED", blocker: error.message }; }
-  const readiness = productionReadiness(task, progress, evidence, git, quality, finalReview, team, productionTarget);
+  const readiness = evaluateProductionReadiness(task, progress, evidence, git, quality, finalReview, team, productionTarget);
   let usage;
   try {
     usage = summarizeUsage(options);

@@ -13,6 +13,8 @@ import { memoryHealth, queryEligibleMemory, transitionMemory } from "./memory-li
 import { loadRepositoryPolicyOverlays } from "./policy-overlays.mjs";
 import { getPackageVersion } from "./version.mjs";
 import { planTeam } from "./team-orchestrator.mjs";
+import { loadSkillRoutingConfig, routeSkill, validateSkillRoutingConfig } from "./skill-routing.mjs";
+import { buildFinalTaskReport } from "./task-report.mjs";
 
 const STATES = ["DISCOVER", "ANALYZE", "PLAN_READY", "APPROVED", "IMPLEMENTING", "VERIFYING", "REVIEW_READY", "RELEASED"];
 const NEXT_STATE = new Map(STATES.slice(0, -1).map((state, index) => [state, STATES[index + 1]]));
@@ -135,6 +137,26 @@ export function createTask(options) {
   const root = rootFor(options.target);
   const id = safeId(options.id);
   if (fs.existsSync(taskPath(root, id))) throw new Error(`task already exists: ${id}`);
+  let skillRouting = null;
+  const defaultRoutingFile = path.join(root, ".ai", "config", "skill-routing.json");
+  const routingConfig = options.routingConfig ?? (fs.existsSync(defaultRoutingFile) ? loadSkillRoutingConfig(defaultRoutingFile) : null);
+  const skillsRoot = options.skillsRoot ?? path.join(root, ".ai", "skills-src");
+  if (routingConfig) {
+    validateSkillRoutingConfig(routingConfig, { skillsRoot });
+    const routed = routeSkill({ config: routingConfig, hint: options.goal ?? `Task ${id}` });
+    skillRouting = {
+      status: routed.status,
+      reason: routed.reason,
+      config_id: routed.config_id,
+      config_hash: routed.config_hash,
+      route_id: routed.primary,
+      skill: routed.primary_skill,
+      suggested_route: routed.suggested_route,
+      confidence: routed.confidence,
+      score: routed.score,
+      margin: routed.margin
+    };
+  }
   const now = new Date();
   const capability = {
     allowed_tools: options.tools?.length ? options.tools : ["read"],
@@ -160,6 +182,8 @@ export function createTask(options) {
     capability_hash: digest(capability),
     action_count: 0,
     context: { facts: [], assumptions: [] },
+    skill_routing: skillRouting,
+    execution_context: null,
     plan: { revision: 0, trigger: "task-created", steps: [] },
     transitions: []
   };
@@ -177,6 +201,33 @@ export function createTask(options) {
     task.updated_at = new Date().toISOString();
     atomicWrite(taskPath(root, id), `${JSON.stringify(task, null, 2)}\n`);
   }
+  return task;
+}
+
+export function bindTaskContextPack(options) {
+  const root = rootFor(options.target);
+  const task = readTask(root, options.id);
+  const contentHash = String(options.contentHash ?? "");
+  if (!/^[a-f0-9]{64}$/.test(contentHash)) throw new Error("context pack hash must be a SHA-256 digest");
+  const status = String(options.status ?? "").toUpperCase();
+  if (!["READY", "DEGRADED", "BLOCKED"].includes(status)) throw new Error("context pack status is invalid");
+  if (task.execution_context?.content_hash === contentHash && task.execution_context?.status === status) return task;
+  task.execution_context = {
+    status,
+    content_hash: contentHash,
+    repository_commit: options.repositoryCommit ?? null,
+    intelligence_mode: options.intelligenceMode ?? null,
+    bound_at: new Date().toISOString()
+  };
+  task.updated_at = task.execution_context.bound_at;
+  atomicWrite(taskPath(root, task.id), `${JSON.stringify(task, null, 2)}\n`);
+  appendReceipt(root, task.id, "context.pack.bound", {
+    status,
+    content_hash: contentHash,
+    repository_commit: task.execution_context.repository_commit,
+    intelligence_mode: task.execution_context.intelligence_mode,
+    skill_route_hash: task.skill_routing?.config_hash ?? null
+  });
   return task;
 }
 
@@ -202,6 +253,18 @@ export function addContext(options) {
     source_hash: entry.source ? digest(entry.source) : null,
     confidence: entry.confidence
   });
+  return task;
+}
+
+export function recordTaskApproval(options) {
+  const root = rootFor(options.target); const task = readTask(root, options.id);
+  const approvalHash = String(options.approvalHash ?? "");
+  if (!/^[a-f0-9]{64}$/.test(approvalHash)) throw new Error("approval hash must be a SHA-256 digest");
+  if (task.capability.approval_hash && task.capability.approval_hash !== approvalHash) throw new Error("a different task approval is already recorded");
+  if (task.capability.approval_hash === approvalHash) return task;
+  task.capability.approval_hash = approvalHash; task.capability_hash = digest(task.capability); task.updated_at = new Date().toISOString();
+  atomicWrite(taskPath(root, task.id), `${JSON.stringify(task, null, 2)}\n`);
+  appendReceipt(root, task.id, "approval.recorded", { approval_hash: approvalHash, capability_hash: task.capability_hash });
   return task;
 }
 
@@ -244,6 +307,10 @@ export function transitionTask(options) {
     throw new Error("approval evidence does not match capability approval hash");
   }
   if (to === "REVIEW_READY") assertFinalReviewPassed({ target: root, id: task.id }, options.deps);
+  if (to === "RELEASED") {
+    const report = buildFinalTaskReport({ target: root, id: task.id, productionTarget: true }, options.deps);
+    if (report.production_readiness.status !== "READY") throw new Error(`release requires READY production evidence: ${report.production_readiness.blockers.join("; ")}`);
+  }
   const transition = { from: task.state, to, timestamp: new Date().toISOString(), evidence_hash: digest(evidence) };
   task.state = to;
   task.updated_at = transition.timestamp;

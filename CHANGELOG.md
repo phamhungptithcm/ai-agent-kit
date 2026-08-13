@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Added governed, client-neutral skill routing with a versioned single-source
+  config, weighted literal rules, explainable match evidence, fail-closed
+  abstention, path and symlink coherence checks, and regression fixtures for
+  accuracy, coverage, false-positive rate, and per-route recall.
+- Unified proof, final-report, passport, and release readiness so missing
+  acceptance evidence, required gates, clean Git state, compiled context, or
+  healthy orchestration cannot fail open.
+- Bound canonical skill routing and context-pack hashes into task and team
+  dispatch contracts, and added recoverable hash-bound team ingest
+  transactions across handoff, state, analytics, and journal updates.
+- Made runtime and proof CLI failures return non-zero, required verified host
+  capabilities for native subagents, and kept cancellation pending until the
+  host confirms it.
+- Hardened package assembly so local approval notes, repository indexes,
+  generated databases, and Python bytecode cannot enter the npm tarball.
+
 ## 0.8.0 - 2026-08-04
 
 - Added signed, versioned organization, team, repository, and task policy
