@@ -17,6 +17,14 @@ governance rule needed for the task.
   implementation gate.
 - Never include proposed or unapproved memory.
 
+Approved durable memory is resolved only after repository/task/actor identity
+is known. Lifecycle, conflict, ACL, visibility, and source reachability are hard
+filters before keyword or optional semantic ranking. The default selection is
+at most five entries and uses a separately bounded memory token budget. The
+context pack records a privacy-safe memory receipt with selected IDs/hashes,
+scores, exclusions, reason codes, and budget use; it does not copy host
+conversation state, prompts, content, or hidden reasoning into the receipt.
+
 Run:
 
 ```bash

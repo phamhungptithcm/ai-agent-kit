@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.3.0 - 2026-08-15
+
+- Added canonical `memory-entry-v3`, transactional local SQLite storage,
+  reviewed subagent candidate promotion, and scoped retrieval receipts.
+- Added signed repository-bound interchange, verified remote adapter
+  boundaries, migration and recovery controls, adversarial coverage, and
+  release-assurance documentation.
+
 ## 1.2.0 - 2026-08-14
 
 - Added a local-first Plugin Trust Center with versioned manifests, previewable

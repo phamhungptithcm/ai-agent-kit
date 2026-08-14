@@ -498,7 +498,7 @@ def validate_delivery_templates(root: Path, errors: list[str]) -> None:
         ],
         ".ai/templates/implementation-approval-record.md": ["Repository intelligence gate status", "Indexed analysis reviewed", "Approval status", "Approver", "Approved scope", "Approved paths", "Delta approval required"],
         ".ai/templates/code-quality-review.md": ["Detected Stack", "Application/platform/domain", "Selected Quality Profiles", "Platform/domain profiles", "Quality Checks", "Language/version best practices", "Platform/domain best practices", "Database connection and transaction safety", "Concurrency/deadlock/leak risk", "Heap/resource memory risk", "Release/deployment safety"],
-        ".ai/templates/memory-entry.yaml": ["title:", "category:", "scope:", "content:", "source:", "confidence:", "status:", "approver:", "review_date:"],
+        ".ai/templates/memory-entry.yaml": ["schema_version: 3", "title:", "category:", "scope:", "content:", "provenance:", "confidence:", "status:", "approver:", "review_date:"],
         ".ai/templates/repository-intelligence-brief.md": ["Gate Status", "Indexed Facts", "Source-Code Verified Facts", "Relevant Modules", "Entry Points And Call Paths", "Potential Impact Areas"],
         ".ai/templates/demo-deck.yaml": ["required_slides", "Manual screenshot placeholders"],
         ".ai/templates/demo-evidence-workbook.yaml": ["required_worksheets", "Screenshot Placeholders"],

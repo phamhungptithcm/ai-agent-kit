@@ -12,7 +12,7 @@ const INGEST_STATUSES = new Set(["COMPLETED", "BLOCKED", "REJECTED", "TIMED_OUT"
 const FORBIDDEN_RESULT_KEYS = new Set(["prompt", "raw_prompt", "conversation", "chat_history", "chain_of_thought", "credentials", "secrets"]);
 const RESULT_KEYS = new Set(["schema_version", "assignment_id", "status", "usage", "handoff"]);
 const USAGE_KEYS = new Set(["tokens", "actions", "duration_seconds"]);
-const HANDOFF_KEYS = new Set(["brief_hash", "facts", "findings", "structured_findings", "decisions_needed", "risks", "unresolved_questions", "affected_paths", "tests_recommended", "evidence"]);
+const HANDOFF_KEYS = new Set(["brief_hash", "facts", "findings", "structured_findings", "decisions_needed", "risks", "unresolved_questions", "affected_paths", "tests_recommended", "evidence", "memory_candidates"]);
 const MAX_TRANSACTIONS_PER_TASK = 1000;
 const MAX_ANALYTICS_BYTES = 16 * 1024 * 1024;
 

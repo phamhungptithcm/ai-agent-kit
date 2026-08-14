@@ -658,6 +658,8 @@ See [Agent Adapter Strategy](docs/AGENT_ADAPTER_STRATEGY.md) for details.
 - [Additive AI Change Assurance Deep Review](docs/ADDITIVE_AI_CHANGE_ASSURANCE_DEEP_REVIEW.md)
 - [Additive AI Change Assurance Discovery Plan](docs/ADDITIVE_AI_CHANGE_ASSURANCE_DISCOVERY_PLAN.md)
 - [Runtime Enforcement and MCP Trust](docs/RUNTIME_ENFORCEMENT_AND_MCP_TRUST.md)
+- [Governed Shared Memory v1.3.0 (implementation draft)](docs/GOVERNED_SHARED_MEMORY_V130.md)
+- [v1.3.0 story and release notes (draft)](docs/releases/v1.3.0-governed-shared-memory-draft.md)
 - [Code Quality Intelligence](docs/CODE_QUALITY_INTELLIGENCE.md)
 - [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md)
 

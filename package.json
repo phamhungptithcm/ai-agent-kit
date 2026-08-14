@@ -63,6 +63,8 @@
     "dist/sbom.spdx.json",
     "docs/*.md",
     "docs/assets/",
+    "docs/releases/",
+    "docs/threat-models/",
     "CHANGELOG.md",
     "CONTRIBUTING.md",
     "LICENSE",
@@ -70,11 +72,12 @@
     "SECURITY.md"
   ],
   "scripts": {
-    "check": "npm run lint && npm run typecheck && npm test && npm run eval:gate && npm run eval:system-design && npm run eval:team && npm run eval:routing && npm run conformance:adapters && npm run evidence:verify && npm run security:supply-chain && npm run build && npm run smoke:packed",
+    "check": "npm run lint && npm run typecheck && npm test && npm run eval:gate && npm run eval:system-design && npm run eval:team && npm run eval:routing && npm run eval:memory && npm run conformance:adapters && npm run evidence:verify && npm run security:supply-chain && npm run build && npm run smoke:packed",
     "eval:gate": "node bin/ai-agent-kit.mjs eval gate --baseline test/fixtures/v070/eval-pass.json --candidate test/fixtures/v070/eval-pass.json",
     "eval:system-design": "node bin/ai-agent-kit.mjs architecture eval --fixture assets/enterprise-ai-agent-os/.ai/evals/e2e/system-design-pass.json",
     "eval:team": "node bin/ai-agent-kit.mjs team eval --fixture assets/enterprise-ai-agent-os/.ai/evals/e2e/team-orchestration-cases.json",
     "eval:routing": "node bin/ai-agent-kit.mjs skills eval --config assets/enterprise-ai-agent-os/.ai/config/skill-routing.json --skills-root assets/enterprise-ai-agent-os/.ai/skills-src --fixture assets/enterprise-ai-agent-os/.ai/evals/e2e/skill-routing-cases.json",
+    "eval:memory": "node bin/ai-agent-kit.mjs runtime memory eval --file test/fixtures/v130/memory-eval-pass.json",
     "evidence:verify": "node scripts/verify-release-evidence.mjs",
     "conformance:adapters": "node scripts/adapter-conformance.mjs",
     "lint": "node scripts/lint.mjs",
@@ -94,5 +97,8 @@
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org/"
+  },
+  "dependencies": {
+    "better-sqlite3": "11.10.0"
   }
 }

@@ -1,4 +1,4 @@
-version: 2
+version: 3
 name: memory-governance
 default_retrieval: "approved-only"
 approval_required: true
@@ -40,6 +40,11 @@ prohibited_content:
   - "pci"
   - "production_customer_data"
   - "unapproved_sensitive_logs"
+  - "raw_prompts"
+  - "chat_history"
+  - "chain_of_thought"
+  - "source_bodies"
+  - "raw_tool_output"
 review:
   stale_review_required: true
   cadence: "quarterly"
@@ -52,6 +57,51 @@ lifecycle:
   supersession_replacement_required: true
   deterministic_retrieval_first: true
   health_report: true
+storage:
+  default_backend: "local-sqlite"
+  wal: true
+  transactions: true
+  optimistic_revisions: true
+  jsonl_role: "audit-interchange-and-v2-compatibility"
+migration:
+  preview_required: true
+  backup_required: true
+  conflict_policy: "fail-closed"
+  rollback_requires_unchanged_revision: true
+retrieval_hard_filters:
+  - "organization_identity"
+  - "repository_identity"
+  - "lifecycle"
+  - "acl"
+  - "visibility_scope"
+  - "source_reachability"
+  - "conflicts"
+receipt:
+  include_content: false
+  include_hidden_reasoning: false
+  include_selected_ids_hashes_scores: true
+  include_exclusion_reason_codes: true
+subagent_promotion:
+  candidate_limit_per_handoff: 10
+  candidate_trust: "untrusted"
+  team_lead_review_required: true
+  independent_memory_approver_required: true
+  self_approval: false
+  failed_or_orphaned_run_promotion: false
+remote:
+  opt_in: true
+  write_authorization_required: true
+  signed_repository_bound_packs: true
+  replay_protection: true
+  required_capabilities:
+    - "repository_binding"
+    - "acl"
+    - "audit_receipts"
+    - "transport_encryption"
+    - "at_rest_encryption"
+    - "retention"
+    - "replay_protection"
+  outage_mode: "DEGRADED_LOCAL_FALLBACK"
 trust_tiers:
   - "verified"
   - "reviewed"

@@ -9,7 +9,9 @@ import {
   privacyMinimizedAction
 } from "./action-gateway.mjs";
 import { assertFinalReviewPassed } from "./final-review.mjs";
-import { memoryHealth, queryEligibleMemory, transitionMemory } from "./memory-lifecycle.mjs";
+import { memoryHealth, queryEligibleMemory, retrieveScopedMemory, transitionMemory } from "./memory-lifecycle.mjs";
+import { createMemoryEntry, resolveRepositoryIdentity } from "./memory-contract.mjs";
+import { withMemoryStore } from "./memory-store.mjs";
 import { loadRepositoryPolicyOverlays } from "./policy-overlays.mjs";
 import { getPackageVersion } from "./version.mjs";
 import { planTeam } from "./team-orchestrator.mjs";
@@ -63,10 +65,6 @@ function evidencePath(root, id) {
 
 function telemetryPath(root) {
   return path.join(runtimeRoot(root), "telemetry", "spans.jsonl");
-}
-
-function memoryPath(root) {
-  return path.join(runtimeRoot(root), "memory", "entries.jsonl");
 }
 
 function currentRepositoryCommit(root) {
@@ -527,73 +525,51 @@ export function proposeMemory(options) {
   if (String(options.content).length > 16_384 || String(options.title).length > 256 || String(options.source).length > 1024) {
     throw new Error("memory proposal exceeds bounded field limits");
   }
-  const sensitive = /(-----BEGIN [A-Z ]*PRIVATE KEY-----|\b(?:api[_-]?key|password|secret|access[_-]?token)\s*[:=]|\bAKIA[0-9A-Z]{16}\b|\bgh[pousr]_[A-Za-z0-9_]{20,}\b)/i;
-  if (sensitive.test(`${options.title}\n${options.content}\n${options.source}`)) {
-    throw new Error("memory proposal contains secret-like content");
-  }
-  const entry = {
-    id: digest({ task_id: task.id, title: options.title, content: options.content }).slice(0, 24),
-    task_id: task.id,
-    title: options.title,
-    category: options.category ?? "learning",
-    scope: options.scope ?? "repository",
-    content: options.content,
-    source: options.source,
-    source_commit: options.sourceCommit ?? currentRepositoryCommit(root),
-    confidence: Number(options.confidence ?? 0.5),
-    trust_tier: options.trustTier ?? "provisional",
-    status: "proposed",
-    approver: null,
-    review_date: null,
-    expires_at: options.expiresAt ?? null,
-    created_at: new Date().toISOString()
-  };
-  if (entry.confidence < 0 || entry.confidence > 1) throw new Error("confidence must be between 0 and 1");
-  if (!new Set(["provisional", "reviewed", "verified"]).has(entry.trust_tier)) throw new Error("trust tier must be provisional, reviewed, or verified");
-  entry.content_hash = digest({
-    title: entry.title, category: entry.category, scope: entry.scope,
-    content: entry.content, source: entry.source, source_commit: entry.source_commit
+  const identity = resolveRepositoryIdentity({ ...options, target: root, sourceCommit: options.sourceCommit ?? currentRepositoryCommit(root) });
+  const entry = createMemoryEntry({
+    ...options,
+    id: options.memoryEntryId,
+    target: root,
+    repositoryIdentity: identity,
+    taskId: task.id,
+    createdBy: options.createdBy ?? options.agentId ?? `task:${task.id}`,
+    sourceCommit: options.sourceCommit ?? identity.current_commit,
+    references: options.references ?? [options.source],
+    sourceType: options.sourceType ?? "current-source-code",
+    modules: options.modules ?? options.paths ?? []
   });
-  appendJsonl(memoryPath(root), entry);
+  const stored = withMemoryStore({ ...options, target: root }, (store) => store.propose(entry, {
+    actor: options.createdBy ?? options.agentId ?? `task:${task.id}`,
+    idempotencyKey: options.idempotencyKey
+  }));
   appendReceipt(root, task.id, "memory.proposed", {
-    memory_id: entry.id, content_hash: entry.content_hash, confidence: entry.confidence
+    memory_id: stored.entry.id, content_hash: stored.entry.content_hash, confidence: stored.entry.confidence,
+    store_receipt_hash: stored.receipt.receipt_hash
   });
-  return entry;
+  return stored.entry;
 }
 
 export function approveMemory(options) {
   const root = rootFor(options.target);
   if (!options.memoryId || !options.approver) throw new Error("memory approval requires memory id and approver");
-  const file = memoryPath(root);
-  const entries = fs.existsSync(file)
-    ? fs.readFileSync(file, "utf8").trim().split("\n").filter(Boolean).map(JSON.parse)
-    : [];
-  const proposed = [...entries].reverse().find((entry) => entry.id === options.memoryId);
-  if (!proposed) throw new Error(`memory not found: ${options.memoryId}`);
-  if (proposed.status !== "proposed") throw new Error("only proposed memory can be approved");
-  if (!proposed.source_commit) throw new Error("memory approval requires a source commit");
   const defaultReview = new Date();
   defaultReview.setUTCDate(defaultReview.getUTCDate() + 90);
   const reviewDate = options.reviewDate ?? defaultReview.toISOString().slice(0, 10);
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(reviewDate ?? "") || new Date(reviewDate) <= new Date(new Date().toISOString().slice(0, 10))) {
-    throw new Error("memory approval requires a future review date");
-  }
-  const approved = {
-    ...proposed,
-    status: "approved",
-    approver: options.approver,
-    review_date: reviewDate,
-    approved_at: new Date().toISOString()
-  };
-  appendJsonl(file, approved);
-  appendReceipt(root, approved.task_id, "memory.approved", {
-    memory_id: approved.id, content_hash: approved.content_hash, approver_hash: digest(approved.approver)
+  const stored = withMemoryStore({ ...options, target: root }, (store) => store.approve(options.memoryId, {
+    ...options,
+    reviewDate,
+    actor: options.approver
+  }));
+  const taskId = stored.entry.identity.task_id;
+  if (taskId) appendReceipt(root, taskId, "memory.approved", {
+    memory_id: stored.entry.id, content_hash: stored.entry.content_hash, approver_hash: digest(stored.entry.approver),
+    store_receipt_hash: stored.receipt.receipt_hash
   });
-  return approved;
+  return stored.entry;
 }
 
 export function queryMemory(options) {
-  return queryEligibleMemory(options);
+  return options.withReceipt ? retrieveScopedMemory(options) : queryEligibleMemory(options);
 }
 
 export function revokeMemory(options) {
