@@ -1,0 +1,23 @@
+---
+name: benchmark-agent-reliability
+description: Design, run, and review reproducible reliability benchmarks for coding agents. Use when comparing agent workflows, testing crash recovery, security escape handling, parent drift, incomplete evidence, conflicting findings, or making reliability claims for AI Agent Kit.
+---
+
+# Benchmark Agent Reliability
+
+Measure failure handling, not presentation quality.
+
+## Workflow
+
+1. State the claim, population, environment, version, seed, and pass threshold.
+2. Use deterministic fixtures that cover success and adversarial conditions.
+3. Include production bug, security escape, parent drift, incomplete evidence, agent crash, and conflicting findings where relevant.
+4. Preserve raw results and distinguish pass, fail, blocked, unsupported, and not run.
+5. Report confidence limits, exclusions, regressions, and reproducibility commands.
+6. Reject comparisons with mismatched environments or hidden denominators.
+
+Use `ai-agent-kit tracelab ...` and `ai-agent-kit benchmark reliability ...`.
+
+## Output
+
+Return benchmark identity, scenario matrix, scores, failures, uncertainty, reproducibility evidence, and bounded claims.

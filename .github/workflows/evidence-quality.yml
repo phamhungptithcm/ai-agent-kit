@@ -18,4 +18,6 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run eval:gate
+      - run: npm run eval:routing
+      - run: npm run evidence:verify
       - run: node --test test/v070-evidence.test.mjs

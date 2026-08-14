@@ -1,7 +1,7 @@
 {
   "name": "@hunpeolabs/ai-agent-kit",
-  "version": "1.0.1",
-  "description": "Performance and assurance harness for AI coding agents with repository intelligence, portable skills, governed memory, specialist coordination, security gates, and verifiable delivery.",
+  "version": "1.2.0",
+  "description": "The governed agent operating system for recoverable decisions, traceable runs, trusted plugins, and evidence-backed coding workflows.",
   "type": "module",
   "bin": {
     "ai-agent-kit": "./dist/bin/ai-agent-kit.mjs"
@@ -61,7 +61,8 @@
     "dist/bin/",
     "dist/src/",
     "dist/sbom.spdx.json",
-    "docs/",
+    "docs/*.md",
+    "docs/assets/",
     "CHANGELOG.md",
     "CONTRIBUTING.md",
     "LICENSE",
@@ -69,10 +70,12 @@
     "SECURITY.md"
   ],
   "scripts": {
-    "check": "npm run lint && npm run typecheck && npm test && npm run eval:gate && npm run eval:system-design && npm run eval:team && npm run conformance:adapters && npm run security:supply-chain && npm run build && npm run smoke:packed",
+    "check": "npm run lint && npm run typecheck && npm test && npm run eval:gate && npm run eval:system-design && npm run eval:team && npm run eval:routing && npm run conformance:adapters && npm run evidence:verify && npm run security:supply-chain && npm run build && npm run smoke:packed",
     "eval:gate": "node bin/ai-agent-kit.mjs eval gate --baseline test/fixtures/v070/eval-pass.json --candidate test/fixtures/v070/eval-pass.json",
     "eval:system-design": "node bin/ai-agent-kit.mjs architecture eval --fixture assets/enterprise-ai-agent-os/.ai/evals/e2e/system-design-pass.json",
     "eval:team": "node bin/ai-agent-kit.mjs team eval --fixture assets/enterprise-ai-agent-os/.ai/evals/e2e/team-orchestration-cases.json",
+    "eval:routing": "node bin/ai-agent-kit.mjs skills eval --config assets/enterprise-ai-agent-os/.ai/config/skill-routing.json --skills-root assets/enterprise-ai-agent-os/.ai/skills-src --fixture assets/enterprise-ai-agent-os/.ai/evals/e2e/skill-routing-cases.json",
+    "evidence:verify": "node scripts/verify-release-evidence.mjs",
     "conformance:adapters": "node scripts/adapter-conformance.mjs",
     "lint": "node scripts/lint.mjs",
     "typecheck": "node scripts/typecheck.mjs",

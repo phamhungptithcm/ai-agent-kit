@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.2.0 - 2026-08-14
+
+- Added a local-first Plugin Trust Center with versioned manifests, previewable
+  lifecycle changes, provenance and compatibility checks, least-privilege
+  invocation, tamper quarantine, and hash-chained receipts.
+- Added privacy-safe run traces shaped for OpenTelemetry GenAI conventions and
+  a reproducible Agent Reliability Benchmark with explicit denominators,
+  failures, unknown costs, limitations, and bounded claims.
+- Added reproducible traceability cases and release-proof contracts suitable
+  for product demos without presenting synthetic evidence as production proof.
+- Added six auto-routed workflows for decision/run tracing, safe recovery,
+  governed plugin authoring and trust review, reliability benchmarking, and
+  agent-runtime investigation, with English and Vietnamese routing fixtures.
+- Added dedicated runtime, plugin-development, and agent-evaluation quality
+  profiles plus fail-closed trace-completeness, plugin-activation, and
+  resume-safety gates.
+- Added preview-first `plugin init` scaffolding, explicit trace/plugin adapter
+  capability states, and CI verification for canonical release evidence.
+- Hardened plugin trust so self-signed keys require repository enrollment,
+  invocation authority requires signed single-use capabilities, untracked
+  worktree drift blocks resume, and unverified plugins make Trust Center health
+  fail closed.
+- Added an append-only, hash-chained Decision Chronicle with explicit approval,
+  rejection, supersession, revocation, invalidation, and repository provenance.
+- Added portable Run Envelopes, stale-state detection, non-destructive recovery
+  previews, redacted `.aakrun` exports, local trace output, and `ai-agent-kit
+  why` intent lookup.
+- Added TraceLab scenarios for failure paths, parent drift, plugin escape,
+  incomplete evidence, interrupted agents, and conflicting findings.
+
 ## 1.0.1 - 2026-08-13
 
 - Published the redesigned npm README that presents AI Agent Kit as the
