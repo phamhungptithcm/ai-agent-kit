@@ -144,6 +144,15 @@ try {
   fs.writeFileSync(path.join(fixture, "src/smoke.mjs"), "export const smoke = 1;\n");
   execute("git", ["add", "src/smoke.mjs"], fixture);
   execute("git", ["commit", "-m", "smoke base"], fixture);
+  const pulseScan = executePacked(["pulse", "scan", "--task-id", "PULSE-SMOKE", "--format", "text"], fixture);
+  assert.match(pulseScan.stdout, /Architecture Pulse: COMPLETE/);
+  assert.ok(fs.existsSync(path.join(fixture, ".ai-agent-kit/pulse/tasks/PULSE-SMOKE.json")));
+  const pulseBaseline = executePacked(["pulse", "baseline", "create", "--name", "packed"], fixture);
+  assert.match(pulseBaseline.stdout, /"status": "CREATED"/);
+  const pulseVerify = executePacked(["pulse", "baseline", "verify", "--baseline", ".ai-agent-kit/pulse/baselines/packed.json"], fixture);
+  assert.match(pulseVerify.stdout, /"status": "VERIFIED"/);
+  const pulseCheck = executePacked(["pulse", "check", "--baseline", ".ai-agent-kit/pulse/baselines/packed.json", "--format", "text"], fixture);
+  assert.match(pulseCheck.stdout, /Architecture Pulse comparison: STABLE/);
   executePacked(
     ["runtime", "task", "create", "--id", "MEM-SMOKE", "--goal", "Verify packed shared memory"],
     fixture
@@ -186,6 +195,13 @@ try {
   const passportKey = executePacked(["passport", "keygen", "--key-id", "smoke-maintainer"], fixture);
   assert.match(passportKey.stdout, /"status": "CREATED"/);
   assert.ok(fs.existsSync(path.join(fixture, ".ai-agent-kit/local/passport-keys/smoke-maintainer.private.pem")));
+
+  // The second installation verifies postinstall and installed asset fidelity.
+  // Release the first isolated install and its generated fixture before creating
+  // another native dependency tree so packed smoke remains viable on bounded CI
+  // disks without weakening either installation path.
+  fs.rmSync(path.join(packedCliRoot, "node_modules"), { recursive: true, force: true });
+  fs.rmSync(fixture, { recursive: true, force: true });
 
   const installFixture = path.join(temporaryRoot, "install-fixture");
   fs.mkdirSync(installFixture);
@@ -230,7 +246,12 @@ try {
     ".agents/skills/design-scalable-systems/references/security-control-matrix.md",
     ".agents/skills/design-scalable-systems/scripts/capacity_cost_model.py",
     ".ai/quality-profiles/system-design.yaml",
-    ".ai/evals/system-design-cases.yaml"
+    ".ai/evals/system-design-cases.yaml",
+    ".ai/core/architecture-pulse.md",
+    ".ai/templates/architecture-pulse-config.schema.json",
+    ".ai/templates/architecture-pulse-result.schema.json",
+    ".ai/templates/architecture-pulse-baseline.schema.json",
+    ".ai/templates/architecture-pulse-comparison.schema.json"
   ]) {
     assert.ok(fs.existsSync(path.join(installFixture, relPath)), `packed system-design capability missing ${relPath}`);
   }

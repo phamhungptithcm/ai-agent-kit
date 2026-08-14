@@ -162,6 +162,38 @@ different set of instructions for every tool.
 | **Prove what happened** | Produces final task reports, PR evidence, offline Agent Proof Replay, Failure Lab results, signed Change Passports, and evidence-backed readiness blockers. |
 | **Keep humans in control** | Binds tools, paths, domains, actions, policies, and approvals to the task. Commit, push, deploy, release, messaging, spending, and other protected actions stay separately authorized. |
 
+### Native Architecture Pulse in v1.4.0
+
+Architecture Pulse answers a question that tests and local review do not fully
+cover: did this change improve repository structure, keep it stable, or add a
+named architectural regression?
+
+```text
+Git inventory → Dependency graph → Structural signals → Trusted baseline → Explicit policy → Evidence
+```
+
+It scans locally with path and resource bounds, extracts conservative
+dependencies for JavaScript/TypeScript, Python, Go, Rust, Java/Kotlin, and C#,
+then reports cycles, condensation depth, cohesion, configured boundaries,
+hotspots, and bounded blast radius. Every result carries source/config hashes,
+metric versions, coverage, confidence, and supporting graph evidence.
+
+```bash
+ai-agent-kit pulse scan --format text
+ai-agent-kit pulse baseline create --config pulse.json
+ai-agent-kit pulse check --config pulse.json --format text
+```
+
+The aggregate Pulse index is diagnostic only. Blocking requires an explicit,
+named rule and delta. Stale, tampered, foreign, incompatible, or low-confidence
+evidence fails closed instead of appearing healthy. Task reports and Change
+Passports accept only digest-valid, task-bound artifacts that still match the
+current commit and worktree state.
+
+Architecture Pulse is a clean-room, first-party module with no Sentrux code,
+package, binary, service, telemetry, asset, or runtime dependency. See the
+[workflow, configuration, trust model, and limitations](docs/ARCHITECTURE_PULSE.md).
+
 If this workflow helps your agents do better engineering work, consider
 [starring the repository](https://github.com/phamhungptithcm/ai-agent-kit). It
 helps other developers find the project.
@@ -604,6 +636,8 @@ See [Agent Adapter Strategy](docs/AGENT_ADAPTER_STRATEGY.md) for details.
 | `0.9.0` | Versioned adapter SDK, honest capability matrix, full GitHub Copilot surfaces, portable conformance, Agent Skills compatibility, MCP versioning, and optional A2A boundaries. |
 | `0.9.1` | Durable Agent Department execution, approval-bound dispatch, idempotent results, recovery, hash-chained timelines, live-host conformance attestations, and evidence-gated three-mode benchmarks. |
 | `1.0.0` | Explainable skill routing, SEO/GEO evidence contracts, context-bound dispatch, recoverable result ingest, unified fail-closed release proof, verified host capability gates, and package-state isolation. |
+| `1.3.0` | Governed shared memory with transactional local storage, reviewed promotion, scoped retrieval, signed interchange, and explicit degraded fallback. |
+| `1.4.0` | Native Architecture Pulse with bounded polyglot scanning, dependency graphs, explainable structural metrics, trusted baselines, explicit regression policy, CLI workflows, and governed evidence binding. |
 
 ## Documentation
 
@@ -616,6 +650,7 @@ See [Agent Adapter Strategy](docs/AGENT_ADAPTER_STRATEGY.md) for details.
 - [Runtime Enforcement and MCP Trust](docs/RUNTIME_ENFORCEMENT_AND_MCP_TRUST.md)
 - [Governed Shared Memory v1.3.0 (implementation draft)](docs/GOVERNED_SHARED_MEMORY_V130.md)
 - [v1.3.0 story and release notes (draft)](docs/releases/v1.3.0-governed-shared-memory-draft.md)
+- [Native Architecture Pulse v1.4.0](docs/ARCHITECTURE_PULSE.md)
 - [Code Quality Intelligence](docs/CODE_QUALITY_INTELLIGENCE.md)
 - [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md)
 

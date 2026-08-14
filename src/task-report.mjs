@@ -6,6 +6,7 @@ import { hasSymlinkComponent } from "./paths.mjs";
 import { renderUsageSummary, summarizeUsage } from "./usage-ledger.mjs";
 import { inspectFinalReview } from "./final-review.mjs";
 import { inspectTeam, reportTeam } from "./team-orchestrator.mjs";
+import { readPulseDocument, verifyPulseFreshness } from "./pulse.mjs";
 
 const TASK_STATES = ["DISCOVER", "ANALYZE", "PLAN_READY", "APPROVED", "IMPLEMENTING", "VERIFYING", "REVIEW_READY", "RELEASED"];
 const NEXT_STATE = new Map(TASK_STATES.slice(0, -1).map((state, index) => [state, TASK_STATES[index + 1]]));
@@ -104,6 +105,24 @@ function guardedRuntimePath(root, suffix) {
     throw new Error(`refusing runtime access through a symbolic link: ${relPath}`);
   }
   return path.join(runtimeRoot(root), suffix);
+}
+
+function inspectArchitecturePulse(root, task) {
+  const relative = `.ai-agent-kit/pulse/tasks/${task.id}.json`;
+  if (!fs.existsSync(path.join(root, relative))) return { status: "NOT_RUN", outcome: null, artifact: null, reason: "No task-bound Architecture Pulse artifact exists." };
+  try {
+    const document = readPulseDocument({ target: root, file: relative });
+    if (document.governance?.task_id !== task.id) return { status: "UNTRUSTED", outcome: null, artifact: relative, reason: "Architecture Pulse artifact is not bound to this task." };
+    const freshness = verifyPulseFreshness(document, { target: root });
+    if (freshness.status !== "VERIFIED") return { status: freshness.status, outcome: null, artifact: relative, reason: freshness.reason };
+    if (document.protocol === "aak-architecture-pulse-v1") {
+      return { status: document.analysis_status === "COMPLETE" ? "VERIFIED" : "DEGRADED", outcome: document.analysis_status, artifact: relative, evidence_digest: document.result_digest, coverage: document.coverage, confidence: document.confidence, reason_codes: document.reason_codes };
+    }
+    const invalid = ["STALE", "UNTRUSTED", "DEGRADED"].includes(document.status);
+    return { status: invalid ? document.status : "VERIFIED", outcome: document.status, blocking: Boolean(document.blocking), artifact: relative, evidence_digest: document.evidence_digest, coverage: document.current?.coverage ?? null, confidence: document.current?.confidence ?? null, reason: document.reason };
+  } catch (error) {
+    return { status: "UNTRUSTED", outcome: null, artifact: relative, reason: error instanceof Error ? error.message : String(error) };
+  }
 }
 
 function readTask(root, id) {
@@ -412,6 +431,7 @@ export function buildFinalTaskReport(options, deps = {}) {
     : DEFAULT_REQUIRED_GATES;
   const quality = qualityReport(root, task, git.commit, requiredGates);
   const finalReview = inspectFinalReview({ target: root, id: task.id }, deps);
+  const architecturePulse = inspectArchitecturePulse(root, task);
   const finalReviewGate = quality.gates.find((gate) => gate.gate === "final-implementation-review");
   if (finalReviewGate) {
     finalReviewGate.status = finalReview.status === "PASSED" ? "PASSED" : finalReview.status;
@@ -420,6 +440,13 @@ export function buildFinalTaskReport(options, deps = {}) {
       : `Final implementation review is ${finalReview.status}.`;
     finalReviewGate.repository_commit = finalReview.reviewed_commit ?? null;
     finalReviewGate.evidence_recorded = Boolean(finalReview.review_hash);
+  }
+  const pulseGate = quality.gates.find((gate) => gate.gate === "architecture-pulse");
+  if (pulseGate) {
+    pulseGate.status = architecturePulse.status === "VERIFIED" && !architecturePulse.blocking ? "PASSED" : architecturePulse.status === "NOT_RUN" ? "NOT_RUN" : architecturePulse.status === "STALE" ? "STALE" : "FAILED";
+    pulseGate.summary = architecturePulse.status === "VERIFIED" && !architecturePulse.blocking ? `Verified Architecture Pulse evidence reports ${architecturePulse.outcome}.` : architecturePulse.reason ?? `Architecture Pulse evidence is ${architecturePulse.status}.`;
+    pulseGate.repository_commit = git.commit;
+    pulseGate.evidence_recorded = Boolean(architecturePulse.evidence_digest);
   }
   quality.counts = Object.fromEntries([...CHECK_STATUSES].sort().map((status) => [
     status,
@@ -465,6 +492,7 @@ export function buildFinalTaskReport(options, deps = {}) {
     evidence,
     quality,
     final_review: finalReview,
+    architecture_pulse: architecturePulse,
     team,
     code_status: {
       git,
@@ -527,7 +555,8 @@ export function renderFinalTaskReport(report, { compact = false } = {}) {
       `Completed: ${completed} | Remaining: ${report.progress.remaining.length} | Blockers: ${report.production_readiness.blockers.length}`,
       `Quality: ${qualityPassed} PASSED | Worktree: ${report.code_status.git.status}`,
       `Team: ${report.team?.team_type ?? "NOT_APPLICABLE"} | ${report.team?.status ?? "NOT_APPLICABLE"} | Context: ${report.team?.context?.status ?? "NOT_APPLICABLE"}`,
-      `Final review: ${report.final_review.status} | Cycles: ${report.final_review.cycle_count ?? 0} | Findings: ${report.final_review.finding_history?.length ?? report.final_review.findings?.length ?? 0}`
+      `Final review: ${report.final_review.status} | Cycles: ${report.final_review.cycle_count ?? 0} | Findings: ${report.final_review.finding_history?.length ?? report.final_review.findings?.length ?? 0}`,
+      `Architecture Pulse: ${report.architecture_pulse?.status ?? "NOT_RUN"} | Outcome: ${report.architecture_pulse?.outcome ?? "Unavailable"}`
     ].join("\n");
   }
   return `AI Agent Kit — Final Task Report
@@ -560,6 +589,13 @@ Engineering Team
   Shared context: ${report.team?.context?.status ?? "NOT_APPLICABLE"}
   Handoffs: ${report.team?.context?.handoff_count ?? 0}
   Open conflicts: ${report.team?.context?.open_conflicts ?? 0}
+
+Architecture Pulse
+  Evidence: ${report.architecture_pulse?.status ?? "NOT_RUN"}
+  Outcome: ${report.architecture_pulse?.outcome ?? "Unavailable"}
+  Artifact: ${report.architecture_pulse?.artifact ?? "Unavailable"}
+  Coverage: ${report.architecture_pulse?.coverage?.files != null ? `${(report.architecture_pulse.coverage.files * 100).toFixed(1)}%` : "Unavailable"}
+  Confidence: ${report.architecture_pulse?.confidence?.band ?? "Unavailable"}
 
 Code Status
   ${renderGit(report.code_status.git)}

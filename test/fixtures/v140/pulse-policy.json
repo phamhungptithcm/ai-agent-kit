@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "boundaries": [
+    {
+      "name": "domain-must-not-depend-on-ui",
+      "from": "src/domain",
+      "deny": ["src/ui"]
+    }
+  ],
+  "rules": [
+    {
+      "id": "no-new-cycles",
+      "type": "new-cycles",
+      "threshold": 0,
+      "severity": "block"
+    },
+    {
+      "id": "no-new-boundary-violations",
+      "type": "boundary-violations",
+      "threshold": 0,
+      "severity": "block"
+    },
+    {
+      "id": "keep-analysis-coverage",
+      "type": "coverage-drop",
+      "threshold": 0.05,
+      "severity": "block"
+    }
+  ]
+}

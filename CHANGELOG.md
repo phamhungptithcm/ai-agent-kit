@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased — v1.4.0 Native Architecture Pulse
+
+- Added a clean-room, first-party Architecture Pulse contract with canonical
+  hashing, stable reason codes, explicit evidence states, metric/extractor
+  versioning, and mandatory coverage and confidence.
+- Added a Git-aware, local-only scanner with repository containment, symlink
+  and hard-link refusal, generated/vendor filtering, deterministic ordering,
+  and bounded file, byte, and execution budgets.
+- Added conservative dependency extraction for JavaScript/TypeScript, Python,
+  Go, Rust, Java/Kotlin, and C#, with explicit manifest-only cross-language
+  bridges and visible unresolved/unsupported evidence.
+- Added evidence-backed dependency graphs, strongly connected components,
+  condensation depth across all roots, module cohesion, boundary integrity,
+  hotspot concentration, fan-in/fan-out, and bounded blast-radius signals.
+- Added repository-bound, tamper-evident baselines and explicit regression
+  policy for cycles, boundaries, depth, cohesion, hotspots, blast radius,
+  coverage, and confidence. The aggregate Pulse index remains diagnostic only.
+- Added `pulse scan`, `pulse baseline create|verify`, `pulse check`, and
+  `pulse explain` CLI workflows with stable JSON, concise text, task binding,
+  distinct exit codes, and contained artifact writes.
+- Integrated digest-valid, task-bound Pulse evidence into final task reports
+  and optional Change Passport assurance without changing approval authority.
+- Added deterministic, polyglot, adversarial filesystem, stale/tampered/foreign
+  baseline, policy, CLI, task-report, Passport, and packed-package coverage.
+- Added canonical configuration/result/baseline/comparison schemas and complete
+  workflow, trust, adoption, limitation, and clean-room documentation.
+- This section records local implementation scope only. Commit, PR, tag,
+  GitHub Release, npm publication, deployment, and production activation remain
+  separately authorized and unperformed.
+
 ## Unreleased — v1.3.0 Governed Shared Memory
 
 - Implementation draft: canonical `memory-entry-v3`, transactional local
