@@ -13,6 +13,7 @@
     "run_id": { "type": "string", "minLength": 1 },
     "observed_at": { "type": "string", "format": "date-time" },
     "journal_head": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "control_plane_required": { "type": "boolean" },
     "capabilities_observed": {
       "type": "object",
       "required": ["native_spawn", "parallel_dispatch", "cancellation", "resume", "structured_result"],
@@ -22,6 +23,10 @@
         "cancellation": { "type": "boolean" },
         "resume": { "type": "boolean" },
         "structured_result": { "const": true }
+        ,"authenticated_host_bridge": { "type": ["boolean", "null"] }
+        ,"repository_registry": { "type": ["boolean", "null"] }
+        ,"workspace_isolation": { "type": ["boolean", "null"] }
+        ,"fencing_tokens": { "type": ["boolean", "null"] }
       },
       "additionalProperties": false
     },
@@ -39,6 +44,11 @@
           "external_run_id": { "type": "string" },
           "spawn_id": { "type": "string" },
           "wave_id": { "type": "string" }
+          ,"principal_id": { "type": "string" }
+          ,"repository_claim_id": { "type": "string" }
+          ,"fencing_token": { "type": "integer", "minimum": 1 }
+          ,"workspace_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+          ,"host_attestation_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
         },
         "additionalProperties": false
       }

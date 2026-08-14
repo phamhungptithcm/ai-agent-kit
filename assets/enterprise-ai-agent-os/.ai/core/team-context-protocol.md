@@ -48,3 +48,10 @@ through an unrecorded vote or by silently discarding minority evidence.
 
 Optional repository indexes may enrich the brief. Their absence reports
 `DEGRADED` and uses normal repository inspection; it does not block useful work.
+
+Task-local claims do not coordinate with other tasks. When repository control
+mode is enabled, acquire a second repository claim rooted in the Git common
+directory. Bind its monotonic fencing token, authenticated principal, exact
+parent snapshot, and isolated writer worktree to dispatch and result evidence.
+An expired or superseded repository token permanently rejects delayed output.
+See `team-control-plane.md` for integration and cross-host boundaries.

@@ -16,7 +16,8 @@ const DATA_KEYS = new Set([
   "team_hash", "context_hash", "run_id", "assignment_id", "spawn_id", "external_run_id",
   "agent_id", "claim_id", "status", "reason_code", "idempotency_key", "handoff_hash",
   "evidence_hash", "approval_hash", "adapter", "execution_mode", "team_type", "stale_assignments",
-  "duplicate", "journal_head", "usage", "result_status", "conformance_level", "benchmark_status"
+  "duplicate", "journal_head", "usage", "result_status", "conformance_level", "benchmark_status",
+  "principal_id", "repository_claim_id", "fencing_token", "workspace_hash", "host_attestation_hash"
 ]);
 
 function stable(value) {

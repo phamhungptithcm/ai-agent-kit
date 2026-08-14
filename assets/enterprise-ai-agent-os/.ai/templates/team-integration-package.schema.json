@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "team-integration-package-v1",
+  "title": "Immutable team integration package",
+  "type": "object",
+  "required": ["schema_version", "package_id", "task_id", "assignment_id", "commit", "parent_commit", "claim_id", "fencing_token", "author_id", "dependencies", "surfaces", "evidence_hashes", "rollback_ref", "created_at", "package_hash"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "package_id": { "type": "string" },
+    "task_id": { "type": "string" },
+    "assignment_id": { "type": "string" },
+    "commit": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
+    "parent_commit": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
+    "claim_id": { "type": "string" },
+    "fencing_token": { "type": "integer", "minimum": 1 },
+    "author_id": { "type": "string" },
+    "dependencies": { "type": "array", "uniqueItems": true, "items": { "type": "string" } },
+    "surfaces": { "type": "array", "minItems": 1, "maxItems": 500, "items": { "type": "object" } },
+    "evidence_hashes": { "type": "array", "minItems": 1, "items": { "type": "string", "pattern": "^[a-f0-9]{64}$" } },
+    "rollback_ref": { "type": "string" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "package_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  },
+  "additionalProperties": false
+}

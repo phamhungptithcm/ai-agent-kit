@@ -1,0 +1,48 @@
+version: 1
+decision: enforce_when_enabled
+authority:
+  local_registry: GIT_COMMON_DIR
+  linked_worktrees: supported
+  cross_host_without_authenticated_shared_backend: deny
+identity:
+  authenticated: true
+  expiry_required: true
+  evidence_digest_required: true
+  unknown_capability: deny
+  least_privilege: true
+registry:
+  optimistic_revision: true
+  atomic_write: true
+  bounded_lock_recovery: true
+  cross_task_scope_check: true
+leases:
+  heartbeat_required: true
+  monotonic_fencing_token: true
+  stale_writer_result: deny
+workspace:
+  isolated_for_writers: true
+  exact_parent_snapshot: true
+  clean_by_default: true
+  shared_git_common_dir: true
+integration:
+  integration_owner_required: true
+  independent_review_required: true
+  codeowner_escalation_required: true
+  dependency_order_required: true
+  rollback_reference_required: true
+  protected_unknown_surface: deny
+privacy:
+  raw_prompts: deny
+  source_bodies: deny
+  chat_history: deny
+  chain_of_thought: deny
+  credentials_and_secrets: deny
+child_agent_forbidden_actions:
+  - commit
+  - push
+  - merge
+  - tag
+  - publish
+  - deploy
+  - repository-settings
+  - production-mutation

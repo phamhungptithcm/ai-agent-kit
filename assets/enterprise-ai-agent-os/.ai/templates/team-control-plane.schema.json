@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "team-control-plane-v1",
+  "title": "Repository team control-plane registry",
+  "type": "object",
+  "required": ["schema_version", "repository_id", "revision", "fencing_counter", "tasks", "claims", "host_attestations", "events", "created_at", "updated_at", "registry_hash"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "repository_id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,255}$" },
+    "revision": { "type": "integer", "minimum": 0 },
+    "fencing_counter": { "type": "integer", "minimum": 0 },
+    "tasks": { "type": "array", "maxItems": 2000, "items": { "type": "object" } },
+    "claims": { "type": "array", "maxItems": 10000, "items": { "type": "object" } },
+    "host_attestations": { "type": "array", "maxItems": 10000, "items": { "type": "object" } },
+    "events": { "type": "array", "maxItems": 20000, "items": { "type": "object" } },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "registry_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  },
+  "additionalProperties": false
+}
