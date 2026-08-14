@@ -168,6 +168,31 @@ An empty template is not a pass. Live conformance requires observed spawn and
 result lifecycle events, host/run binding, evidence hashes, and the current
 journal head.
 
+### Repository Team Control Plane in v1.5.0
+
+Task-local claims stop two assignments in one task from colliding. They cannot
+see another task. v1.5.0 adds a sealed repository registry in the Git common
+directory so linked worktrees share task, scope, lease, heartbeat, and fencing
+state.
+
+```bash
+ai-agent-kit team identity-verify --file identity.json --identity-key-env AAK_IDENTITY_KEY
+ai-agent-kit team plan --id TASK-123 --control-plane
+ai-agent-kit team registry
+ai-agent-kit team workspace-plan --id TASK-123 --assignment implementation-engineer --parent-commit <full-sha>
+```
+
+Writers require an isolated clean worktree and exact parent snapshot. Results
+must carry a live monotonic fencing token. Change packages then pass structured
+conflict analysis, independent review, required-owner checks, and an Integration
+Owner decision. Child agents still cannot commit, push, merge, tag, publish, or
+deploy.
+
+The default registry coordinates processes and linked worktrees sharing one Git
+common directory. It does not claim distributed consensus across machines.
+Remote execution requires an authenticated host attestation and a compatible
+shared backend.
+
 See the complete loop without touching a real project:
 
 ```bash
@@ -691,6 +716,7 @@ See [Agent Adapter Strategy](docs/AGENT_ADAPTER_STRATEGY.md) for details.
 | `1.3.0` | Governed shared memory for agents, subagents, worktrees, and later sessions with independent promotion, scoped retrieval receipts, and fail-closed trust boundaries. |
 | `1.4.0` | Native Architecture Pulse with bounded polyglot scanning, dependency graphs, explainable structural metrics, trusted baselines, explicit regression policy, CLI workflows, and governed evidence binding. |
 | `1.4.1` | Change-aware Pulse with stable finding identity, truthful coverage, tiered precision, base/head impact, governed waivers, SARIF, trends, bounded evidence packs, and a polyglot effectiveness benchmark. |
+| `1.5.0` | Repository Team Control Plane with authenticated identities, cross-task claims, isolated worktrees, fencing tokens, integration packages, independent review, privacy-safe SLOs, and four-mode release benchmarks. |
 
 ## Documentation
 
@@ -711,6 +737,8 @@ See [Agent Adapter Strategy](docs/AGENT_ADAPTER_STRATEGY.md) for details.
 - [Architecture Pulse v1.4.1 implementation plan](docs/ARCHITECTURE_PULSE_V141_PLAN.md)
 - [v1.4.0 story and release notes](docs/releases/v1.4.0-native-architecture-pulse.md)
 - [v1.4.1 story and release notes](docs/releases/v1.4.1-architecture-pulse.md)
+- [Repository Team Control Plane v1.5.0 plan](docs/TEAM_CONTROL_PLANE_V150_PLAN.md)
+- [v1.5.0 story and release notes (draft)](docs/releases/v1.5.0-team-control-plane-draft.md)
 - [Code Quality Intelligence](docs/CODE_QUALITY_INTELLIGENCE.md)
 - [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md)
 

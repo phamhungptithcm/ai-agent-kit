@@ -1,33 +1,35 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "team-benchmark-v1",
-  "title": "Comparable three-mode Agent Department benchmark",
+  "$id": "team-benchmark-v2",
+  "title": "Comparable four-mode repository control-plane benchmark",
   "type": "object",
-  "required": ["schema_version", "synthetic", "methodology", "cases"],
+  "required": ["schema_version", "profile", "synthetic", "methodology", "cases"],
   "properties": {
-    "schema_version": { "const": 1 },
+    "schema_version": { "const": 2 },
+    "profile": { "const": "V1_5_RELEASE" },
     "synthetic": { "type": "boolean" },
     "methodology": {
       "type": "object",
-      "required": ["same_task", "same_repository_commit", "same_host", "same_model", "repetitions_per_mode"],
+      "required": ["same_task", "same_repository_commit", "same_host", "same_model", "repetitions_per_mode", "minimum_task_cases"],
       "properties": {
         "same_task": { "const": true },
         "same_repository_commit": { "const": true },
         "same_host": { "const": true },
         "same_model": { "const": true },
-        "repetitions_per_mode": { "type": "integer", "minimum": 3, "maximum": 100 }
+        "repetitions_per_mode": { "type": "integer", "minimum": 3, "maximum": 100 },
+        "minimum_task_cases": { "type": "integer", "minimum": 30, "maximum": 1000 }
       },
       "additionalProperties": false
     },
     "cases": {
       "type": "array",
-      "minItems": 1,
+      "minItems": 30,
       "items": {
         "type": "object",
         "required": ["id", "repository_commit", "host", "model", "runs"],
         "properties": {
           "id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$" },
-          "repository_commit": { "type": "string", "minLength": 7 },
+          "repository_commit": { "type": "string", "minLength": 40 },
           "host": { "type": "string", "minLength": 1 },
           "model": { "type": "string", "minLength": 1 },
           "runs": {
@@ -36,7 +38,7 @@
               "type": "object",
               "required": ["mode", "status", "escaped_defects", "scope_violations", "duplicate_scans", "tokens", "duration_seconds", "review_cycles", "evidence_items", "required_evidence_items"],
               "properties": {
-                "mode": { "enum": ["SINGLE_AGENT", "UNGOVERNED_MULTI_AGENT", "AGENT_DEPARTMENT"] },
+                "mode": { "enum": ["SINGLE_AGENT", "UNGOVERNED_MULTI_AGENT", "TASK_LOCAL_GOVERNED", "REPOSITORY_CONTROL_PLANE"] },
                 "status": { "enum": ["COMPLETED", "FAILED", "BLOCKED"] },
                 "escaped_defects": { "type": "number", "minimum": 0 },
                 "scope_violations": { "type": "number", "minimum": 0 },

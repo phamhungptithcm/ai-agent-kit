@@ -13,7 +13,7 @@ function validHash(value) { return /^[a-f0-9]{64}$/.test(value ?? ""); }
 
 export function buildTeamConformanceTemplate(options = {}) {
   const adapter = String(options.adapter ?? "codex").toLowerCase(); if (!ADAPTERS.has(adapter)) throw new Error("live conformance supports codex or claude");
-  return { schema_version: 1, evidence_level: "LIVE_HOST", adapter, host_version: null, task_id: options.id ?? null, run_id: null, observed_at: null, journal_head: null, capabilities_observed: { native_spawn: null, parallel_dispatch: null, cancellation: null, resume: null, structured_result: null }, write_assignment_ids: [], lifecycle: [], evidence_hashes: [], notes: "Populate from an actual host run. A template is NOT_RUN evidence, not a passing result." };
+  return { schema_version: 1, evidence_level: "LIVE_HOST", adapter, host_version: null, task_id: options.id ?? null, run_id: null, observed_at: null, journal_head: null, control_plane_required: false, capabilities_observed: { native_spawn: null, parallel_dispatch: null, cancellation: null, resume: null, structured_result: null, authenticated_host_bridge: null, repository_registry: null, workspace_isolation: null, fencing_tokens: null }, write_assignment_ids: [], lifecycle: [], evidence_hashes: [], notes: "Populate from an actual host run. Set control_plane_required for v1.5 repository-control-plane evidence. A template is NOT_RUN evidence, not a passing result." };
 }
 
 export function verifyTeamConformance(attestation, options = {}) {
@@ -43,6 +43,13 @@ export function verifyTeamConformance(attestation, options = {}) {
   check("native-spawn", attestation.capabilities_observed?.native_spawn === true, "native spawn was not observed");
   check("structured-results", attestation.capabilities_observed?.structured_result === true, "structured result capability was not observed");
   check("evidence-hashes", Array.isArray(attestation.evidence_hashes) && attestation.evidence_hashes.length > 0 && attestation.evidence_hashes.every(validHash), "at least one SHA-256 evidence hash is required");
+  if (attestation.control_plane_required === true) {
+    check("authenticated-host-bridge", attestation.capabilities_observed?.authenticated_host_bridge === true, "authenticated host bridge was not observed");
+    check("repository-registry", attestation.capabilities_observed?.repository_registry === true, "repository registry was not observed");
+    check("workspace-isolation", attestation.capabilities_observed?.workspace_isolation === true, "isolated workspaces were not observed");
+    check("fencing-tokens", attestation.capabilities_observed?.fencing_tokens === true, "fencing tokens were not observed");
+    check("dispatch-control-binding", dispatches.every((event) => event.principal_id && event.repository_claim_id && Number.isInteger(event.fencing_token) && event.workspace_hash && event.host_attestation_hash), "control-plane dispatches require identity, claim, fence, workspace, and host attestation bindings");
+  }
   if (attestation.capabilities_observed?.parallel_dispatch === true) {
     const parallel = dispatches.some((left, index) => dispatches.slice(index + 1).some((right) => left.wave_id && left.wave_id === right.wave_id));
     check("parallel-wave", parallel, "parallel dispatch was claimed but no shared wave_id was observed");

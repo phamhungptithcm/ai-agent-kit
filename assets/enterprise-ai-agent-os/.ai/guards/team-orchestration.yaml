@@ -1,4 +1,4 @@
-version: 2
+version: 3
 decision: always
 spawn: conditional
 team_types: [SOLO, PRODUCT_WORKCELL, BUG_WORKCELL, ASSURANCE_WORKCELL]
@@ -58,5 +58,18 @@ fallback:
 external_actions:
   commit: require_explicit_approval
   push: require_explicit_approval
+  merge: require_explicit_approval
+  tag: require_explicit_approval
   deploy: require_explicit_approval
   release: require_explicit_approval
+repository_control_plane:
+  opt_in_for_legacy_tasks: true
+  registry_authority: GIT_COMMON_DIR
+  cross_task_claims: true
+  monotonic_fencing_tokens: true
+  isolated_worktree_for_writers: true
+  exact_parent_snapshot: true
+  authenticated_identity: true
+  authenticated_host_bridge_for_native_execution: true
+  integration_owner_required: true
+  unknown_protected_surface: deny

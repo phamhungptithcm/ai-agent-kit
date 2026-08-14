@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased — v1.5.0 Repository Team Control Plane
+
+- Added authenticated member, agent, host, and service identities with bounded
+  roles, capabilities, expiry, issuer/subject binding, and evidence digests.
+- Added a sealed Git-common-dir repository registry with cross-task claims,
+  optimistic revisions, leases, heartbeats, monotonic fencing tokens, stale
+  writer rejection, and linked-worktree coordination.
+- Added exact-parent and isolated-worktree admission for writers plus plan-first
+  provisioning and owned cleanup controls.
+- Added immutable change packages, Integration Owner admission, dependency
+  ordering, rollback references, independent review, required-owner escalation,
+  and path/symbol/API/schema/migration/dependency/generated conflict analysis.
+- Added authenticated replay-protected host attestations, privacy-safe team
+  metrics/SLOs, and a four-mode benchmark with a 30-task release-evidence gate.
+- Added v1.5 CLI surfaces, canonical schemas, guard/workflow/operator guidance,
+  migration documentation, adversarial tests, and generated package artifacts.
+- The local registry does not claim cross-host distributed consensus; synthetic
+  tests do not prove real-world productivity or world-class quality.
+
 ## 1.4.1 - 2026-08-20
 
 - Replaced aggregate-only cycle and boundary comparison with stable finding
@@ -34,7 +53,6 @@ All notable changes to this project will be documented in this file.
   final-review integration.
 
 ## 1.4.0 - 2026-08-19
-
 - Added a clean-room, first-party Architecture Pulse contract with canonical
   hashing, stable reason codes, explicit evidence states, metric/extractor
   versioning, and mandatory coverage and confidence.

@@ -28,6 +28,18 @@
     "adapter_capabilities": { "anyOf": [{ "$ref": "execution-adapter.schema.json" }, { "type": "null" }] },
     "context_protocol_required": { "const": true },
     "approval_required_before_writes": { "const": true },
+    "control_plane": {
+      "type": "object",
+      "required": ["enabled", "status", "repository_id", "registry_revision", "parent_commit"],
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "status": { "enum": ["DISABLED", "PLANNED", "ACTIVE"] },
+        "repository_id": { "type": ["string", "null"] },
+        "registry_revision": { "type": ["integer", "null"], "minimum": 0 },
+        "parent_commit": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
     "context_hash": { "$ref": "#/$defs/hash" },
     "context_revision": { "type": "integer", "minimum": 1 },
     "budgets": {
@@ -110,7 +122,7 @@
         "execution": {
           "type": "object",
           "properties": {
-            "host_execution": { "enum": ["SERIAL_PERSONA", "ATTESTED_EXTERNAL", "EXECUTED_BY_BRIDGE"] }
+            "host_execution": { "enum": ["SERIAL_PERSONA", "ATTESTED_EXTERNAL", "EXECUTED_BY_BRIDGE", "VERIFIED_HOST_BRIDGE"] }
           },
           "additionalProperties": true
         }

@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "team-identity-v1",
+  "title": "Authenticated team principal identity",
+  "type": "object",
+  "required": ["schema_version", "principal_id", "type", "issuer", "subject", "roles", "capabilities", "issued_at", "expires_at", "evidence_digest", "authentication"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "principal_id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:@/-]{0,255}$" },
+    "type": { "enum": ["MEMBER", "AGENT", "HOST", "SERVICE"] },
+    "issuer": { "type": "string" },
+    "subject": { "type": "string" },
+    "roles": { "type": "array", "maxItems": 20, "uniqueItems": true, "items": { "enum": ["team-lead", "implementer", "reviewer", "integration-owner", "operator", "observer"] } },
+    "capabilities": { "type": "array", "maxItems": 50, "uniqueItems": true, "items": { "type": "string" } },
+    "issued_at": { "type": "string", "format": "date-time" },
+    "expires_at": { "type": "string", "format": "date-time" },
+    "evidence_digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "authentication": {
+      "type": "object",
+      "required": ["method", "key_id", "nonce", "signature"],
+      "properties": {
+        "method": { "const": "HMAC_SHA256" },
+        "key_id": { "type": "string" },
+        "nonce": { "type": "string" },
+        "signature": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
