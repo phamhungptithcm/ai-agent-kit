@@ -42,6 +42,8 @@ try {
     || entry.includes("/.codegraph/")
     || entry.includes("/.cocoindex_code/")
     || entry.includes("/__pycache__/")
+    || entry.startsWith(".ai-agent-kit/")
+    || entry.startsWith("docs/approvals/")
     || /\.py[co]$/.test(entry)
   );
   assert.deepEqual(forbiddenPackageState, [], `package contains local or generated state: ${forbiddenPackageState.join(", ")}`);
@@ -146,6 +148,26 @@ try {
   fs.writeFileSync(path.join(fixture, "src/smoke.mjs"), "export const smoke = 1;\n");
   execute("git", ["add", "src/smoke.mjs"], fixture);
   execute("git", ["commit", "-m", "smoke base"], fixture);
+  const traceLab = execute(npxCommand, ["--yes", packageOption, "ai-agent-kit", "tracelab", "run", "--scenario", "production-bug"], fixture);
+  assert.match(traceLab.stdout, /"status": "RECOVERED"/);
+  const pluginPreview = execute(npxCommand, ["--yes", packageOption, "ai-agent-kit", "plugin", "init", "--plugin-id", "packed-review"], fixture);
+  assert.match(pluginPreview.stdout, /"status": "PREVIEW"/);
+  assert.equal(fs.existsSync(path.join(fixture, "plugins/packed-review")), false);
+  const pluginCreated = execute(npxCommand, ["--yes", packageOption, "ai-agent-kit", "plugin", "init", "--plugin-id", "packed-review", "--apply"], fixture);
+  assert.match(pluginCreated.stdout, /"status": "CREATED"/);
+  assert.ok(fs.existsSync(path.join(fixture, "plugins/packed-review/plugin.json")));
+  execute("git", ["add", "plugins/packed-review"], fixture);
+  execute("git", ["commit", "-m", "add packed plugin fixture"], fixture);
+  execute(npxCommand, ["--yes", packageOption, "ai-agent-kit", "decision", "record", "--decision-id", "PACKED-DEC", "--event-id", "packed-dec-1", "--actor", "smoke", "--question", "Why trace?", "--choice", "recoverable", "--rationale", "portable evidence", "--artifact", "src/smoke.mjs"], fixture);
+  execute(npxCommand, ["--yes", packageOption, "ai-agent-kit", "decision", "transition", "--decision-id", "PACKED-DEC", "--event-id", "packed-dec-2", "--action", "approve", "--actor", "smoke", "--rationale", "fixture approval"], fixture);
+  execute(npxCommand, ["--yes", packageOption, "ai-agent-kit", "run", "record", "--run-id", "PACKED-RUN", "--event-id", "packed-run-1", "--phase", "start", "--actor", "smoke", "--decision-id", "PACKED-DEC"], fixture);
+  const why = execute(npxCommand, ["--yes", packageOption, "ai-agent-kit", "why", "src/smoke.mjs"], fixture);
+  assert.match(why.stdout, /"status": "EXPLAINED"/);
+  execute(npxCommand, ["--yes", packageOption, "ai-agent-kit", "run", "export", "--run-id", "PACKED-RUN", "--output", ".ai-agent-kit/exports/PACKED-RUN.aakrun"], fixture);
+  const bundle = execute(npxCommand, ["--yes", packageOption, "ai-agent-kit", "run", "verify", "--file", ".ai-agent-kit/exports/PACKED-RUN.aakrun"], fixture);
+  assert.match(bundle.stdout, /"status": "VERIFIED"/);
+  const control = execute(npxCommand, ["--yes", packageOption, "ai-agent-kit", "control", "view"], fixture);
+  assert.match(control.stdout, /"status": "HEALTHY"/);
   const prTask = execute(
     npxCommand,
     ["--yes", packageOption, "ai-agent-kit", "runtime", "task", "create", "--id", "PR-SMOKE", "--goal", "Verify PR evidence", "--acceptance", "Scoped source changes", "--tool", "edit", "--path", "src/**"],
@@ -213,7 +235,32 @@ try {
     ".agents/skills/design-scalable-systems/references/security-control-matrix.md",
     ".agents/skills/design-scalable-systems/scripts/capacity_cost_model.py",
     ".ai/quality-profiles/system-design.yaml",
-    ".ai/evals/system-design-cases.yaml"
+    ".ai/evals/system-design-cases.yaml",
+    ".ai/core/traceable-plugin-runtime.md",
+    ".ai/rules/plugin-trust.md",
+    ".ai/rules/decision-trace-integrity.md",
+    ".ai/rules/run-continuity.md",
+    ".ai/rules/portable-evidence-privacy.md",
+    ".ai/rules/benchmark-claim-integrity.md",
+    ".ai/quality-profiles/agent-runtime.yaml",
+    ".ai/quality-profiles/plugin-development.yaml",
+    ".ai/quality-profiles/agent-evaluation.yaml",
+    ".ai/guards/trace-completeness-gate.yaml",
+    ".ai/guards/plugin-activation-gate.yaml",
+    ".ai/guards/resume-safety-gate.yaml",
+    ".agents/skills/trace-decisions-and-runs/SKILL.md",
+    ".agents/skills/resume-and-recover-run/SKILL.md",
+    ".agents/skills/author-governed-plugin/SKILL.md",
+    ".agents/skills/audit-plugin-trust/SKILL.md",
+    ".agents/skills/benchmark-agent-reliability/SKILL.md",
+    ".agents/skills/investigate-agent-runtime/SKILL.md",
+    ".ai/workflows/trace-and-recover-run.md",
+    ".ai/templates/decision-event.schema.json",
+    ".ai/templates/run-envelope.schema.json",
+    ".ai/templates/plugin-manifest.schema.json",
+    ".ai/templates/aakrun.schema.json",
+    ".ai/templates/reliability-benchmark.schema.json",
+    ".ai/templates/reliability-benchmark.example.json"
   ]) {
     assert.ok(fs.existsSync(path.join(installFixture, relPath)), `packed system-design capability missing ${relPath}`);
   }

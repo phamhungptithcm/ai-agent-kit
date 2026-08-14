@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hunpeolabs.dev/schemas/aakrun.v1.json",
+  "title": "AI Agent Kit Portable Run Bundle",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "version", "privacy", "exported_at", "run", "decisions", "compatibility", "bundle_hash"],
+  "properties": {
+    "format": { "const": "ai-agent-kit.run" },
+    "version": { "const": 1 },
+    "privacy": { "type": "object" },
+    "exported_at": { "type": "string", "format": "date-time" },
+    "run": { "type": "object" },
+    "decisions": { "type": "array" },
+    "compatibility": { "type": "object" },
+    "bundle_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  }
+}

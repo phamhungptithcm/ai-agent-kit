@@ -1,5 +1,7 @@
 **/__pycache__/
 **/*.py[cod]
 .ai/local
+.ai-agent-kit
+docs/approvals
 .codegraph
 .cocoindex_code

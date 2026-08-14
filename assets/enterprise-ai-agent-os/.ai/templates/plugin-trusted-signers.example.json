@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "keys": [
+    {
+      "key_id": "release-signing-key-2026",
+      "public_key": "-----BEGIN PUBLIC KEY-----\nREPLACE_WITH_ED25519_PUBLIC_KEY\n-----END PUBLIC KEY-----\n",
+      "revoked": false,
+      "plugin_ids": ["review-guard"],
+      "publishers": ["example-publisher"],
+      "surfaces": ["skills", "hooks"]
+    }
+  ]
+}

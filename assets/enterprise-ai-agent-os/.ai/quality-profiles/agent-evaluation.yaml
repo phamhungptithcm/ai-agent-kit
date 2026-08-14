@@ -1,0 +1,20 @@
+version: 1
+id: agent-evaluation
+name: Agent Reliability Evaluation Profile
+description: Review reproducibility, scenario coverage, evidence quality, statistical honesty, comparison validity, and bounded claims for agent benchmarks.
+applies_when:
+  - "agent benchmark, reliability score, Trace Lab, failure evaluation, or comparative agent claim"
+required_review:
+  - "claim, population, environment, version, seed, denominator, and threshold are fixed"
+  - "success, adversarial, interruption, drift, incomplete evidence, and conflict cases are represented"
+  - "raw results and commands can reproduce the reported score"
+  - "failures, exclusions, unsupported cases, and uncertainty remain visible"
+  - "comparisons use compatible conditions"
+  - "synthetic evidence is not represented as production proof"
+required_output:
+  - benchmark_identity
+  - scenario_matrix
+  - raw_and_summary_evidence
+  - limitations
+  - bounded_claims
+allowed_statuses: [PASSED, FAILED, INSUFFICIENT_EVIDENCE, NOT_RUN]

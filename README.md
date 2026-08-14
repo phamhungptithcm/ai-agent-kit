@@ -1,4 +1,4 @@
-# AI Agent Kit — The Performance & Assurance Harness for AI Coding Agents
+# AI Agent Kit — Recoverable decisions. Traceable runs.
 
 [![npm version](https://img.shields.io/npm/v/@hunpeolabs/ai-agent-kit?color=cb3837)](https://www.npmjs.com/package/@hunpeolabs/ai-agent-kit)
 [![npm downloads](https://img.shields.io/npm/dm/@hunpeolabs/ai-agent-kit?label=downloads%2Fmonth&color=2563eb)](https://www.npmjs.com/package/@hunpeolabs/ai-agent-kit)
@@ -7,11 +7,11 @@
 [![MIT license](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Node.js 20+](https://img.shields.io/badge/node-%3E%3D20-43853d)](package.json)
 
-Your coding agent can write code. AI Agent Kit gives it the engineering system
-around the code: repository research, task-specific context, portable skills,
-stack-aware quality instincts, specialist coordination, security boundaries,
-tests, fresh-context review, governed memory, and proof of what actually
-passed.
+Your coding agent can write code. AI Agent Kit preserves why that code exists,
+which run produced it, what failed, what was fixed, and what evidence actually
+passed. It combines repository context, governed plugins, specialist workcells,
+security boundaries, review loops, memory, recovery, and proof in one local
+engineering system.
 
 Install it once. Every supported agent starts from the same canonical `.ai/`
 system while using only the capabilities its host really provides.
@@ -21,10 +21,10 @@ complete integration today; every other adapter publishes its limitations
 instead of implying feature parity.
 
 ```text
-Research → Context → Plan → Approve → Build → Test → Fresh review → Evidence → Learn
+Understand → Decide → Approve → Build → Review ↻ Fix → Verify → Recover → Prove
 ```
 
-> **Optimize the active context. Persist approved knowledge and evidence.**
+> **Every decision should be recoverable. Every run should be traceable.**
 
 ```bash
 # Codex only
@@ -40,6 +40,35 @@ pull request, update a ticket, or deploy.
 [Why it is different](#a-system-not-another-prompt) · [Context model](#keep-the-context-focused) · [What ships](#what-ships-today) · [Install](#install-for-the-agents-you-use) · [Supported agents](#supported-agents) · [Documentation](#documentation) · [npm](https://www.npmjs.com/package/@hunpeolabs/ai-agent-kit)
 
 ![AI Agent Kit bootstrap flow](https://raw.githubusercontent.com/phamhungptithcm/ai-agent-kit/main/docs/assets/bootstrap-demo.gif)
+
+## See it fail safely
+
+```bash
+npx --yes @hunpeolabs/ai-agent-kit@latest tracelab run --scenario production-bug
+```
+
+TraceLab injects a realistic failure, sends the finding through the real
+review/fix states, and produces a local evidence timeline. Try parent drift,
+plugin escape, incomplete evidence, agent crash, or conflicting reviewers. The
+demo is deterministic and offline; it proves the control plane, not production
+agent quality.
+
+Ask why a line exists:
+
+```bash
+ai-agent-kit why src/payment.ts:142
+```
+
+The answer links recorded intent, alternatives, approval, run, review, fixes,
+and evidence. Missing history stays `UNKNOWN` instead of becoming a confident
+story.
+
+Open the local redacted control view or export a portable run:
+
+```bash
+ai-agent-kit control view
+ai-agent-kit run export --run-id <id> --output .ai-agent-kit/exports/run.aakrun
+```
 
 ## A system, not another prompt
 
@@ -73,7 +102,8 @@ the entire engineering system in every prompt.
 | **Rules and quality profiles** | Durable engineering standards plus language, framework, platform, and risk-specific checks | Mandatory rules stay loaded; task-specific profiles are compiled selectively |
 | **Hooks and action gateway** | Deterministic checks for supported hosts and protected operations | Run outside model reasoning and return `allow`, `ask`, or `deny` receipts |
 | **Approved memory** | Stable decisions, conventions, recurring failures, and validated patterns | Retrieval is scoped, bounded, provenance-aware, and excludes raw transcripts and unapproved candidates |
-| **Evidence** | Tests, reviews, receipts, reports, replay, benchmarks, and release proof | Stored as inspectable artifacts instead of consuming the working context |
+| **Evidence** | Decisions, runs, tests, reviews, receipts, replay, benchmarks, and release proof | Append-only canonical records stay inspectable without consuming the working context |
+| **Plugins** | Skills, rules, profiles, hooks, commands, adapters, schemas, templates, and UI surfaces | Authority is recomputed per invocation; drifted or over-privileged plugins are denied or quarantined |
 
 The context compiler records why every source was selected, its hash, the
 repository commit, token estimate, and exclusions. Missing mandatory context
@@ -82,13 +112,13 @@ blocks implementation; missing optional indexes produce an explicit
 
 ## What ships today
 
-| Capability | Included in AI Agent Kit 1.0 |
+| Capability | Included |
 | --- | --- |
-| Canonical skills | **34** skill sources, installed only where the selected adapter supports skill surfaces |
-| Engineering workflows | **25** workflows for research, planning, implementation, review, incidents, architecture, delivery, policy, memory, and proof |
-| Quality intelligence | **22** stack/risk profiles plus **17** durable engineering rules |
-| Enforcement | **15** guards for approval, capability, repository intelligence, memory, data, dependencies, orchestration, and protected actions |
-| Reusable artifacts | **62** templates and schemas for plans, reviews, evidence, system design, teams, memory, marketing, SEO/GEO, and release assurance |
+| Canonical skills | **40** skill sources, installed only where the selected adapter supports skill surfaces |
+| Engineering workflows | **26** workflows for research, planning, implementation, review, incidents, architecture, delivery, policy, memory, traceability, recovery, and proof |
+| Quality intelligence | **25** stack/risk profiles plus **22** durable engineering rules |
+| Enforcement | **18** guards for approval, trace completeness, safe resume, plugin activation, capability, repository intelligence, memory, data, dependencies, orchestration, and protected actions |
+| Reusable artifacts | **68** templates and schemas for plans, decisions, runs, plugins, benchmarks, reviews, evidence, system design, teams, memory, marketing, SEO/GEO, and release assurance |
 | Agent ecosystem | **12** versioned adapters with machine-readable `native`, `generated`, `bridged`, `advisory`, `preview`, or `unsupported` capability states |
 | Coordination | Four workcell modes, dependency-ready waves, leases, heartbeats, cancellation, bounded retries, recovery, and independent review |
 | Verification | Behavioral evals, adapter/standards conformance, tests, Failure Lab, Agent Proof Replay, Change Passports, and fail-closed readiness |
@@ -109,6 +139,8 @@ assuming feature parity.
 | **Verification loops** | Repository tests, explicit gates, behavioral evals, review → fix → verify cycles, replay, and evidence-backed release status | Unrun checks remain unrun; local or synthetic evidence is not production proof |
 | **Parallel execution** | Risk-sized workcells, dependency waves, bounded concurrency, one writer, structured handoffs, and serial fallback | Native parallel execution requires verified host capabilities and a host-bound attestation |
 | **Security** | Command policy, approval-to-diff checks, zero-trust MCP, capability tokens, adapter/config validation, SBOM, supply-chain checks, threat modeling, and security review | AI Agent Kit does not bundle AgentShield or replace independent security testing |
+| **Decision recovery** | Append-only Decision Chronicle, supersession, intent-to-code lookup, Run Envelopes, recovery previews, and portable `.aakrun` bundles | Recorded provenance can explain known history; it cannot reconstruct decisions that were never captured |
+| **Plugin ecosystem** | Keyless-by-default scaffolding, manifest validation, previewable lifecycle, per-invocation least privilege, receipts, quarantine, and a local Trust Center | No hosted marketplace is required, and publisher popularity is not treated as trust |
 
 ## See the system work
 
@@ -395,6 +427,11 @@ how the team reached it.
 - Keep approved memory current and revocable with expiry, review dates,
   supersession, source-commit checks, deterministic retrieval, and a health
   report.
+- Turn repeated verified runs into review-only skill, rule, profile, plugin, or
+  routing proposals. Evidence never promotes policy automatically.
+- Inspect installed plugin permissions, compatibility, provenance, signature,
+  lifecycle receipts, drift, and quarantine state through the local Trust
+  Center.
 - Replay the same recorded repository task across Claude Code and Codex, then
   compare outcomes, trajectory, latency, cost, and action counts offline.
 - Generate a concise PR evidence package with task scope, changed files,
@@ -604,12 +641,19 @@ See [Agent Adapter Strategy](docs/AGENT_ADAPTER_STRATEGY.md) for details.
 | `0.9.0` | Versioned adapter SDK, honest capability matrix, full GitHub Copilot surfaces, portable conformance, Agent Skills compatibility, MCP versioning, and optional A2A boundaries. |
 | `0.9.1` | Durable Agent Department execution, approval-bound dispatch, idempotent results, recovery, hash-chained timelines, live-host conformance attestations, and evidence-gated three-mode benchmarks. |
 | `1.0.0` | Explainable skill routing, SEO/GEO evidence contracts, context-bound dispatch, recoverable result ingest, unified fail-closed release proof, verified host capability gates, and package-state isolation. |
+| `1.0.1` | Cleaner product positioning and a complete, current capability overview. |
+| `1.1.0` | Append-only Decision Chronicle, portable Run Envelopes, safe resume and recovery, governed plugin runtime, `ai-agent-kit why`, `.aakrun`, TraceLab, and dogfooded proof. |
+| `1.2.0` | Local Plugin Trust Center, privacy-safe agent observability, reproducible reliability benchmark, and evidence-backed case studies. |
 
 ## Documentation
 
 - [Adoption Guide](docs/ADOPTION_GUIDE.md)
 - [High-Level Design](docs/HIGH_LEVEL_DESIGN.md)
 - [Agent Department Proof Loop](docs/AGENT_DEPARTMENT_PROOF_LOOP.md)
+- [Traceable Plugin Runtime](docs/TRACEABLE_PLUGIN_RUNTIME.md)
+- [Agent Reliability Benchmark](docs/AGENT_RELIABILITY_BENCHMARK.md)
+- [Traceability Case Studies](docs/TRACEABILITY_CASE_STUDIES.md)
+- [Traceable Plugin Runtime Security Review](docs/TRACEABLE_PLUGIN_RUNTIME_SECURITY_REVIEW.md)
 - [Skill Routing](docs/SKILL_ROUTING.md)
 - [Additive AI Change Assurance Deep Review](docs/ADDITIVE_AI_CHANGE_ASSURANCE_DEEP_REVIEW.md)
 - [Additive AI Change Assurance Discovery Plan](docs/ADDITIVE_AI_CHANGE_ASSURANCE_DISCOVERY_PLAN.md)

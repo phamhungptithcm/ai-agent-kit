@@ -1,0 +1,14 @@
+version: 1
+name: resume-safety-gate
+mode: fail-closed
+required_for: [interrupted-run, stale-session, recovered-context, resumed-write]
+checks:
+  - decision_and_run_chain_valid
+  - completed_actions_deduplicated
+  - worktree_and_parent_snapshot_rechecked
+  - stale_assumptions_and_evidence_revalidated
+  - conflicts_and_partial_failures_resolved_or_disclosed
+  - protected_action_authority_still_valid
+pass_status: RESUME_ALLOWED
+fail_status: RESUME_BLOCKED
+on_failure: "Return a recovery preview and request explicit approval when drift, conflict, scope change, or protected action exists."

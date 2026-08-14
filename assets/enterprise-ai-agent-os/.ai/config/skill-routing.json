@@ -7,6 +7,12 @@
     "minimum_margin": 1
   },
   "priority": [
+    "investigate-agent-runtime",
+    "audit-plugin-trust",
+    "resume-and-recover-run",
+    "author-governed-plugin",
+    "benchmark-agent-reliability",
+    "trace-decisions-and-runs",
     "security-review",
     "fix-bug",
     "code-review",
@@ -17,6 +23,48 @@
     "start-task"
   ],
   "routes": {
+    "investigate-agent-runtime": {
+      "label": "Investigate an agent runtime failure",
+      "skill": "investigate-agent-runtime/SKILL.md",
+      "rules": [
+        { "any": ["agent runtime failure", "agent runtime repeated work", "run repeated work", "lost agent context", "runtime trace corrupted", "agent bị mất context", "agent chạy lặp"], "weight": 3 }
+      ]
+    },
+    "audit-plugin-trust": {
+      "label": "Audit plugin trust",
+      "skill": "audit-plugin-trust/SKILL.md",
+      "rules": [
+        { "any": ["plugin trust", "plugin security", "plugin signature", "plugin permission review", "kiểm tra plugin", "quyền plugin"], "exclude": ["create", "scaffold", "tạo plugin"], "weight": 3 }
+      ]
+    },
+    "resume-and-recover-run": {
+      "label": "Recover and resume an interrupted run",
+      "skill": "resume-and-recover-run/SKILL.md",
+      "rules": [
+        { "any": ["resume run", "recover run", "interrupted agent", "agent crash", "continue previous work", "tiếp tục run", "khôi phục agent"], "weight": 3 }
+      ]
+    },
+    "author-governed-plugin": {
+      "label": "Author a governed plugin",
+      "skill": "author-governed-plugin/SKILL.md",
+      "rules": [
+        { "any": ["create plugin", "scaffold plugin", "plugin manifest", "build plugin", "tạo plugin", "viết plugin"], "weight": 3 }
+      ]
+    },
+    "benchmark-agent-reliability": {
+      "label": "Benchmark agent reliability",
+      "skill": "benchmark-agent-reliability/SKILL.md",
+      "rules": [
+        { "any": ["agent reliability benchmark", "benchmark agent", "trace lab", "failure scenario", "đánh giá độ tin cậy agent"], "weight": 3 }
+      ]
+    },
+    "trace-decisions-and-runs": {
+      "label": "Trace decisions and runs",
+      "skill": "trace-decisions-and-runs/SKILL.md",
+      "rules": [
+        { "any": ["trace decision", "trace the implementation run", "record this decision", "trace run", "decision history", "run evidence", "aakrun", "lưu quyết định", "theo dõi run"], "weight": 3 }
+      ]
+    },
     "security-review": {
       "label": "Review security boundaries",
       "skill": "security-review/SKILL.md",
