@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "memory-entry-v3",
+  "title": "Governed durable memory entry",
+  "type": "object",
+  "required": ["schema_version", "id", "revision", "title", "category", "content", "content_hash", "scope", "identity", "provenance", "confidence", "trust_tier", "status", "sensitivity", "acl", "retention", "created_by", "approver", "lifecycle", "created_at", "updated_at", "approved_at", "last_reviewed_at"],
+  "properties": {
+    "schema_version": { "const": 3 },
+    "id": { "type": "string", "minLength": 1, "maxLength": 256 },
+    "revision": { "type": "integer", "minimum": 1 },
+    "title": { "type": "string", "minLength": 1, "maxLength": 256 },
+    "category": { "enum": ["architecture", "ownership", "domain-rule", "implementation-pattern", "testing", "release", "observability", "operational-risk", "failure-mode", "learning"] },
+    "content": { "type": "string", "minLength": 1, "maxLength": 16384 },
+    "content_hash": { "$ref": "#/$defs/digest" },
+    "scope": { "$ref": "#/$defs/scope" },
+    "identity": { "$ref": "#/$defs/identity" },
+    "provenance": { "$ref": "#/$defs/provenance" },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+    "trust_tier": { "enum": ["provisional", "reviewed", "verified"] },
+    "status": { "enum": ["PROPOSED", "APPROVED", "REJECTED", "STALE", "SUPERSEDED", "REVOKED", "EXPIRED", "QUARANTINED"] },
+    "sensitivity": { "type": "object", "required": ["classification", "findings"], "properties": { "classification": { "enum": ["public", "internal", "confidential", "restricted"] }, "findings": { "type": "array", "maxItems": 20, "items": { "type": "string" } } }, "additionalProperties": false },
+    "acl": { "$ref": "#/$defs/acl" },
+    "retention": { "$ref": "#/$defs/retention" },
+    "created_by": { "type": "string", "minLength": 1, "maxLength": 256 },
+    "approver": { "type": ["string", "null"], "maxLength": 256 },
+    "lifecycle": { "type": "object", "required": ["reason", "replacement_id", "supersedes"], "properties": { "reason": { "type": ["string", "null"], "maxLength": 1000 }, "replacement_id": { "type": ["string", "null"], "maxLength": 256 }, "supersedes": { "$ref": "#/$defs/ids" } }, "additionalProperties": false },
+    "created_at": { "type": "string", "format": "date-time" },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "approved_at": { "type": ["string", "null"], "format": "date-time" },
+    "last_reviewed_at": { "type": ["string", "null"], "format": "date-time" }
+  },
+  "$defs": {
+    "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "hash": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
+    "ids": { "type": "array", "maxItems": 100, "items": { "type": "string", "minLength": 1, "maxLength": 256 }, "uniqueItems": true },
+    "scope": { "type": "object", "required": ["visibility", "organization_id", "repository_id", "branch", "modules", "task_id", "run_id", "session_id", "agent_id"], "properties": { "visibility": { "enum": ["repository", "branch", "module", "task", "run", "session", "agent"] }, "organization_id": { "type": "string" }, "repository_id": { "type": "string" }, "branch": { "type": ["string", "null"] }, "modules": { "$ref": "#/$defs/ids" }, "task_id": { "type": ["string", "null"] }, "run_id": { "type": ["string", "null"] }, "session_id": { "type": ["string", "null"] }, "agent_id": { "type": ["string", "null"] } }, "additionalProperties": false },
+    "identity": { "type": "object", "required": ["organization_id", "repository_id", "task_id", "run_id", "session_id", "agent_id"], "properties": { "organization_id": { "type": "string" }, "repository_id": { "type": "string" }, "task_id": { "type": ["string", "null"] }, "run_id": { "type": ["string", "null"] }, "session_id": { "type": ["string", "null"] }, "agent_id": { "type": ["string", "null"] } }, "additionalProperties": false },
+    "provenance": { "type": "object", "required": ["source_type", "references", "source_commit", "source_hash", "evidence_hashes", "handoff_hash", "candidate_hash"], "properties": { "source_type": { "type": "string", "maxLength": 100 }, "references": { "$ref": "#/$defs/ids" }, "source_commit": { "type": ["string", "null"] }, "source_hash": { "$ref": "#/$defs/hash" }, "evidence_hashes": { "$ref": "#/$defs/ids" }, "handoff_hash": { "$ref": "#/$defs/hash" }, "candidate_hash": { "$ref": "#/$defs/hash" } }, "additionalProperties": false },
+    "aclRule": { "type": "object", "required": ["organization_ids", "repository_ids", "actor_ids", "roles"], "properties": { "organization_ids": { "$ref": "#/$defs/ids" }, "repository_ids": { "$ref": "#/$defs/ids" }, "actor_ids": { "$ref": "#/$defs/ids" }, "roles": { "$ref": "#/$defs/ids" } }, "additionalProperties": false },
+    "acl": { "type": "object", "required": ["read", "write"], "properties": { "read": { "$ref": "#/$defs/aclRule" }, "write": { "$ref": "#/$defs/aclRule" } }, "additionalProperties": false },
+    "retention": { "type": "object", "required": ["review_date", "expires_at", "delete_after", "policy"], "properties": { "review_date": { "type": ["string", "null"], "format": "date" }, "expires_at": { "type": ["string", "null"], "format": "date-time" }, "delete_after": { "type": ["string", "null"], "format": "date-time" }, "policy": { "type": "string", "maxLength": 100 } }, "additionalProperties": false }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    { "if": { "properties": { "status": { "const": "APPROVED" } } }, "then": { "properties": { "approver": { "type": "string", "minLength": 1 }, "approved_at": { "type": "string", "format": "date-time" }, "retention": { "properties": { "review_date": { "type": "string", "format": "date" } } }, "provenance": { "properties": { "source_commit": { "type": "string", "minLength": 1 } } } } } }
+  ]
+}

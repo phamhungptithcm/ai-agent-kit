@@ -3,12 +3,14 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { hasSymlinkComponent } from "./paths.mjs";
+import { memoryDigest, normalizeMemoryCandidate, resolveRepositoryIdentity } from "./memory-contract.mjs";
 
 const MAX_FILE = 2 * 1024 * 1024;
 const MAX_HANDOFFS = 100;
 const MAX_CLAIMS = 200;
 const MAX_CONFLICTS = 100;
 const MAX_FACTS = 50;
+const MAX_MEMORY_CANDIDATES = 10;
 const MAX_TEXT = 1000;
 const FINDING_SEVERITIES = new Set(["CRITICAL", "HIGH", "MEDIUM", "LOW", "INFORMATIONAL"]);
 
@@ -139,7 +141,7 @@ export function initializeTeamContext(options) {
     repository_intelligence: options.repositoryIntelligence ?? "DEGRADED",
     approval_hash: options.approvalHash ?? null
   };
-  const context = { schema_version: 1, task_id: id, state: "PLANNED", revision: 1, knowledge_revision: 0, brief, assignments: (options.assignments ?? []).map((item) => ({ id: safe(item.id, "assignment id"), depends_on: item.depends_on ?? [], write_access: Boolean(item.write_access), allowed_paths: item.allowed_paths ?? [], latest_handoff_hash: null, acknowledged_handoff_hash: null, acknowledged_status: null, completed_knowledge_revision: null })), claims: [], handoffs: [], conflicts: [], decisions: [], created_at: now, updated_at: now };
+  const context = { schema_version: 2, task_id: id, state: "PLANNED", revision: 1, knowledge_revision: 0, brief, assignments: (options.assignments ?? []).map((item) => ({ id: safe(item.id, "assignment id"), depends_on: item.depends_on ?? [], write_access: Boolean(item.write_access), allowed_paths: item.allowed_paths ?? [], latest_handoff_hash: null, acknowledged_handoff_hash: null, acknowledged_status: null, completed_knowledge_revision: null })), claims: [], handoffs: [], conflicts: [], decisions: [], memory_candidate_reviews: [], created_at: now, updated_at: now };
   seal(context); atomicWrite(root, contextPath(id), context, "team context"); return context;
 }
 
@@ -239,7 +241,20 @@ export function publishTeamHandoff(options) {
     if (claim.dependency_handoff_hashes.some((hashValue, index) => hashValue !== context.assignments.find((item) => item.id === assignment.depends_on[index])?.latest_handoff_hash)) throw new Error("handoff dependencies became stale");
     const affectedPaths = [...new Set(payload.affected_paths ?? [])].slice(0, 100).map((item) => scopedPath(item, root, "affected path"));
     if (claim.write_access && affectedPaths.some((item) => !coveredBy(item, claim.paths))) throw new Error("handoff affected path exceeds claimed write scope");
-    const normalized = { assignment_id: assignment.id, agent_id: claim.agent_id, claim_id: claim.claim_id, brief_hash: payload.brief_hash, context_revision: claim.context_revision, facts: statements(payload.facts ?? [], "handoff facts"), findings: statements(payload.findings ?? [], "handoff findings"), structured_findings: (payload.structured_findings ?? []).slice(0, MAX_FACTS).map((item) => structuredFinding(item, root, assignment.id)), decisions_needed: statements(payload.decisions_needed ?? [], "handoff decisions"), risks: statements(payload.risks ?? [], "handoff risks"), unresolved_questions: statements(payload.unresolved_questions ?? [], "handoff questions"), affected_paths: affectedPaths, tests_recommended: statements(payload.tests_recommended ?? [], "recommended tests"), evidence: (payload.evidence ?? []).slice(0, MAX_FACTS).map((item) => evidenceItem(item, root)), status: payload.status ?? "COMPLETED", published_at: now };
+    const evidence = (payload.evidence ?? []).slice(0, MAX_FACTS).map((item) => evidenceItem(item, root));
+    if (!Array.isArray(payload.memory_candidates ?? [])) throw new Error("handoff memory candidates must be an array");
+    if ((payload.memory_candidates ?? []).length > MAX_MEMORY_CANDIDATES) throw new Error("handoff memory candidate budget exceeded");
+    const repositoryIdentity = resolveRepositoryIdentity({ target: root, sourceCommit: context.brief.repository_commit });
+    const evidenceHashes = new Set(evidence.map((item) => item.sha256));
+    const memoryCandidates = (payload.memory_candidates ?? []).map((item) => {
+      const candidate = normalizeMemoryCandidate(item, { target: root, repositoryIdentity, taskId: id, agentId: claim.agent_id });
+      const boundHashes = candidate.evidence_hashes.length ? candidate.evidence_hashes : [...evidenceHashes].sort();
+      if (!boundHashes.length || boundHashes.some((hashValue) => !evidenceHashes.has(hashValue))) throw new Error("memory candidate must bind to current handoff evidence");
+      const bound = { ...candidate, evidence_hashes: boundHashes };
+      delete bound.candidate_hash;
+      return { ...bound, candidate_hash: memoryDigest(bound), proposed_by_agent: claim.agent_id, assignment_id: assignment.id };
+    });
+    const normalized = { assignment_id: assignment.id, agent_id: claim.agent_id, claim_id: claim.claim_id, brief_hash: payload.brief_hash, context_revision: claim.context_revision, facts: statements(payload.facts ?? [], "handoff facts"), findings: statements(payload.findings ?? [], "handoff findings"), structured_findings: (payload.structured_findings ?? []).slice(0, MAX_FACTS).map((item) => structuredFinding(item, root, assignment.id)), decisions_needed: statements(payload.decisions_needed ?? [], "handoff decisions"), risks: statements(payload.risks ?? [], "handoff risks"), unresolved_questions: statements(payload.unresolved_questions ?? [], "handoff questions"), affected_paths: affectedPaths, tests_recommended: statements(payload.tests_recommended ?? [], "recommended tests"), evidence, memory_candidates: memoryCandidates, status: payload.status ?? "COMPLETED", published_at: now };
     if (!new Set(["COMPLETED", "BLOCKED", "REJECTED"]).has(normalized.status)) throw new Error("handoff status is invalid");
     if (normalized.status === "COMPLETED" && !normalized.evidence.length) throw new Error("completed handoff requires evidence");
     const handoffHash = digest(normalized); context.handoffs.push({ ...normalized, handoff_hash: handoffHash });
@@ -317,6 +332,77 @@ export function synthesizeTeamFindings(options) {
     grouped.set(finding.fingerprint, { ...preferred, specialists, confirmations: current.confirmations + 1, disagreement });
   }
   return [...grouped.values()].sort((left, right) => right.confidence - left.confidence || left.fingerprint.localeCompare(right.fingerprint));
+}
+
+export function listTeamMemoryCandidates(options) {
+  const context = inspectTeamContext(options);
+  const currentHandoffs = new Set(context.assignments.map((item) => item.latest_handoff_hash).filter(Boolean));
+  const candidates = [];
+  for (const handoff of context.handoffs.filter((item) => currentHandoffs.has(item.handoff_hash) && item.status === "COMPLETED")) {
+    for (const candidate of handoff.memory_candidates ?? []) candidates.push({ ...candidate, handoff_hash: handoff.handoff_hash, published_at: handoff.published_at });
+  }
+  const titleScopes = new Map();
+  for (const candidate of candidates) {
+    const key = memoryDigest({ title: candidate.title.toLowerCase(), scope: candidate.scope });
+    const group = titleScopes.get(key) ?? []; group.push(candidate); titleScopes.set(key, group);
+  }
+  const conflicting = new Set(); const selectedByDecision = new Set(); const rejectedByDecision = new Set();
+  for (const group of titleScopes.values()) {
+    if (new Set(group.map((item) => item.candidate_hash)).size <= 1) continue;
+    const handoffHashes = new Set(group.map((item) => item.handoff_hash));
+    const resolved = context.decisions.findLast((decision) => {
+      const conflict = context.conflicts.find((item) => item.conflict_id === decision.conflict_id && item.status === "RESOLVED");
+      return conflict && [...handoffHashes].every((hashValue) => conflict.handoff_hashes.includes(hashValue));
+    });
+    for (const item of group) {
+      if (!resolved) conflicting.add(item.candidate_hash);
+      else if (item.handoff_hash === resolved.selected_handoff_hash) selectedByDecision.add(item.candidate_hash);
+      else rejectedByDecision.add(item.candidate_hash);
+    }
+  }
+  const deduplicated = new Map();
+  for (const candidate of candidates) {
+    const current = deduplicated.get(candidate.candidate_hash);
+    const source = { handoff_hash: candidate.handoff_hash, assignment_id: candidate.assignment_id, agent_id: candidate.proposed_by_agent };
+    if (!current) deduplicated.set(candidate.candidate_hash, { ...candidate, sources: [source] });
+    else current.sources.push(source);
+  }
+  return [...deduplicated.values()].map((candidate) => {
+    const reviews = (context.memory_candidate_reviews ?? []).filter((item) => item.candidate_hash === candidate.candidate_hash);
+    const latestReview = reviews.at(-1) ?? null;
+    const status = conflicting.has(candidate.candidate_hash) ? "CONFLICTED" : rejectedByDecision.has(candidate.candidate_hash) ? "REJECTED_BY_CONFLICT_DECISION" : latestReview?.status ?? "PROPOSED";
+    return { ...candidate, sources: candidate.sources.sort((a, b) => a.handoff_hash.localeCompare(b.handoff_hash)), status, conflict_selected: selectedByDecision.has(candidate.candidate_hash), latest_review: latestReview };
+  }).sort((a, b) => a.candidate_hash.localeCompare(b.candidate_hash));
+}
+
+export function reviewTeamMemoryCandidate(options) {
+  const root = path.resolve(options.target ?? process.cwd()); const id = safe(options.id, "task id");
+  return withLock(root, id, () => {
+    const context = inspectTeamContext({ target: root, id });
+    if (integer(options.expectedRevision, "expected revision", 1) !== context.revision) throw new Error(`team context revision conflict: expected ${options.expectedRevision}, current ${context.revision}`);
+    const decision = String(options.decision ?? "").toUpperCase();
+    if (!new Set(["VERIFIED", "REJECTED"]).has(decision)) throw new Error("memory candidate review decision must be VERIFIED or REJECTED");
+    const candidate = listTeamMemoryCandidates({ target: root, id }).find((item) => item.candidate_hash === options.candidateHash);
+    if (!candidate) throw new Error("memory candidate does not exist in a current completed handoff");
+    if (decision === "VERIFIED" && ["CONFLICTED", "REJECTED_BY_CONFLICT_DECISION"].includes(candidate.status)) throw new Error("conflicting memory candidates require an evidence-bound team conflict decision selecting this handoff");
+    const handoff = context.handoffs.find((item) => item.handoff_hash === options.handoffHash && (item.memory_candidates ?? []).some((item) => item.candidate_hash === candidate.candidate_hash));
+    if (!handoff) throw new Error("memory candidate review requires a matching current handoff");
+    const assignment = context.assignments.find((item) => item.id === handoff.assignment_id);
+    if (assignment?.latest_handoff_hash !== handoff.handoff_hash || assignment.acknowledged_handoff_hash !== handoff.handoff_hash || assignment.acknowledged_status !== "COMPLETED") throw new Error("memory candidate handoff is not the accepted completed assignment result");
+    const currentEvidence = handoff.evidence.map((item) => evidenceItem(item, root));
+    const hashes = new Set(currentEvidence.map((item) => item.sha256));
+    if (candidate.evidence_hashes.some((value) => !hashes.has(value))) throw new Error("memory candidate evidence is stale or changed");
+    const reviewer = safe(options.reviewedBy, "memory candidate reviewer");
+    const now = timestamp(options.now ?? new Date().toISOString(), "memory candidate review timestamp");
+    const prior = (context.memory_candidate_reviews ?? []).findLast((item) => item.candidate_hash === candidate.candidate_hash && item.handoff_hash === handoff.handoff_hash && item.status === decision && item.reviewed_by === reviewer);
+    if (prior) return { review: prior, revision: context.revision, context_hash: context.context_hash, duplicate: true };
+    const review = { candidate_hash: candidate.candidate_hash, handoff_hash: handoff.handoff_hash, status: decision, reviewed_by: reviewer, evidence_hashes: candidate.evidence_hashes, reason: bounded(options.reason, "memory candidate review reason"), reviewed_at: now };
+    review.review_hash = digest(review);
+    context.memory_candidate_reviews ??= [];
+    context.memory_candidate_reviews.push(review);
+    context.revision += 1; context.updated_at = now; seal(context); atomicWrite(root, contextPath(id), context, "team context");
+    return { review, revision: context.revision, context_hash: context.context_hash, duplicate: false };
+  });
 }
 
 export function briefHash(context) { return digest(context.brief); }

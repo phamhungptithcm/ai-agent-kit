@@ -8,7 +8,6 @@ const workspace = process.cwd();
 const temporaryRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ai-agent-kit-packed-"));
 const packageData = JSON.parse(fs.readFileSync(path.join(workspace, "package.json"), "utf8"));
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
-const npxCommand = process.platform === "win32" ? "npx.cmd" : "npx";
 
 function execute(command, args, cwd) {
   const spawnArgs = process.platform === "win32"
@@ -46,34 +45,38 @@ try {
   );
   assert.deepEqual(forbiddenPackageState, [], `package contains local or generated state: ${forbiddenPackageState.join(", ")}`);
   const tarball = path.join(temporaryRoot, packResult[0].filename);
+  const packedCliRoot = path.join(temporaryRoot, "packed-cli");
+  fs.mkdirSync(packedCliRoot);
+  execute("git", ["init"], packedCliRoot);
+  fs.writeFileSync(path.join(packedCliRoot, "package.json"), `${JSON.stringify({ name: "packed-cli-runner", private: true })}\n`);
+  execute(npmCommand, ["install", tarball], packedCliRoot);
+  const packedCli = path.join(packedCliRoot, "node_modules", "@hunpeolabs", "ai-agent-kit", "dist", "bin", "ai-agent-kit.mjs");
+  const executePacked = (args, cwd) => execute(process.execPath, [packedCli, ...args], cwd);
   const fixture = path.join(temporaryRoot, "fixture");
   fs.mkdirSync(fixture);
   execute("git", ["init"], fixture);
 
-  const packageOption = `--package=${tarball}`;
-  const versionResult = execute(npxCommand, ["--yes", packageOption, "ai-agent-kit", "--version"], fixture);
+  const versionResult = executePacked(["--version"], fixture);
   const versionOutput = `${versionResult.stdout}${versionResult.stderr}`;
   assert.match(versionOutput, new RegExp(packageData.version.replaceAll(".", "\\.")));
 
-  const activationResult = execute(npxCommand, ["--yes", packageOption, "ai-agent-kit"], fixture);
+  const activationResult = executePacked([], fixture);
   const activationOutput = `${activationResult.stdout}${activationResult.stderr}`;
   assert.match(activationOutput, /Choose how to import the kit into this project/);
   assert.match(activationOutput, /Interactive input is unavailable/);
   assert.equal(fs.existsSync(path.join(fixture, ".ai-agent-kit")), false);
 
-  const dryRunResult = execute(
-    npxCommand,
-    ["--yes", packageOption, "ai-agent-kit", "bootstrap", "--dry-run"],
+  const dryRunResult = executePacked(
+    ["bootstrap", "--dry-run"],
     fixture
   );
   const dryRunOutput = `${dryRunResult.stdout}${dryRunResult.stderr}`;
   assert.match(dryRunOutput, /AI Agent Kit Bootstrap: DRY RUN/);
   assert.equal(fs.existsSync(path.join(fixture, ".ai-agent-kit")), false);
 
-  const runtimeCreate = execute(
-    npxCommand,
+  const runtimeCreate = executePacked(
     [
-      "--yes", packageOption, "ai-agent-kit", "runtime", "task", "create",
+      "runtime", "task", "create",
       "--id", "SMOKE-001", "--goal", "Verify packaged runtime",
       "--acceptance", "Task state persists", "--approval-hash", "smoke-approval",
       "--tool", "read", "--path", "src/**"
@@ -81,58 +84,53 @@ try {
     fixture
   );
   assert.match(runtimeCreate.stdout, /"state": "DISCOVER"/);
-  const runtimeStatus = execute(
-    npxCommand,
-    ["--yes", packageOption, "ai-agent-kit", "runtime", "task", "status", "--id", "SMOKE-001"],
+  const runtimeStatus = executePacked(
+    ["runtime", "task", "status", "--id", "SMOKE-001"],
     fixture
   );
   assert.match(runtimeStatus.stdout, /"goal": "Verify packaged runtime"/);
   assert.ok(fs.existsSync(path.join(fixture, ".ai-agent-kit", "runtime", "tasks", "SMOKE-001.json")));
   fs.writeFileSync(path.join(fixture, ".ai-agent-kit", "runtime", "smoke-evidence.txt"), "packed runtime evidence\n");
 
-  const teamPlan = execute(npxCommand, ["--yes", packageOption, "ai-agent-kit", "team", "plan", "--id", "SMOKE-001"], fixture);
+  const teamPlan = executePacked(["team", "plan", "--id", "SMOKE-001"], fixture);
   assert.match(teamPlan.stdout, /"team_type": "SOLO"/);
-  const teamStart = execute(npxCommand, ["--yes", packageOption, "ai-agent-kit", "team", "start", "--id", "SMOKE-001", "--adapter", "other"], fixture);
+  const teamStart = executePacked(["team", "start", "--id", "SMOKE-001", "--adapter", "other"], fixture);
   assert.match(teamStart.stdout, /"execution_mode": "SERIAL_PERSONAS"/);
   const completeAssignment = (assignment, agent, evidenceHash) => {
-    const context = JSON.parse(execute(npxCommand, ["--yes", packageOption, "ai-agent-kit", "team", "context", "--id", "SMOKE-001"], fixture).stdout);
-    const claim = JSON.parse(execute(npxCommand, ["--yes", packageOption, "ai-agent-kit", "team", "claim", "--id", "SMOKE-001", "--assignment", assignment, "--agent", agent, "--expected-revision", String(context.revision)], fixture).stdout);
+    const context = JSON.parse(executePacked(["team", "context", "--id", "SMOKE-001"], fixture).stdout);
+    const claim = JSON.parse(executePacked(["team", "claim", "--id", "SMOKE-001", "--assignment", assignment, "--agent", agent, "--expected-revision", String(context.revision)], fixture).stdout);
     const handoffFile = `.ai-agent-kit/runtime/${assignment}-handoff-input.json`;
     fs.writeFileSync(path.join(fixture, handoffFile), `${JSON.stringify({ brief_hash: context.brief_hash, facts: [`${assignment} completed`], evidence: [{ path: ".ai-agent-kit/runtime/smoke-evidence.txt", line_start: 1, line_end: 1 }], status: "COMPLETED" })}\n`);
-    const handoff = JSON.parse(execute(npxCommand, ["--yes", packageOption, "ai-agent-kit", "team", "handoff", "--id", "SMOKE-001", "--claim", claim.claim.claim_id, "--agent", agent, "--expected-revision", String(claim.revision), "--file", handoffFile], fixture).stdout);
-    execute(npxCommand, ["--yes", packageOption, "ai-agent-kit", "team", "record", "--id", "SMOKE-001", "--assignment", assignment, "--status", "COMPLETED", "--handoff-hash", handoff.handoff_hash, "--evidence-hash", evidenceHash, "--tokens", "100", "--actions", "1", "--duration-seconds", "10"], fixture);
+    const handoff = JSON.parse(executePacked(["team", "handoff", "--id", "SMOKE-001", "--claim", claim.claim.claim_id, "--agent", agent, "--expected-revision", String(claim.revision), "--file", handoffFile], fixture).stdout);
+    executePacked(["team", "record", "--id", "SMOKE-001", "--assignment", assignment, "--status", "COMPLETED", "--handoff-hash", handoff.handoff_hash, "--evidence-hash", evidenceHash, "--tokens", "100", "--actions", "1", "--duration-seconds", "10"], fixture);
   };
   completeAssignment("implementation-engineer", "smoke-implementer", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
   completeAssignment("independent-reviewer", "smoke-reviewer", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
-  const teamReport = execute(npxCommand, ["--yes", packageOption, "ai-agent-kit", "team", "report", "--id", "SMOKE-001"], fixture);
+  const teamReport = executePacked(["team", "report", "--id", "SMOKE-001"], fixture);
   assert.match(teamReport.stdout, /"status": "READY"/);
 
-  const simulation = execute(
-    npxCommand,
-    ["--yes", packageOption, "ai-agent-kit", "policy", "simulate", "--id", "SMOKE-001", "--tool", "read", "--path", "src/example.mjs"],
+  const simulation = executePacked(
+    ["policy", "simulate", "--id", "SMOKE-001", "--tool", "read", "--path", "src/example.mjs"],
     fixture
   );
   assert.match(simulation.stdout, /"mode": "SIMULATION"/);
   assert.match(simulation.stdout, /"executed": false/);
 
-  const evalResult = execute(
-    npxCommand,
-    ["--yes", packageOption, "ai-agent-kit", "eval", "replay", "--fixture", path.join(workspace, "test/fixtures/v070/eval-pass.json")],
+  const evalResult = executePacked(
+    ["eval", "replay", "--fixture", path.join(workspace, "test/fixtures/v070/eval-pass.json")],
     fixture
   );
   assert.match(evalResult.stdout, /"status": "PASSED"/);
 
-  const systemDesignPrompt = execute(
-    npxCommand,
-    ["--yes", packageOption, "ai-agent-kit", "prompt", "design-system"],
+  const systemDesignPrompt = executePacked(
+    ["prompt", "design-system"],
     fixture
   );
   assert.match(systemDesignPrompt.stdout, /design-scalable-systems/);
   assert.match(systemDesignPrompt.stdout, /READY_FOR_REVIEW/);
 
-  const demoResult = execute(
-    npxCommand,
-    ["--yes", packageOption, "ai-agent-kit", "demo", "--otlp"],
+  const demoResult = executePacked(
+    ["demo", "--otlp"],
     fixture
   );
   assert.match(demoResult.stdout, /"status": "GENERATED"/);
@@ -146,16 +144,35 @@ try {
   fs.writeFileSync(path.join(fixture, "src/smoke.mjs"), "export const smoke = 1;\n");
   execute("git", ["add", "src/smoke.mjs"], fixture);
   execute("git", ["commit", "-m", "smoke base"], fixture);
-  const prTask = execute(
-    npxCommand,
-    ["--yes", packageOption, "ai-agent-kit", "runtime", "task", "create", "--id", "PR-SMOKE", "--goal", "Verify PR evidence", "--acceptance", "Scoped source changes", "--tool", "edit", "--path", "src/**"],
+  executePacked(
+    ["runtime", "task", "create", "--id", "MEM-SMOKE", "--goal", "Verify packed shared memory"],
+    fixture
+  );
+  const memoryProposal = JSON.parse(executePacked(
+    ["runtime", "memory", "propose", "--id", "MEM-SMOKE", "--title", "Packed memory rule", "--content", "Packed shared memory uses a transactional local store.", "--source", "src/smoke.mjs", "--created-by", "smoke-agent"],
+    fixture
+  ).stdout);
+  assert.equal(memoryProposal.schema_version, 3);
+  const memoryApproval = JSON.parse(executePacked(
+    ["runtime", "memory", "approve", "--memory-id", memoryProposal.id, "--approver", "smoke-memory-owner", "--review-date", "2099-01-01"],
+    fixture
+  ).stdout);
+  assert.equal(memoryApproval.status, "APPROVED");
+  const memoryQuery = JSON.parse(executePacked(
+    ["runtime", "memory", "query", "--query", "transactional", "--with-receipt", "--limit", "5", "--token-budget", "500"],
+    fixture
+  ).stdout);
+  assert.equal(memoryQuery.entries.length, 1);
+  assert.match(memoryQuery.receipt.audit_receipt_hash, /^[a-f0-9]{64}$/);
+  assert.ok(fs.existsSync(path.join(fixture, ".ai-agent-kit/runtime/memory/memory.sqlite3")));
+  const prTask = executePacked(
+    ["runtime", "task", "create", "--id", "PR-SMOKE", "--goal", "Verify PR evidence", "--acceptance", "Scoped source changes", "--tool", "edit", "--path", "src/**"],
     fixture
   );
   assert.match(prTask.stdout, /"id": "PR-SMOKE"/);
   fs.writeFileSync(path.join(fixture, "src/smoke.mjs"), "export const smoke = 2;\n");
-  const prEvidence = execute(
-    npxCommand,
-    ["--yes", packageOption, "ai-agent-kit", "evidence", "pr-package", "--id", "PR-SMOKE", "--format", "json"],
+  const prEvidence = executePacked(
+    ["evidence", "pr-package", "--id", "PR-SMOKE", "--format", "json"],
     fixture
   );
   assert.match(prEvidence.stdout, /"approval_to_diff"/);
@@ -163,10 +180,10 @@ try {
 
   const failureManifest = path.join(fixture, "failure-lab.json");
   fs.writeFileSync(failureManifest, JSON.stringify({ schema_version: 1, cases: [{ id: "network-timeout", command: ["npm", "test"], env: { FAILURE_MODE: "network_timeout" } }] }));
-  const failurePlan = execute(npxCommand, ["--yes", packageOption, "ai-agent-kit", "failure", "plan", "--manifest", "failure-lab.json"], fixture);
+  const failurePlan = executePacked(["failure", "plan", "--manifest", "failure-lab.json"], fixture);
   assert.match(failurePlan.stdout, /"status": "PREVIEW"/);
 
-  const passportKey = execute(npxCommand, ["--yes", packageOption, "ai-agent-kit", "passport", "keygen", "--key-id", "smoke-maintainer"], fixture);
+  const passportKey = executePacked(["passport", "keygen", "--key-id", "smoke-maintainer"], fixture);
   assert.match(passportKey.stdout, /"status": "CREATED"/);
   assert.ok(fs.existsSync(path.join(fixture, ".ai-agent-kit/local/passport-keys/smoke-maintainer.private.pem")));
 
@@ -241,7 +258,7 @@ try {
   assert.match(architectureStatus.stdout, /"status": "CURRENT"/);
   const installedPackage = JSON.parse(fs.readFileSync(path.join(installFixture, "package.json"), "utf8"));
   assert.ok(installedPackage.dependencies?.["@hunpeolabs/ai-agent-kit"]);
-  console.log("packed npx smoke test passed");
+  console.log("packed install smoke test passed");
 } finally {
   fs.rmSync(temporaryRoot, { recursive: true, force: true });
 }

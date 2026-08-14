@@ -31,7 +31,8 @@
         "unresolved_questions": { "type": "array", "items": { "type": "string" } },
         "affected_paths": { "type": "array", "items": { "type": "string" } },
         "tests_recommended": { "type": "array", "items": { "type": "string" } },
-        "evidence": { "type": "array", "items": { "type": "object" } }
+        "evidence": { "type": "array", "items": { "type": "object" } },
+        "memory_candidates": { "type": "array", "maxItems": 10, "items": { "type": "object" } }
       },
       "additionalProperties": false
     }

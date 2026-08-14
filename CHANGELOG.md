@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased — v1.3.0 Governed Shared Memory
+
+- Implementation draft: canonical `memory-entry-v3`, transactional local
+  SQLite storage, reviewed subagent candidate promotion, scoped retrieval
+  receipts, signed repository-bound interchange, migration/recovery controls,
+  adversarial coverage, and release-assurance documentation.
+- This section is not release evidence. Version bump, tag, GitHub Release, npm
+  publication, deployment, and production activation remain separately
+  authorized and unperformed.
+
 ## 1.0.1 - 2026-08-13
 
 - Published the redesigned npm README that presents AI Agent Kit as the

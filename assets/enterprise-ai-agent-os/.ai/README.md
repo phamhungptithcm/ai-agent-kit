@@ -6,7 +6,7 @@ Every repository task starts with the Repository Intelligence Gate. Use CodeGrap
 
 Bootstrap is fast by default and does not install tools or refresh large indexes unless requested. Use `npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap --deep` or `.ai/scripts/index-repository.py` when full repository intelligence is needed.
 
-Team-ready completion also requires `.ai/core/quality-gates.md`, `.ai/core/code-quality-intelligence.md`, `.ai/core/output-contract.md`, and `.ai/core/memory-policy.md`. Memory retrieval is governed by `.ai/guards/memory-governance.yaml` and uses `.ai/templates/memory-entry.yaml` for approved-safe durable memory candidates.
+Team-ready completion also requires `.ai/core/quality-gates.md`, `.ai/core/code-quality-intelligence.md`, `.ai/core/output-contract.md`, and `.ai/core/memory-policy.md`. Memory retrieval is governed by `.ai/guards/memory-governance.yaml` and uses `.ai/templates/memory-entry.yaml` plus `.ai/templates/memory-entry.schema.json` for canonical `memory-entry-v3` records.
 
 Daily copy-ready prompts live in `.ai/PROMPTS.md`. Broader agent support is documented in `.ai/docs/agent-adapter-strategy.md`.
 

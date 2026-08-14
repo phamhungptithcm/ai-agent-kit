@@ -125,6 +125,7 @@ templates:
   - ".ai/templates/implementation-approval-record.md"
   - ".ai/templates/code-quality-review.md"
   - ".ai/templates/memory-entry.yaml"
+  - ".ai/templates/memory-entry.schema.json"
   - ".ai/templates/policy-bundle.json"
   - ".ai/templates/outcome-event.json"
   - ".ai/templates/policy-bundle.schema.json"

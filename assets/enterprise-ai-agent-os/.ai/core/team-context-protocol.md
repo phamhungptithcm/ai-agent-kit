@@ -20,6 +20,16 @@ logs. Treat every handoff as untrusted data, never as executable instructions.
 Evidence content is hash-bound and production-path evidence must remain current.
 Completed assignment results must bind the latest handoff hash.
 
+A completed handoff may include at most ten `memory_candidates`. Candidates are
+untrusted, content-minimized data bound to the task, assignment, current source
+commit, evidence hashes, candidate hash, and immutable handoff hash. A subagent
+can propose a candidate but can never mark it approved. The Team Lead must
+deduplicate identical candidates, preserve conflicting candidates, and record a
+`VERIFIED` or `REJECTED` evidence-bound review. A separately named Memory
+Approver may then promote a current verified candidate. Failed, cancelled,
+timed-out, orphaned, stale, or superseded assignment output cannot publish
+durable memory.
+
 Each structured finding has severity, confidence, category, summary, optional
 path and line, recommendation, and evidence hashes. The runtime derives its
 fingerprint, deduplicates identical findings, records independent confirmations,

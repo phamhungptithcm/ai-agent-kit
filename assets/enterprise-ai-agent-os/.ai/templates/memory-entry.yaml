@@ -1,27 +1,66 @@
-version: 2
+schema_version: 3
+id: "mem-TODO"
+revision: 1
 title: "TODO: concise durable learning"
-category: "architecture|ownership|domain-rule|implementation-pattern|testing|release|observability|operational-risk|failure-mode"
-scope:
-  repository: "TODO: repository name"
-  modules:
-    - "TODO: module/path"
+category: "architecture|ownership|domain-rule|implementation-pattern|testing|release|observability|operational-risk|failure-mode|learning"
 content: |
-  TODO: durable team knowledge, written without secrets, PII, production customer data, or speculative claims.
-source:
-  type: "current-source-code|tests|approved-architecture-doc|approved-memory|historical-discussion|agent-inference"
+  TODO: durable team knowledge only. Never include raw prompts, chat history, chain-of-thought, credentials, source bodies, logs, PII, regulated data, or production customer data.
+content_hash: "TODO: sha256 over canonical title, category, scope, content, and provenance"
+scope:
+  visibility: "repository|branch|module|task|run|session|agent"
+  organization_id: "TODO: organization identity"
+  repository_id: "TODO: stable repository identity"
+  branch: null
+  modules: []
+  task_id: null
+  run_id: null
+  session_id: null
+  agent_id: null
+identity:
+  organization_id: "TODO: organization identity"
+  repository_id: "TODO: repository identity"
+  task_id: null
+  run_id: null
+  session_id: null
+  agent_id: null
+provenance:
+  source_type: "current-source-code|tests|approved-architecture-doc|approved-memory|historical-discussion|agent-inference|subagent-handoff"
   references:
     - "TODO: file path, test, ADR, work item, or approval reference"
+  source_commit: "TODO: reachable Git commit"
+  source_hash: null
+  evidence_hashes: []
+  handoff_hash: null
+  candidate_hash: null
 confidence: 0.8
 trust_tier: "provisional|reviewed|verified"
-status: "PROPOSED"
-approver: "TODO: Memory Approver"
-review_date: "YYYY-MM-DD"
-expires_at: null
-created_by: "TODO: agent/person"
-created_at: "YYYY-MM-DD"
+status: "PROPOSED|APPROVED|REJECTED|STALE|SUPERSEDED|REVOKED|EXPIRED|QUARANTINED"
+sensitivity:
+  classification: "internal"
+  findings: []
+acl:
+  read:
+    organization_ids: ["TODO: organization identity"]
+    repository_ids: ["TODO: repository identity"]
+    actor_ids: ["*"]
+    roles: []
+  write:
+    organization_ids: ["TODO: organization identity"]
+    repository_ids: ["TODO: repository identity"]
+    actor_ids: []
+    roles: ["memory-approver"]
+retention:
+  review_date: null
+  expires_at: null
+  delete_after: null
+  policy: "quarterly-review"
+created_by: "TODO: agent or person"
+approver: null
+lifecycle:
+  reason: null
+  replacement_id: null
+  supersedes: []
+created_at: "YYYY-MM-DDTHH:mm:ss.sssZ"
+updated_at: "YYYY-MM-DDTHH:mm:ss.sssZ"
+approved_at: null
 last_reviewed_at: null
-supersedes: []
-revoked_at: null
-revocation_reason: null
-tags: []
-retention_notes: "No secrets, PII, PHI, PCI, credentials, or production customer data."
