@@ -10,6 +10,8 @@ Team-ready completion also requires `.ai/core/quality-gates.md`, `.ai/core/code-
 
 Daily copy-ready prompts live in `.ai/PROMPTS.md`. Broader agent support is documented in `.ai/docs/agent-adapter-strategy.md`.
 
+When a user begins with only a product idea, route through `.ai/core/product-genesis.md` and `.ai/workflows/product-genesis.md`. Preserve successor versions and require a named human to approve the exact BRD and specification hashes before delivery advances.
+
 ## Layout
 
 - `core/`: mission, precedence, workflow, risk, quality gates, memory policy, definition of done, and output contract.

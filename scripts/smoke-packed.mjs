@@ -230,7 +230,17 @@ try {
     ".agents/skills/design-scalable-systems/references/security-control-matrix.md",
     ".agents/skills/design-scalable-systems/scripts/capacity_cost_model.py",
     ".ai/quality-profiles/system-design.yaml",
-    ".ai/evals/system-design-cases.yaml"
+    ".ai/evals/system-design-cases.yaml",
+    ".ai/core/product-genesis.md",
+    ".ai/config/external-skill-sources.lock.json",
+    ".ai/guards/product-genesis-stage-gate.yaml",
+    ".ai/templates/business-requirements.schema.json",
+    ".ai/templates/product-specification.schema.json",
+    ".agents/skills/start-product/SKILL.md",
+    ".agents/skills/write-business-requirements/SKILL.md",
+    ".agents/skills/write-product-specification/SKILL.md",
+    ".agents/skills/approve-product-baseline/SKILL.md",
+    ".agents/skills/plan-product-delivery/SKILL.md"
   ]) {
     assert.ok(fs.existsSync(path.join(installFixture, relPath)), `packed system-design capability missing ${relPath}`);
   }

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hunpeolabs.com/schemas/requirement-traceability-v1.json",
+  "title": "Requirement Traceability Matrix",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "baseline_hashes", "links", "coverage"],
+  "properties": {
+    "schema_version": {"const": 1}, "baseline_hashes": {"type": "array", "minItems": 1, "items": {"type": "string", "pattern": "^[a-f0-9]{64}$"}},
+    "links": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["business_requirement_id", "specification_ids", "acceptance_ids", "delivery_ids", "verification_ids"], "properties": {"business_requirement_id": {"type": "string"}, "specification_ids": {"type": "array", "items": {"type": "string"}}, "acceptance_ids": {"type": "array", "items": {"type": "string"}}, "delivery_ids": {"type": "array", "items": {"type": "string"}}, "verification_ids": {"type": "array", "items": {"type": "string"}}}}},
+    "coverage": {"type": "object", "additionalProperties": false, "required": ["requirements_total", "fully_traced", "ratio"], "properties": {"requirements_total": {"type": "integer", "minimum": 0}, "fully_traced": {"type": "integer", "minimum": 0}, "ratio": {"type": "number", "minimum": 0, "maximum": 1}}}
+  }
+}

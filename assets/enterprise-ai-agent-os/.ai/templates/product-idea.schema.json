@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hunpeolabs.com/schemas/product-idea-v1.json",
+  "title": "Product Idea Snapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "version", "status", "created_at", "created_by", "raw_idea", "problem", "people", "desired_outcomes", "constraints", "assumptions", "unknowns", "parent_versions"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "id": {"type": "string", "pattern": "^IDEA-[A-Z0-9-]+$"},
+    "version": {"type": "integer", "minimum": 1},
+    "status": {"enum": ["IDEA", "DISCOVERY", "SUPERSEDED"]},
+    "created_at": {"type": "string", "format": "date-time"},
+    "created_by": {"type": "string", "minLength": 1},
+    "raw_idea": {"type": "string", "minLength": 1},
+    "problem": {"type": "string"},
+    "people": {"type": "array", "items": {"type": "object", "required": ["role", "description"], "properties": {"role": {"enum": ["USER", "BUYER", "OPERATOR", "APPROVER", "AFFECTED"]}, "description": {"type": "string"}}, "additionalProperties": false}},
+    "desired_outcomes": {"type": "array", "items": {"type": "string"}},
+    "constraints": {"type": "array", "items": {"type": "string"}},
+    "assumptions": {"type": "array", "items": {"$ref": "#/$defs/ownedItem"}},
+    "unknowns": {"type": "array", "items": {"$ref": "#/$defs/ownedItem"}},
+    "parent_versions": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "change_reason": {"type": "string"},
+    "content_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  },
+  "$defs": {"ownedItem": {"type": "object", "additionalProperties": false, "required": ["id", "text", "owner"], "properties": {"id": {"type": "string"}, "text": {"type": "string"}, "owner": {"type": "string"}, "due_gate": {"type": "string"}}}}
+}

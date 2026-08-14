@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hunpeolabs.com/schemas/external-skill-sources-v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "generated_for", "policy", "sources"],
+  "properties": {
+    "schema_version": {"const": 1}, "generated_for": {"type": "string"},
+    "policy": {"type": "object", "additionalProperties": false, "required": ["execution", "allowed_adaptation_licenses", "require_manual_security_review", "require_exact_commit", "require_source_hash"], "properties": {"execution": {"const": "QUARANTINE_NO_EXECUTION"}, "allowed_adaptation_licenses": {"type": "array", "items": {"type": "string"}}, "require_manual_security_review": {"const": true}, "require_exact_commit": {"const": true}, "require_source_hash": {"const": true}}},
+    "sources": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["id", "upstream", "commit", "path", "license", "status", "source_sha256", "reviewed_on", "review", "adapted_concepts"], "properties": {"id": {"type": "string"}, "upstream": {"type": "string", "format": "uri"}, "commit": {"type": "string", "pattern": "^[a-f0-9]{40}$"}, "path": {"type": "string"}, "license": {"type": "string"}, "status": {"enum": ["ADAPT", "VENDOR", "REFERENCE_ONLY", "REJECT"]}, "source_sha256": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"}, "reviewed_on": {"type": "string", "format": "date"}, "review": {"type": "string", "minLength": 1}, "adapted_concepts": {"type": "array", "items": {"type": "string"}}}}}
+  }
+}

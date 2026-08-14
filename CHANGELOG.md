@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased — v1.3.0 Governed Shared Memory
 
+- Backported the complete Product Genesis agent capability: nine routed skills,
+  five rules, five quality profiles, six workflows, two approval guards, eight
+  product artifact schemas, source provenance, and generated host adapters.
+- Product Genesis guides a user from a rough idea through discovery, research,
+  human-approved BRD/spec baselines, Agile delivery, change control, and outcome
+  review without allowing an agent to self-approve or silently overwrite history.
 - Implementation draft: canonical `memory-entry-v3`, transactional local
   SQLite storage, reviewed subagent candidate promotion, scoped retrieval
   receipts, signed repository-bound interchange, migration/recovery controls,

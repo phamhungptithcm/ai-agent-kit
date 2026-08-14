@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hunpeolabs.com/schemas/product-baseline-approval-v1.json",
+  "title": "Product Baseline Approval",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "artifact_id", "artifact_type", "artifact_version", "artifact_hash", "decision", "approver", "approver_authority", "decided_at", "scope", "constraints", "rationale"],
+  "properties": {
+    "schema_version": {"const": 1}, "id": {"type": "string", "pattern": "^APPROVAL-[A-Z0-9-]+$"}, "artifact_id": {"type": "string"}, "artifact_type": {"enum": ["BUSINESS_REQUIREMENTS", "PRODUCT_SPECIFICATION", "DELIVERY_BASELINE", "CHANGE_BASELINE"]}, "artifact_version": {"type": "integer", "minimum": 1}, "artifact_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "decision": {"enum": ["APPROVED", "CHANGES_REQUESTED", "REJECTED"]}, "approver": {"type": "string", "minLength": 1}, "approver_authority": {"type": "string", "minLength": 1}, "decided_at": {"type": "string", "format": "date-time"}, "scope": {"type": "array", "minItems": 1, "items": {"type": "string"}}, "constraints": {"type": "array", "items": {"type": "string"}}, "rationale": {"type": "string", "minLength": 1}, "accepted_risks": {"type": "array", "items": {"type": "string"}}
+  }
+}

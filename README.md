@@ -84,11 +84,11 @@ blocks implementation; missing optional indexes produce an explicit
 
 | Capability | Included in AI Agent Kit 1.0 |
 | --- | --- |
-| Canonical skills | **34** skill sources, installed only where the selected adapter supports skill surfaces |
-| Engineering workflows | **25** workflows for research, planning, implementation, review, incidents, architecture, delivery, policy, memory, and proof |
-| Quality intelligence | **22** stack/risk profiles plus **17** durable engineering rules |
-| Enforcement | **15** guards for approval, capability, repository intelligence, memory, data, dependencies, orchestration, and protected actions |
-| Reusable artifacts | **62** templates and schemas for plans, reviews, evidence, system design, teams, memory, marketing, SEO/GEO, and release assurance |
+| Canonical skills | **43** skill sources, including nine Product Genesis stages, installed only where the selected adapter supports skill surfaces |
+| Engineering workflows | **31** workflows for product discovery, requirements, delivery, implementation, review, incidents, architecture, policy, memory, and proof |
+| Quality intelligence | **27** stack/risk/product profiles plus **22** durable engineering rules |
+| Enforcement | **17** guards for product approval, capability, repository intelligence, memory, data, dependencies, orchestration, and protected actions |
+| Reusable artifacts | **72** templates and schemas for ideas, research, requirements, specifications, delivery, plans, reviews, evidence, teams, memory, and release assurance |
 | Agent ecosystem | **12** versioned adapters with machine-readable `native`, `generated`, `bridged`, `advisory`, `preview`, or `unsupported` capability states |
 | Coordination | Four workcell modes, dependency-ready waves, leases, heartbeats, cancellation, bounded retries, recovery, and independent review |
 | Verification | Behavioral evals, adapter/standards conformance, tests, Failure Lab, Agent Proof Replay, Change Passports, and fail-closed readiness |
@@ -633,3 +633,4 @@ while keeping important decisions and risky actions in human hands.
 ## License
 
 [MIT](LICENSE)
+- [Product Genesis: Idea to Production](docs/PRODUCT_GENESIS.md)

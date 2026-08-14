@@ -1,0 +1,11 @@
+version: 1
+id: product-delivery
+name: Product Delivery Profile
+description: Convert approved baselines into small, testable, operable increments with honest estimates and release evidence.
+required_review:
+  slicing: [mvp_is_end_to_end, highest_risk_assumptions_are_tested_early, dependencies_are_visible]
+  backlog: [items_trace_to_requirements, definition_of_ready_and_done_exist, discovery_is_not_hidden]
+  assurance: [tests_security_observability_operations_docs_rollout_and_rollback_are_planned]
+  outcomes: [release_decision_uses_environment_specific_evidence, KPI_and_cost_feedback_update_the_next_version]
+required_output: [delivery_backlog, milestone_plan, risk_register, release_evidence_plan, outcome_review]
+allowed_statuses: [READY_FOR_IMPLEMENTATION_APPROVAL, NEEDS_DECISION, REPLAN_REQUIRED, HOLD]

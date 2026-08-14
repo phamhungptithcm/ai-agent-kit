@@ -1,0 +1,11 @@
+version: 1
+default: fail-closed
+allowed_decisions: [APPROVED, CHANGES_REQUESTED, REJECTED]
+required: [artifact_id, artifact_type, artifact_version, artifact_hash, decision, approver, approver_authority, decided_at, scope, constraints, rationale]
+reject_if:
+  - agent_is_approver
+  - artifact_hash_missing_or_mismatched
+  - critical_decision_unresolved
+  - traceability_below_required_threshold
+  - approval_targets_future_or_unknown_version
+not_sufficient: [chat_sentiment, issue_status, agent_recommendation, unsigned_free_form_note]

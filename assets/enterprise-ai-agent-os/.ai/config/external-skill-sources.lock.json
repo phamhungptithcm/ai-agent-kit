@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "generated_for": "ai-agent-kit-v1.3-product-genesis-backport",
+  "policy": {
+    "execution": "QUARANTINE_NO_EXECUTION",
+    "allowed_adaptation_licenses": ["MIT", "Apache-2.0", "BSD-2-Clause", "BSD-3-Clause", "CC0-1.0"],
+    "require_manual_security_review": true,
+    "require_exact_commit": true,
+    "require_source_hash": true
+  },
+  "sources": [
+    {
+      "id": "claude-skill-registry-catalog",
+      "upstream": "https://github.com/majiayu000/claude-skill-registry",
+      "commit": "c2ea41c99c18c8628595ee3d95a9313ebbca590e",
+      "path": "skills/",
+      "license": "NOASSERTION",
+      "status": "REFERENCE_ONLY",
+      "source_sha256": null,
+      "reviewed_on": "2026-08-14",
+      "review": "Used only to discover candidate categories. No file was vendored or executed because the catalog aggregates mixed provenance and licenses.",
+      "adapted_concepts": []
+    },
+    {
+      "id": "github-awesome-copilot-prd",
+      "upstream": "https://github.com/github/awesome-copilot",
+      "commit": "a80885b76044550770f60f360f8a0e5ae3524a31",
+      "path": "skills/prd/SKILL.md",
+      "license": "MIT",
+      "status": "ADAPT",
+      "source_sha256": "6772e6f0fcc7110d625c7f4595e4990e1910007676c36d217eda4e779041d5e5",
+      "reviewed_on": "2026-08-14",
+      "review": "Adapted the patterns of discovery before drafting, measurable requirements, explicit non-goals, risk analysis, and TBD rather than invented constraints. AI Agent Kit adds versioned business approval, evidence classes, BRD/spec separation, privacy, traceability, and delivery gates.",
+      "adapted_concepts": ["discovery_before_drafting", "measurable_requirements", "explicit_non_goals", "tbd_instead_of_invention"]
+    }
+  ]
+}

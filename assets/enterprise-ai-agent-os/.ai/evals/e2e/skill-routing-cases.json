@@ -7,6 +7,16 @@
     "maximum_false_positive_rate": 0
   },
   "cases": [
+    { "id": "product-start-en", "hint": "Start a product from an idea with no codebase", "expect": "start-product" },
+    { "id": "product-start-vi", "hint": "Mình chỉ có ý tưởng chưa có code, hãy bắt đầu sản phẩm từ ý tưởng", "expect": "start-product" },
+    { "id": "product-discuss", "hint": "Thảo luận ý tưởng sản phẩm và giúp mình hoàn thiện ý tưởng", "expect": "discuss-product-idea" },
+    { "id": "product-research", "hint": "Khảo sát thị trường cho sản phẩm và nghiên cứu ý tưởng sản phẩm", "expect": "research-product-opportunity" },
+    { "id": "product-brd", "hint": "Viết biz requirement thành một business requirements document", "expect": "write-business-requirements" },
+    { "id": "product-spec", "hint": "Viết product spec và đặc tả sản phẩm", "expect": "write-product-specification" },
+    { "id": "product-approval", "hint": "Duyệt BRD và chốt biz requirement làm product baseline", "expect": "approve-product-baseline" },
+    { "id": "product-delivery", "hint": "Lập backlog Scrum và chia epic story từ spec đã duyệt", "expect": "plan-product-delivery" },
+    { "id": "product-change", "hint": "Thay đổi spec đã chốt bằng một baseline change request", "expect": "control-product-change" },
+    { "id": "product-outcome", "hint": "Đánh giá sản phẩm sau triển khai và review product outcome", "expect": "review-product-outcome" },
     { "id": "bug-en", "hint": "Fix the checkout regression and add a test", "expect": "fix-bug" },
     { "id": "bug-vi", "hint": "Sửa lỗi thanh toán bị lặp", "expect": "fix-bug" },
     { "id": "security", "hint": "Run a security review of tenant authorization", "expect": "security-review" },
@@ -14,6 +24,7 @@
     { "id": "team", "hint": "Use a multi-agent team to inspect this change", "expect": "orchestrate-agent-department" },
     { "id": "system", "hint": "Create a system design for 100k requests per second", "expect": "design-scalable-systems" },
     { "id": "seo", "hint": "Audit website SEO and structured data", "expect": "seo-geo-website" },
+    { "id": "product-negative", "hint": "Explain what the word product means", "expect": null },
     { "id": "feature-vi", "hint": "Phát triển tính năng xuất dữ liệu", "expect": "implement-feature" },
     { "id": "unknown", "hint": "Explain this paragraph in plain language", "expect": null }
   ]
