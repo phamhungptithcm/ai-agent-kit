@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hunpeolabs.com/ai-agent-kit/architecture-pulse-comparison-v1.schema.json",
+  "type": "object",
+  "required": ["schema_version", "status", "reason_code", "reason", "blocking", "findings", "baseline", "governance", "current", "evidence_digest"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "status": { "enum": ["IMPROVED", "STABLE", "REGRESSED", "STALE", "UNTRUSTED", "DEGRADED"] },
+    "reason_code": { "type": "string", "minLength": 1 },
+    "reason": { "type": "string", "minLength": 1 },
+    "blocking": { "type": "boolean" },
+    "findings": { "type": "array" },
+    "baseline_digest": { "$ref": "#/$defs/nullableDigest" },
+    "current_result_digest": { "$ref": "#/$defs/nullableDigest" },
+    "baseline": { "type": "string", "minLength": 1 },
+    "governance": { "type": "object" },
+    "current": { "type": "object", "required": ["result_digest", "source_digest", "config_digest", "repository", "metrics", "coverage", "confidence"], "properties": { "result_digest": { "$ref": "#/$defs/digest" }, "source_digest": { "$ref": "#/$defs/digest" }, "config_digest": { "$ref": "#/$defs/digest" }, "repository": { "type": "object", "required": ["identity_hash", "commit", "worktree_digest"] }, "metrics": { "type": "object" }, "coverage": { "type": "object" }, "confidence": { "type": "object" } } },
+    "evidence_digest": { "$ref": "#/$defs/digest" }
+  },
+  "$defs": {
+    "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "nullableDigest": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" }
+  },
+  "additionalProperties": false
+}

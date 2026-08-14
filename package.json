@@ -1,7 +1,7 @@
 {
   "name": "@hunpeolabs/ai-agent-kit",
-  "version": "1.3.0",
-  "description": "The governed agent operating system for recoverable decisions, traceable runs, trusted plugins, and evidence-backed coding workflows.",
+  "version": "1.4.0",
+  "description": "Performance and assurance harness for AI coding agents with repository intelligence, native architecture pulse, governed memory, security gates, and verifiable delivery.",
   "type": "module",
   "bin": {
     "ai-agent-kit": "./dist/bin/ai-agent-kit.mjs"
@@ -30,6 +30,8 @@
     "codegraph",
     "cocoindex",
     "repository-intelligence",
+    "software-architecture",
+    "dependency-graph",
     "software-engineering-ai",
     "developer-productivity",
     "qa-automation",

@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hunpeolabs.com/ai-agent-kit/architecture-pulse-config-v1.schema.json",
+  "type": "object",
+  "properties": {
+    "schema_version": { "const": 1 },
+    "include": { "type": "array", "items": { "type": "string", "minLength": 1 }, "maxItems": 256 },
+    "exclude": { "type": "array", "items": { "type": "string", "minLength": 1 }, "maxItems": 256 },
+    "max_files": { "type": "integer", "minimum": 1, "maximum": 100000 },
+    "max_file_bytes": { "type": "integer", "minimum": 1, "maximum": 16777216 },
+    "max_total_bytes": { "type": "integer", "minimum": 1, "maximum": 536870912 },
+    "timeout_ms": { "type": "integer", "minimum": 1, "maximum": 600000 },
+    "boundaries": { "type": "array", "maxItems": 256, "items": { "type": "object", "required": ["name", "from"], "properties": { "name": { "type": "string", "minLength": 1 }, "from": { "type": "string", "minLength": 1 }, "allow": { "type": "array", "items": { "type": "string" } }, "deny": { "type": "array", "items": { "type": "string" } } }, "additionalProperties": false } },
+    "bridges": { "type": "array", "maxItems": 256, "items": { "type": "object", "required": ["from", "to"], "properties": { "id": { "type": "string" }, "from": { "type": "string" }, "to": { "type": "string" } }, "additionalProperties": false } },
+    "rules": { "type": "array", "maxItems": 256, "items": { "type": "object", "required": ["id", "type"], "properties": { "id": { "type": "string" }, "type": { "enum": ["new-cycles", "boundary-violations", "depth-increase", "cohesion-loss", "hotspot-growth", "blast-radius-growth", "coverage-drop", "confidence-drop"] }, "threshold": { "type": "number", "minimum": 0 }, "severity": { "enum": ["info", "warning", "block"] } }, "additionalProperties": false } }
+  },
+  "additionalProperties": false
+}

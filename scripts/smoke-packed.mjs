@@ -166,6 +166,15 @@ try {
   assert.match(bundle.stdout, /"status": "VERIFIED"/);
   const control = executePacked(["control", "view"], fixture);
   assert.match(control.stdout, /"status": "HEALTHY"/);
+  const pulseScan = executePacked(["pulse", "scan", "--task-id", "PULSE-SMOKE", "--format", "text"], fixture);
+  assert.match(pulseScan.stdout, /Architecture Pulse: COMPLETE/);
+  assert.ok(fs.existsSync(path.join(fixture, ".ai-agent-kit/pulse/tasks/PULSE-SMOKE.json")));
+  const pulseBaseline = executePacked(["pulse", "baseline", "create", "--name", "packed"], fixture);
+  assert.match(pulseBaseline.stdout, /"status": "CREATED"/);
+  const pulseVerify = executePacked(["pulse", "baseline", "verify", "--baseline", ".ai-agent-kit/pulse/baselines/packed.json"], fixture);
+  assert.match(pulseVerify.stdout, /"status": "VERIFIED"/);
+  const pulseCheck = executePacked(["pulse", "check", "--baseline", ".ai-agent-kit/pulse/baselines/packed.json", "--format", "text"], fixture);
+  assert.match(pulseCheck.stdout, /Architecture Pulse comparison: STABLE/);
   executePacked(
     ["runtime", "task", "create", "--id", "MEM-SMOKE", "--goal", "Verify packed shared memory"],
     fixture
@@ -208,6 +217,13 @@ try {
   const passportKey = executePacked(["passport", "keygen", "--key-id", "smoke-maintainer"], fixture);
   assert.match(passportKey.stdout, /"status": "CREATED"/);
   assert.ok(fs.existsSync(path.join(fixture, ".ai-agent-kit/local/passport-keys/smoke-maintainer.private.pem")));
+
+  // The second installation verifies postinstall and installed asset fidelity.
+  // Release the first isolated install and its generated fixture before creating
+  // another native dependency tree so packed smoke remains viable on bounded CI
+  // disks without weakening either installation path.
+  fs.rmSync(path.join(packedCliRoot, "node_modules"), { recursive: true, force: true });
+  fs.rmSync(fixture, { recursive: true, force: true });
 
   const installFixture = path.join(temporaryRoot, "install-fixture");
   fs.mkdirSync(installFixture);
@@ -277,7 +293,12 @@ try {
     ".ai/templates/plugin-manifest.schema.json",
     ".ai/templates/aakrun.schema.json",
     ".ai/templates/reliability-benchmark.schema.json",
-    ".ai/templates/reliability-benchmark.example.json"
+    ".ai/templates/reliability-benchmark.example.json",
+    ".ai/core/architecture-pulse.md",
+    ".ai/templates/architecture-pulse-config.schema.json",
+    ".ai/templates/architecture-pulse-result.schema.json",
+    ".ai/templates/architecture-pulse-baseline.schema.json",
+    ".ai/templates/architecture-pulse-comparison.schema.json"
   ]) {
     assert.ok(fs.existsSync(path.join(installFixture, relPath)), `packed system-design capability missing ${relPath}`);
   }
