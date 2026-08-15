@@ -1,0 +1,11 @@
+version: 1
+id: product-discovery
+name: Product Discovery Profile
+description: Produce decision-quality discovery from a rough idea without inventing users, demand, constraints, or evidence.
+required_review:
+  problem: [user_and_context_are_specific, workaround_and_cost_are_recorded, urgency_is_explained]
+  people: [user_buyer_operator_and_approver_are_distinct, accessibility_and_harm_are_considered]
+  scope: [desired_outcomes_are_measurable, non_goals_are_explicit, assumptions_and_unknowns_are_owned]
+  evidence: [claims_have_provenance, contradictory_evidence_is_preserved, research_limits_are_explicit]
+required_output: [idea_snapshot, discovery_brief, evidence_ledger, opportunity_decision, open_decisions]
+allowed_statuses: [DISCOVERY_READY, RESEARCH_REQUIRED, NEEDS_DECISION, STOP_RECOMMENDED]

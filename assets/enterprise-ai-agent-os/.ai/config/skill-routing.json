@@ -7,6 +7,15 @@
     "minimum_margin": 1
   },
   "priority": [
+    "approve-product-baseline",
+    "control-product-change",
+    "review-product-outcome",
+    "plan-product-delivery",
+    "write-product-specification",
+    "write-business-requirements",
+    "research-product-opportunity",
+    "discuss-product-idea",
+    "start-product",
     "investigate-agent-runtime",
     "audit-plugin-trust",
     "resume-and-recover-run",
@@ -24,6 +33,69 @@
     "start-task"
   ],
   "routes": {
+    "approve-product-baseline": {
+      "label": "Approve a product baseline",
+      "skill": "approve-product-baseline/SKILL.md",
+      "rules": [
+        { "any": ["approve product baseline", "approve brd", "approve product spec", "business requirement approval", "chốt biz requirement", "duyệt brd", "duyệt spec"], "weight": 3 }
+      ]
+    },
+    "control-product-change": {
+      "label": "Control a change to an approved product baseline",
+      "skill": "control-product-change/SKILL.md",
+      "rules": [
+        { "any": ["change approved requirement", "change approved spec", "product change control", "baseline change request", "đổi requirement đã duyệt", "thay đổi spec đã chốt"], "weight": 3 }
+      ]
+    },
+    "review-product-outcome": {
+      "label": "Review a delivered product outcome",
+      "skill": "review-product-outcome/SKILL.md",
+      "rules": [
+        { "any": ["review product outcome", "release decision against requirements", "validate delivered product", "đánh giá kết quả sản phẩm", "đánh giá sản phẩm sau triển khai"], "weight": 3 }
+      ]
+    },
+    "plan-product-delivery": {
+      "label": "Plan Agile product delivery",
+      "skill": "plan-product-delivery/SKILL.md",
+      "rules": [
+        { "any": ["agile delivery plan", "scrum product backlog", "github issues from approved spec", "plan mvp delivery", "lập backlog scrum", "chia epic story từ spec"], "weight": 3 }
+      ]
+    },
+    "write-product-specification": {
+      "label": "Write a product specification",
+      "skill": "write-product-specification/SKILL.md",
+      "rules": [
+        { "any": ["write product specification", "draft product spec", "technical product specification", "viết product spec", "viết đặc tả sản phẩm", "soạn spec sản phẩm"], "exclude": ["approve", "duyệt"], "weight": 3 }
+      ]
+    },
+    "write-business-requirements": {
+      "label": "Write business requirements",
+      "skill": "write-business-requirements/SKILL.md",
+      "rules": [
+        { "any": ["write business requirements", "draft brd", "business requirements document", "viết biz requirement", "viết business requirement", "soạn brd"], "exclude": ["approve", "duyệt", "chốt"], "weight": 3 }
+      ]
+    },
+    "research-product-opportunity": {
+      "label": "Research a product opportunity",
+      "skill": "research-product-opportunity/SKILL.md",
+      "rules": [
+        { "any": ["research product opportunity", "research product idea", "market research for product", "validate product opportunity", "nghiên cứu ý tưởng sản phẩm", "khảo sát sản phẩm", "khảo sát thị trường cho sản phẩm"], "weight": 3 }
+      ]
+    },
+    "discuss-product-idea": {
+      "label": "Discuss and improve a product idea",
+      "skill": "discuss-product-idea/SKILL.md",
+      "rules": [
+        { "any": ["discuss product idea", "improve product idea", "product discovery interview", "thảo luận ý tưởng sản phẩm", "hoàn thiện ý tưởng", "trao đổi ý tưởng sản phẩm"], "weight": 3 }
+      ]
+    },
+    "start-product": {
+      "label": "Start a product from an idea",
+      "skill": "start-product/SKILL.md",
+      "rules": [
+        { "any": ["start product from idea", "start a product from an idea", "product idea no codebase", "idea to production product", "chỉ có ý tưởng chưa có code", "làm sản phẩm từ ý tưởng", "bắt đầu sản phẩm từ ý tưởng"], "weight": 3 }
+      ]
+    },
     "investigate-agent-runtime": {
       "label": "Investigate an agent runtime failure",
       "skill": "investigate-agent-runtime/SKILL.md",
