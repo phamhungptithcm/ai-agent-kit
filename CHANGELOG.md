@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased — v1.6.0 Product Genesis
+
+- Added a governed idea-to-production Product Genesis workflow for users who
+  begin without a codebase, BRD, product specification, or architecture.
+- Added nine routed skills for idea intake, discovery discussion, opportunity
+  research, business requirements, product specification, baseline approval,
+  Agile delivery planning, change control, and outcome review.
+- Added append-only idea, research, BRD, specification, approval, traceability,
+  backlog, and change schemas with named-human approval gates.
+- Added Product Genesis rules and quality profiles for evidence, privacy,
+  business analysis, requirements engineering, delivery, and release truth.
+- Added an exact-commit external-skill provenance lock. Mixed-license catalogs
+  remain reference-only; adapted sources require an allowed license, source
+  hash, manual review, and quarantine without executing upstream code.
+- Added fail-closed capability coverage validation across all canonical skills,
+  dispatch modes, routes, source provenance, manifest entries, and required
+  Product Genesis artifacts.
+- This section records local implementation only. Commit, push, PR, merge, tag,
+  GitHub Release, npm publication, deployment, and production activation remain
+  separately authorized and unperformed.
+
 ## Unreleased — v1.5.0 Repository Team Control Plane
 
 - Added authenticated member, agent, host, and service identities with bounded
@@ -63,6 +84,36 @@ All notable changes to this project will be documented in this file.
 - This section is not release evidence. Version bump, tag, GitHub Release, npm
   publication, deployment, and production activation remain separately
   authorized and unperformed.
+
+## 1.2.0 - 2026-08-14
+
+- Added a local-first Plugin Trust Center with versioned manifests, previewable
+  lifecycle changes, provenance and compatibility checks, least-privilege
+  invocation, tamper quarantine, and hash-chained receipts.
+- Added privacy-safe run traces shaped for OpenTelemetry GenAI conventions and
+  a reproducible Agent Reliability Benchmark with explicit denominators,
+  failures, unknown costs, limitations, and bounded claims.
+- Added reproducible traceability cases and release-proof contracts suitable
+  for product demos without presenting synthetic evidence as production proof.
+- Added six auto-routed workflows for decision/run tracing, safe recovery,
+  governed plugin authoring and trust review, reliability benchmarking, and
+  agent-runtime investigation, with English and Vietnamese routing fixtures.
+- Added dedicated runtime, plugin-development, and agent-evaluation quality
+  profiles plus fail-closed trace-completeness, plugin-activation, and
+  resume-safety gates.
+- Added preview-first `plugin init` scaffolding, explicit trace/plugin adapter
+  capability states, and CI verification for canonical release evidence.
+- Hardened plugin trust so self-signed keys require repository enrollment,
+  invocation authority requires signed single-use capabilities, untracked
+  worktree drift blocks resume, and unverified plugins make Trust Center health
+  fail closed.
+- Added an append-only, hash-chained Decision Chronicle with explicit approval,
+  rejection, supersession, revocation, invalidation, and repository provenance.
+- Added portable Run Envelopes, stale-state detection, non-destructive recovery
+  previews, redacted `.aakrun` exports, local trace output, and `ai-agent-kit
+  why` intent lookup.
+- Added TraceLab scenarios for failure paths, parent drift, plugin escape,
+  incomplete evidence, interrupted agents, and conflicting findings.
 
 ## 1.0.1 - 2026-08-13
 

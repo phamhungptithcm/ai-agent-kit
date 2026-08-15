@@ -1,0 +1,12 @@
+version: 1
+default: fail-closed
+states: [IDEA, DISCOVERY, RESEARCHED, BRD_DRAFT, BRD_APPROVED, SPEC_DRAFT, SPEC_APPROVED, DELIVERY_PLANNED, IMPLEMENTING, VERIFIED, RELEASE_DECISION, OPERATING]
+required_gates:
+  BRD_APPROVED: [brd_id, brd_version, artifact_hash, named_human_approver, approval_timestamp, approved_scope]
+  SPEC_DRAFT: [approved_brd_id, approved_brd_version, approved_brd_hash]
+  SPEC_APPROVED: [spec_id, spec_version, artifact_hash, trace_coverage, named_human_approver, approval_timestamp]
+  DELIVERY_PLANNED: [approved_brd_hash, approved_spec_hash, backlog_trace_coverage]
+  IMPLEMENTING: [implementation_approval_record, approved_scope]
+  RELEASE_DECISION: [acceptance_evidence, security_evidence, operational_evidence, rollback_evidence, environment]
+agent_self_authorization_allowed: false
+material_change_requires_reapproval: true

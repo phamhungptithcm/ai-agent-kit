@@ -4,3 +4,4 @@ node_modules/
 **/.ai/local/
 **/.codegraph/
 **/.cocoindex_code/
+.ai-agent-kit/

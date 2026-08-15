@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hunpeolabs.dev/schemas/decision-event.v1.json",
+  "title": "AI Agent Kit Decision Event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "type", "offset", "timestamp", "previous_hash", "data", "record_hash"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "type": { "const": "decision.event" },
+    "offset": { "type": "integer", "minimum": 1 },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "previous_hash": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
+    "record_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "data": {
+      "type": "object",
+      "required": ["event_id", "decision_id", "action", "actor", "rationale", "repository"],
+      "properties": {
+        "event_id": { "type": "string", "maxLength": 128 },
+        "decision_id": { "type": "string", "maxLength": 128 },
+        "action": { "enum": ["propose", "approve", "reject", "supersede", "revoke", "invalidate"] },
+        "actor": { "type": "string", "maxLength": 256 },
+        "question": { "type": ["string", "null"] },
+        "choice": { "type": ["string", "null"] },
+        "alternatives": { "type": "array", "items": { "type": "string" } },
+        "rationale": { "type": "string" },
+        "assumptions": { "type": "array", "items": { "type": "string" } },
+        "approval_ref": { "type": ["string", "null"] },
+        "affected_artifacts": { "type": "array", "items": { "type": "string" } },
+        "superseded_by": { "type": ["string", "null"] },
+        "repository": { "type": "object" }
+      },
+      "additionalProperties": true
+    }
+  }
+}

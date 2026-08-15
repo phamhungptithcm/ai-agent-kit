@@ -1,0 +1,21 @@
+version: 1
+id: product-genesis
+name: Product Genesis End-to-End Profile
+description: Govern a new product from unstructured idea through discovery, approved requirements, specification, delivery, release, and measured operation.
+applies_when:
+  - "the user has a product idea but no codebase, BRD, specification, or architecture"
+  - "work spans more than one Product Genesis stage"
+required_profiles:
+  - ".ai/quality-profiles/product-discovery.yaml"
+  - ".ai/quality-profiles/business-analysis.yaml"
+  - ".ai/quality-profiles/requirements-engineering.yaml"
+  - ".ai/quality-profiles/product-delivery.yaml"
+required_controls:
+  - append_only_versions
+  - evidence_classification
+  - named_human_approval
+  - requirement_traceability
+  - material_change_reapproval
+  - environment_specific_release_evidence
+allowed_statuses: [READY_FOR_NEXT_GATE, NEEDS_DECISION, CHANGES_REQUESTED, PAUSED, REJECTED]
+forbidden_claims: [AGENT_SELF_APPROVED, DOCUMENTS_PROVE_PRODUCTION_READY, RESEARCH_EQUALS_VALIDATION]

@@ -41,6 +41,8 @@ try {
     || entry.includes("/.codegraph/")
     || entry.includes("/.cocoindex_code/")
     || entry.includes("/__pycache__/")
+    || entry.startsWith(".ai-agent-kit/")
+    || entry.startsWith("docs/approvals/")
     || /\.py[co]$/.test(entry)
   );
   assert.deepEqual(forbiddenPackageState, [], `package contains local or generated state: ${forbiddenPackageState.join(", ")}`);
@@ -144,6 +146,26 @@ try {
   fs.writeFileSync(path.join(fixture, "src/smoke.mjs"), "export const smoke = 1;\n");
   execute("git", ["add", "src/smoke.mjs"], fixture);
   execute("git", ["commit", "-m", "smoke base"], fixture);
+  const traceLab = executePacked(["tracelab", "run", "--scenario", "production-bug"], fixture);
+  assert.match(traceLab.stdout, /"status": "RECOVERED"/);
+  const pluginPreview = executePacked(["plugin", "init", "--plugin-id", "packed-review"], fixture);
+  assert.match(pluginPreview.stdout, /"status": "PREVIEW"/);
+  assert.equal(fs.existsSync(path.join(fixture, "plugins/packed-review")), false);
+  const pluginCreated = executePacked(["plugin", "init", "--plugin-id", "packed-review", "--apply"], fixture);
+  assert.match(pluginCreated.stdout, /"status": "CREATED"/);
+  assert.ok(fs.existsSync(path.join(fixture, "plugins/packed-review/plugin.json")));
+  execute("git", ["add", "plugins/packed-review"], fixture);
+  execute("git", ["commit", "-m", "add packed plugin fixture"], fixture);
+  executePacked(["decision", "record", "--decision-id", "PACKED-DEC", "--event-id", "packed-dec-1", "--actor", "smoke", "--question", "Why trace?", "--choice", "recoverable", "--rationale", "portable evidence", "--artifact", "src/smoke.mjs"], fixture);
+  executePacked(["decision", "transition", "--decision-id", "PACKED-DEC", "--event-id", "packed-dec-2", "--action", "approve", "--actor", "smoke", "--rationale", "fixture approval"], fixture);
+  executePacked(["run", "record", "--run-id", "PACKED-RUN", "--event-id", "packed-run-1", "--phase", "start", "--actor", "smoke", "--decision-id", "PACKED-DEC"], fixture);
+  const why = executePacked(["why", "src/smoke.mjs"], fixture);
+  assert.match(why.stdout, /"status": "EXPLAINED"/);
+  executePacked(["run", "export", "--run-id", "PACKED-RUN", "--output", ".ai-agent-kit/exports/PACKED-RUN.aakrun"], fixture);
+  const bundle = executePacked(["run", "verify", "--file", ".ai-agent-kit/exports/PACKED-RUN.aakrun"], fixture);
+  assert.match(bundle.stdout, /"status": "VERIFIED"/);
+  const control = executePacked(["control", "view"], fixture);
+  assert.match(control.stdout, /"status": "HEALTHY"/);
   const pulseScan = executePacked(["pulse", "scan", "--task-id", "PULSE-SMOKE", "--format", "text"], fixture);
   assert.match(pulseScan.stdout, /Architecture Pulse: COMPLETE/);
   assert.ok(fs.existsSync(path.join(fixture, ".ai-agent-kit/pulse/tasks/PULSE-SMOKE.json")));
@@ -247,11 +269,47 @@ try {
     ".agents/skills/design-scalable-systems/scripts/capacity_cost_model.py",
     ".ai/quality-profiles/system-design.yaml",
     ".ai/evals/system-design-cases.yaml",
+    ".ai/core/traceable-plugin-runtime.md",
+    ".ai/rules/plugin-trust.md",
+    ".ai/rules/decision-trace-integrity.md",
+    ".ai/rules/run-continuity.md",
+    ".ai/rules/portable-evidence-privacy.md",
+    ".ai/rules/benchmark-claim-integrity.md",
+    ".ai/quality-profiles/agent-runtime.yaml",
+    ".ai/quality-profiles/plugin-development.yaml",
+    ".ai/quality-profiles/agent-evaluation.yaml",
+    ".ai/guards/trace-completeness-gate.yaml",
+    ".ai/guards/plugin-activation-gate.yaml",
+    ".ai/guards/resume-safety-gate.yaml",
+    ".agents/skills/trace-decisions-and-runs/SKILL.md",
+    ".agents/skills/resume-and-recover-run/SKILL.md",
+    ".agents/skills/author-governed-plugin/SKILL.md",
+    ".agents/skills/audit-plugin-trust/SKILL.md",
+    ".agents/skills/benchmark-agent-reliability/SKILL.md",
+    ".agents/skills/investigate-agent-runtime/SKILL.md",
+    ".ai/workflows/trace-and-recover-run.md",
+    ".ai/templates/decision-event.schema.json",
+    ".ai/templates/run-envelope.schema.json",
+    ".ai/templates/plugin-manifest.schema.json",
+    ".ai/templates/aakrun.schema.json",
+    ".ai/templates/reliability-benchmark.schema.json",
+    ".ai/templates/reliability-benchmark.example.json",
     ".ai/core/architecture-pulse.md",
     ".ai/templates/architecture-pulse-config.schema.json",
     ".ai/templates/architecture-pulse-result.schema.json",
     ".ai/templates/architecture-pulse-baseline.schema.json",
-    ".ai/templates/architecture-pulse-comparison.schema.json"
+    ".ai/templates/architecture-pulse-comparison.schema.json",
+    ".ai/core/product-genesis.md",
+    ".ai/config/capability-coverage.json",
+    ".ai/config/external-skill-sources.lock.json",
+    ".ai/guards/product-genesis-stage-gate.yaml",
+    ".ai/templates/business-requirements.schema.json",
+    ".ai/templates/product-specification.schema.json",
+    ".agents/skills/start-product/SKILL.md",
+    ".agents/skills/write-business-requirements/SKILL.md",
+    ".agents/skills/write-product-specification/SKILL.md",
+    ".agents/skills/approve-product-baseline/SKILL.md",
+    ".agents/skills/plan-product-delivery/SKILL.md"
   ]) {
     assert.ok(fs.existsSync(path.join(installFixture, relPath)), `packed system-design capability missing ${relPath}`);
   }

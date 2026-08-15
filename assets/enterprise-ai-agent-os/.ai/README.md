@@ -10,6 +10,8 @@ Team-ready completion also requires `.ai/core/quality-gates.md`, `.ai/core/code-
 
 Daily copy-ready prompts live in `.ai/PROMPTS.md`. Broader agent support is documented in `.ai/docs/agent-adapter-strategy.md`.
 
+When a user begins with only a product idea, route through `.ai/core/product-genesis.md` and `.ai/workflows/product-genesis.md` before repository implementation workflows. Product Genesis versions the idea, discovery, research, BRD, specification, approval, backlog, changes, and outcome evidence. A named human must approve the exact BRD and specification baselines; agents cannot self-approve or infer approval.
+
 ## Layout
 
 - `core/`: mission, precedence, workflow, risk, quality gates, memory policy, definition of done, and output contract.
@@ -33,6 +35,7 @@ Daily copy-ready prompts live in `.ai/PROMPTS.md`. Broader agent support is docu
 python .ai/scripts/sync_agent_assets.py
 python .ai/scripts/sync_agent_assets.py --check
 python .ai/scripts/validate_agent_config.py
+python .ai/scripts/validate_capability_coverage.py
 python .ai/scripts/test_agent_policies.py
 python .ai/scripts/generate_delivery_artifacts.py --jira-key DEMO-000 --title "Example change" --output-dir .ai/generated/demo
 ```

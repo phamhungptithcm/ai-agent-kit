@@ -1,0 +1,14 @@
+version: 1
+name: trace-completeness-gate
+mode: fail-closed
+required_for: [protected-change, implementation-handoff, final-report, portable-evidence-export]
+checks:
+  - stable_decision_and_run_ids
+  - valid_append_only_hash_chain
+  - approved_scope_and_approval_reference
+  - execution_and_verification_evidence
+  - unresolved_failures_and_blockers_recorded
+  - sensitive_values_absent
+pass_status: TRACE_COMPLETE
+fail_status: TRACE_INCOMPLETE
+on_failure: "Block protected continuation or final readiness claim; append the missing or corrective evidence."

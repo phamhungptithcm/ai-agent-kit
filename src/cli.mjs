@@ -101,6 +101,30 @@ import { evaluateIndependentReview } from "./team-review.mjs";
 import { buildTeamMetrics, evaluateTeamSlos } from "./team-metrics.mjs";
 import { createSignedTeamIdentity, identitySummary, verifyTeamIdentityAuthentication } from "./team-control-contract.mjs";
 import { runTeamDemo } from "./team-demo.mjs";
+import {
+  buildOtelTrace,
+  buildRecoveryPlan,
+  explainWhy,
+  exportRunBundle,
+  inspectDecisionChronicle,
+  inspectRun,
+  inspectRunBundle,
+  proposeCapabilityImprovement,
+  recordDecision,
+  recordRunEvent,
+  resumeRun,
+  resolveDecision
+} from "./traceability.mjs";
+import {
+  applyPluginLifecycle,
+  authorizePluginInvocation,
+  inspectPluginManifest,
+  initializePlugin,
+  planPluginLifecycle,
+  pluginTrustCenter
+} from "./plugin-runtime.mjs";
+import { evaluateReliabilityBenchmark, listTraceLabScenarios, writeTraceLab } from "./trace-lab.mjs";
+import { writeOperatorView } from "./operator-view.mjs";
 import { promoteTeamMemoryCandidate } from "./memory-promotion.mjs";
 import { migrateLegacyMemory, rollbackMemoryMigration } from "./memory-migration.mjs";
 import { createMemoryPack, importMemoryPack } from "./memory-pack.mjs";
@@ -172,6 +196,14 @@ Usage:
   ai-agent-kit passport keygen|issue|verify [options]
   ai-agent-kit proof --id <task-id> [--output <directory>] [--otlp]
   ai-agent-kit demo [--output <directory>] [--otlp]
+  ai-agent-kit tracelab list|run [--scenario <id>] [--output <directory>]
+  ai-agent-kit why <file:line|decision-id> [--decision <id>] [--target <path>]
+  ai-agent-kit decision record|transition|inspect|list [options]
+  ai-agent-kit run record|inspect|recovery|resume|export|verify|otel [options]
+  ai-agent-kit plugin init|inspect|plan|apply|authorize|trust [options]
+  ai-agent-kit benchmark reliability --fixture <file>
+  ai-agent-kit learning propose --candidate-id <id> --kind skill --run-id <id> [--run-id <id>]
+  ai-agent-kit control view [--output <directory>]
   ai-agent-kit analytics record --id <task-id> --event <file> [--target <path>]
   ai-agent-kit analytics summary [--target <path>]
   ai-agent-kit analytics compare --baseline <file> --current <file>
@@ -279,6 +311,43 @@ Safety:
   bootstrap is local only. It never stages, commits, pushes, creates branches,
   creates merge requests, updates Jira, deploys, or edits application source code.
   By default it is fast and policy-only: it does not install tools or refresh indexes.`;
+}
+
+function parseGovernedFeatureArgs(argv, actions, valueFlags, booleanFlags = []) {
+  const action = argv[0];
+  if (!actions.includes(action)) throw new Error(`expected one of: ${actions.join(", ")}`);
+  const options = { target: process.cwd() };
+  for (let index = 1; index < argv.length; index += 1) {
+    const flag = argv[index];
+    if (booleanFlags.includes(flag)) { options[flag.slice(2).replaceAll("-", "_")] = true; continue; }
+    if (!valueFlags.includes(flag)) throw new Error(`Unknown ${action} option: ${flag}`);
+    const value = argv[++index];
+    if (!value) throw new Error(`${flag} requires a value`);
+    const key = flag.slice(2).replaceAll("-", "_");
+    if (["alternative", "assumption", "artifact", "decision-id", "context-hash", "plugin-receipt-hash", "check-ref", "finding-ref", "blocker", "failed-attempt", "not-tried"].includes(flag.slice(2))) (options[key] ??= []).push(value);
+    else options[key] = value;
+  }
+  return { action, options };
+}
+
+export function parseDecisionArgs(argv) {
+  return parseGovernedFeatureArgs(argv, ["record", "transition", "inspect", "list"], ["--target", "--decision-id", "--event-id", "--action", "--actor", "--task-id", "--run-id", "--question", "--choice", "--alternative", "--rationale", "--assumption", "--approval-ref", "--artifact", "--superseded-by", "--timestamp"]);
+}
+
+export function parseRunArgs(argv) {
+  return parseGovernedFeatureArgs(argv, ["record", "inspect", "recovery", "resume", "export", "verify", "otel"], ["--target", "--run-id", "--event-id", "--phase", "--task-id", "--actor", "--goal", "--approval-ref", "--decision-id", "--context-hash", "--plugin-receipt-hash", "--check-ref", "--finding-ref", "--blocker", "--next-action", "--failed-attempt", "--not-tried", "--timestamp", "--output", "--profile", "--file"], ["--apply"]);
+}
+
+export function parsePluginArgs(argv) {
+  return parseGovernedFeatureArgs(argv, ["init", "inspect", "plan", "apply", "authorize", "trust"], ["--target", "--file", "--state", "--adapter", "--approval-ref", "--timestamp", "--plugin-id", "--task-id", "--run-id", "--capability-token", "--requested", "--output"], ["--apply"]);
+}
+
+function permissionObject(value, label) {
+  if (!value) return {};
+  let parsed;
+  try { parsed = JSON.parse(value); } catch { throw new Error(`${label} must be valid JSON`); }
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error(`${label} must be a JSON object`);
+  return parsed;
 }
 
 export function parseAdapterArgs(argv) {
@@ -1061,6 +1130,92 @@ export async function main(argv = process.argv.slice(2), io = console, deps = {}
     const options = parseProofArgs(argv.slice(1), { demo: true });
     io.log(JSON.stringify(writeProofArtifacts({ ...options, proof: demoProof(), output: options.output ?? ".ai-agent-kit/demo" }), null, 2));
     return 0;
+  }
+  if (command === "tracelab") {
+    const action = argv[1];
+    if (!new Set(["list", "run"]).has(action)) throw new Error("tracelab requires list or run");
+    if (action === "list") { io.log(JSON.stringify({ schema_version: 1, scenarios: listTraceLabScenarios() }, null, 2)); return 0; }
+    const { options } = parseGovernedFeatureArgs(argv.slice(1), ["run"], ["--target", "--scenario", "--output"]);
+    const result = writeTraceLab(options);
+    io.log(JSON.stringify(result, null, 2));
+    return result.status === "RECOVERED" ? 0 : 1;
+  }
+  if (command === "why") {
+    const args = argv.slice(1);
+    const options = { target: process.cwd(), query: null, decisionId: null };
+    for (let index = 0; index < args.length; index += 1) {
+      const value = args[index];
+      if (value === "--target") options.target = args[++index];
+      else if (value === "--decision") options.decisionId = args[++index];
+      else if (!value.startsWith("-") && !options.query) options.query = value;
+      else throw new Error(`Unknown why option: ${value}`);
+    }
+    if (!options.query && !options.decisionId) throw new Error("why requires a file:line, artifact, or --decision id");
+    const result = explainWhy(options);
+    io.log(JSON.stringify(result, null, 2));
+    return result.status === "EXPLAINED" ? 0 : 1;
+  }
+  if (command === "decision") {
+    const { action, options: raw } = parseDecisionArgs(argv.slice(1));
+    const decisionIds = raw.decision_id ?? [];
+    if (decisionIds.length > 1) throw new Error("decision command accepts exactly one --decision-id");
+    const options = { ...raw, decisionId: decisionIds[0], eventId: raw.event_id, taskId: raw.task_id, runId: raw.run_id, alternatives: raw.alternative, assumptions: raw.assumption, approvalRef: raw.approval_ref, artifacts: raw.artifact, supersededBy: raw.superseded_by };
+    const result = action === "list" ? inspectDecisionChronicle(options)
+      : action === "inspect" ? resolveDecision(options)
+        : recordDecision({ ...options, action: action === "record" ? "propose" : raw.action });
+    io.log(JSON.stringify(result, null, 2));
+    return 0;
+  }
+  if (command === "run") {
+    const { action, options: raw } = parseRunArgs(argv.slice(1));
+    const options = { ...raw, runId: raw.run_id, eventId: raw.event_id, taskId: raw.task_id, approvalRef: raw.approval_ref, decisionIds: raw.decision_id, contextHashes: raw.context_hash, pluginReceiptHashes: raw.plugin_receipt_hash, checkRefs: raw.check_ref, findingRefs: raw.finding_ref, blockers: raw.blocker, nextAction: raw.next_action, failedAttempts: raw.failed_attempt, notTried: raw.not_tried };
+    const result = action === "record" ? recordRunEvent(options)
+      : action === "inspect" ? inspectRun(options)
+        : action === "recovery" ? buildRecoveryPlan(options)
+          : action === "resume" ? resumeRun({ ...options, apply: raw.apply })
+          : action === "export" ? exportRunBundle(options)
+            : action === "verify" ? inspectRunBundle(options)
+              : buildOtelTrace(options);
+    io.log(JSON.stringify(result, null, 2));
+    return ["BLOCKED", "REJECTED", "STALE"].includes(result.status) ? 1 : 0;
+  }
+  if (command === "plugin") {
+    const { action, options: raw } = parsePluginArgs(argv.slice(1));
+    const options = { ...raw, approvalRef: raw.approval_ref, pluginId: raw.plugin_id, taskId: raw.task_id, runId: raw.run_id, capabilityToken: raw.capability_token, requested: permissionObject(raw.requested, "--requested") };
+    const result = action === "init" ? initializePlugin({ ...options, apply: raw.apply })
+      : action === "inspect" ? inspectPluginManifest(options)
+      : action === "plan" ? planPluginLifecycle(options)
+        : action === "apply" ? applyPluginLifecycle({ ...options, apply: true })
+          : action === "authorize" ? authorizePluginInvocation(options)
+            : pluginTrustCenter(options);
+    io.log(JSON.stringify(result, null, 2));
+    return ["BLOCKED", "DENIED", "QUARANTINED", "ATTENTION"].includes(result.status) ? 1 : 0;
+  }
+  if (command === "benchmark") {
+    const { action, options } = parseGovernedFeatureArgs(argv.slice(1), ["reliability"], ["--target", "--fixture"]);
+    const fixturePath = path.resolve(options.target, options.fixture ?? "");
+    const relative = path.relative(path.resolve(options.target), fixturePath);
+    if (!options.fixture || relative.startsWith("..") || path.isAbsolute(relative)) throw new Error("benchmark fixture must remain inside the repository");
+    const stat = fs.lstatSync(fixturePath);
+    if (!stat.isFile() || stat.isSymbolicLink() || stat.size > 4 * 1024 * 1024) throw new Error("benchmark fixture must be a bounded regular file");
+    const fixture = JSON.parse(fs.readFileSync(fixturePath, "utf8"));
+    const result = evaluateReliabilityBenchmark(fixture);
+    io.log(JSON.stringify(result, null, 2));
+    return result.status === "MEASURED" ? 0 : 1;
+  }
+  if (command === "learning") {
+    const { action, options: raw } = parseGovernedFeatureArgs(argv.slice(1), ["propose"], ["--target", "--candidate-id", "--kind", "--scope", "--reason", "--run-id", "--timestamp"]);
+    const runIds = [];
+    for (let index = 1; index < argv.length; index += 1) if (argv[index] === "--run-id") runIds.push(argv[index + 1]);
+    const result = proposeCapabilityImprovement({ ...raw, candidateId: raw.candidate_id, runIds });
+    io.log(JSON.stringify(result, null, 2));
+    return result.status === "REVIEW_REQUIRED" ? 0 : 1;
+  }
+  if (command === "control") {
+    const { action, options } = parseGovernedFeatureArgs(argv.slice(1), ["view"], ["--target", "--output"]);
+    const result = writeOperatorView(options);
+    io.log(JSON.stringify(result, null, 2));
+    return result.status === "HEALTHY" ? 0 : 1;
   }
   if (command === "analytics") {
     const { action, options } = parseAnalyticsArgs(argv.slice(1));
