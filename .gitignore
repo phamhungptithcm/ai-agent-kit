@@ -1,5 +1,6 @@
 **/__pycache__/
 **/*.py[cod]
+node_modules/
 **/.ai/local/
 **/.codegraph/
 **/.cocoindex_code/

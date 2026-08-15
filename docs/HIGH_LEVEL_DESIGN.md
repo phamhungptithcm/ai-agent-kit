@@ -392,6 +392,28 @@ source-unreachable entries before context compilation. Retrieval is scoped and
 deterministic, while the health report exposes lifecycle counts and conflicting
 approved knowledge without returning private memory content.
 
+The v1.3.0 implementation draft upgrades that lane to governed shared memory:
+
+```mermaid
+flowchart LR
+  Handoff[Evidence-bound subagent handoff] --> Candidate[Untrusted memory candidate]
+  Candidate --> Lead[Team Lead verify or reject]
+  Lead --> Approver[Independent Memory Approver]
+  Approver --> SQLite[Transactional local SQLite store]
+  SQLite --> Filters[Lifecycle, identity, ACL, scope, source filters]
+  Filters --> Rank[Keyword and optional semantic ranking]
+  Rank --> Pack[Bounded context pack and retrieval receipt]
+  SQLite --> Signed[Signed repository-bound interchange]
+  Signed --> Remote[Verified opt-in remote adapter]
+  Remote --> Degraded[Explicit local fallback on outage]
+```
+
+Checked-in policy, host conversation state, task-scoped Team Context, and
+durable approved memory remain separate. JSONL becomes deterministic audit and
+v2 migration interchange rather than the concurrent writer. Remote capability
+claims, writes, encryption, retention, and replay protection are verified at
+the adapter boundary; they are not inferred from a host name.
+
 Agent Proof Replay composes these contracts into a redacted proof model. It
 uses the same production-readiness evaluation as the final task report and
 Change Passport, including acceptance criteria, required quality gates, Git

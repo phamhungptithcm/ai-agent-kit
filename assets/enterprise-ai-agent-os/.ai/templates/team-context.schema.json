@@ -1,1 +1,42 @@
-{"$schema":"https://json-schema.org/draft/2020-12/schema","title":"Versioned team context","type":"object","required":["schema_version","task_id","state","revision","knowledge_revision","brief","assignments","claims","handoffs","conflicts","decisions","context_hash"],"properties":{"schema_version":{"const":1},"task_id":{"type":"string"},"state":{"enum":["PLANNED","ACTIVE"]},"revision":{"type":"integer","minimum":1},"knowledge_revision":{"type":"integer","minimum":0},"brief":{"type":"object"},"assignments":{"type":"array","minItems":2,"maxItems":6},"claims":{"type":"array","maxItems":200},"handoffs":{"type":"array","maxItems":100},"conflicts":{"type":"array","maxItems":100},"decisions":{"type":"array","maxItems":100},"context_hash":{"type":"string","pattern":"^[a-f0-9]{64}$"}},"additionalProperties":true}
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "team-context-v2",
+  "title": "Versioned team context with reviewed memory candidates",
+  "type": "object",
+  "required": ["schema_version", "task_id", "state", "revision", "knowledge_revision", "brief", "assignments", "claims", "handoffs", "conflicts", "decisions", "memory_candidate_reviews", "context_hash"],
+  "properties": {
+    "schema_version": { "const": 2 },
+    "task_id": { "type": "string" },
+    "state": { "enum": ["PLANNED", "ACTIVE"] },
+    "revision": { "type": "integer", "minimum": 1 },
+    "knowledge_revision": { "type": "integer", "minimum": 0 },
+    "brief": { "type": "object" },
+    "assignments": { "type": "array", "minItems": 1, "maxItems": 6 },
+    "claims": { "type": "array", "maxItems": 200 },
+    "handoffs": { "type": "array", "maxItems": 100 },
+    "conflicts": { "type": "array", "maxItems": 100 },
+    "decisions": { "type": "array", "maxItems": 100 },
+    "memory_candidate_reviews": {
+      "type": "array",
+      "maxItems": 1000,
+      "items": {
+        "type": "object",
+        "required": ["candidate_hash", "handoff_hash", "status", "reviewed_by", "evidence_hashes", "reason", "reviewed_at", "review_hash"],
+        "properties": {
+          "candidate_hash": { "$ref": "#/$defs/hash" },
+          "handoff_hash": { "$ref": "#/$defs/hash" },
+          "status": { "enum": ["VERIFIED", "REJECTED"] },
+          "reviewed_by": { "type": "string" },
+          "evidence_hashes": { "type": "array", "items": { "$ref": "#/$defs/hash" } },
+          "reason": { "type": "string", "minLength": 1, "maxLength": 1000 },
+          "reviewed_at": { "type": "string", "format": "date-time" },
+          "review_hash": { "$ref": "#/$defs/hash" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "context_hash": { "$ref": "#/$defs/hash" }
+  },
+  "$defs": { "hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" } },
+  "additionalProperties": true
+}

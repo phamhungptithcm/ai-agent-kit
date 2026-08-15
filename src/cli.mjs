@@ -84,9 +84,10 @@ import {
 } from "./system-design.mjs";
 import fs from "node:fs";
 import path from "node:path";
+import crypto from "node:crypto";
 import { spawnSync } from "node:child_process";
 import { evaluateTeamCases, inspectTeam, planTeam, recordTeamResult, reportTeam, startTeam } from "./team-orchestrator.mjs";
-import { claimTeamWork, decideTeamConflict, publishTeamHandoff, recordTeamConflict, teamContextSummary } from "./team-context.mjs";
+import { claimTeamWork, decideTeamConflict, listTeamMemoryCandidates, publishTeamHandoff, recordTeamConflict, reviewTeamMemoryCandidate, teamContextSummary } from "./team-context.mjs";
 import { listExecutionAdapters } from "./execution-adapters.mjs";
 import { approveTeamRun, cancelTeamRun, dispatchTeamAssignment, heartbeatTeamAssignment, ingestTeamResult, nextTeamWave, recoverTeamRun, resumeTeamRun } from "./team-executor.mjs";
 import { buildTeamTimeline, writeTeamTimeline } from "./team-events.mjs";
@@ -117,9 +118,31 @@ import {
 } from "./plugin-runtime.mjs";
 import { evaluateReliabilityBenchmark, listTraceLabScenarios, writeTraceLab } from "./trace-lab.mjs";
 import { writeOperatorView } from "./operator-view.mjs";
+import { promoteTeamMemoryCandidate } from "./memory-promotion.mjs";
+import { migrateLegacyMemory, rollbackMemoryMigration } from "./memory-migration.mjs";
+import { createMemoryPack, importMemoryPack } from "./memory-pack.mjs";
+import { resolveRepositoryIdentity, validateMemoryEntry } from "./memory-contract.mjs";
+import { withMemoryStore } from "./memory-store.mjs";
+import { evaluateMemoryFixture } from "./memory-eval.mjs";
+import { hasSymlinkComponent } from "./paths.mjs";
 
 const FORBIDDEN_BOOTSTRAP_OPTIONS = new Set(["--commit", "--push", "--create-mr", "--git-mode"]);
 const SUPPORTED_PRESETS = new Set(["governed", "full"]);
+
+function resolveMemoryArtifactPath(options, requested, label, { mustExist = false } = {}) {
+  const root = path.resolve(options.target ?? process.cwd());
+  const artifact = path.resolve(root, requested);
+  const relative = path.relative(root, artifact);
+  if (!relative || relative.startsWith("..") || path.isAbsolute(relative) || hasSymlinkComponent(root, relative)) throw new Error(`${label} must remain inside a non-symlinked repository path`);
+  if (mustExist) {
+    const stat = fs.lstatSync(artifact);
+    if (!stat.isFile() || stat.isSymbolicLink() || stat.nlink > 1 || stat.size > 16 * 1024 * 1024) throw new Error(`${label} must be a bounded non-linked regular file`);
+  } else if (fs.existsSync(artifact)) {
+    const stat = fs.lstatSync(artifact);
+    if (!stat.isFile() || stat.isSymbolicLink() || stat.nlink > 1) throw new Error(`${label} must be a non-linked regular file`);
+  }
+  return { artifact, relative };
+}
 
 function helpText() {
   return `AI Agent Kit
@@ -212,6 +235,8 @@ Usage:
   ai-agent-kit runtime policy evaluate [options]
   ai-agent-kit runtime evidence verify|export [options]
   ai-agent-kit runtime memory propose|approve|query|revoke|supersede|health [options]
+  ai-agent-kit runtime memory candidates|candidate-review|promote [options]
+  ai-agent-kit runtime memory migrate|rollback|export|import|pack-export|pack-import [options]
   ai-agent-kit runtime eval score [options]
 
 Options:
@@ -384,7 +409,10 @@ export function parseRuntimeArgs(argv) {
     evidence: {},
     acceptanceCriteria: [],
     steps: [],
-    requiredGates: []
+    requiredGates: [],
+    modules: [],
+    actorRoles: [],
+    references: []
   };
   const valueFlags = new Set([
     "--target", "--id", "--to", "--approval-hash", "--risk", "--tool", "--path",
@@ -401,10 +429,18 @@ export function parseRuntimeArgs(argv) {
     "--cache-read-input-tokens", "--cache-write-input-tokens",
     "--cache-write-5m-input-tokens", "--cache-write-1h-input-tokens",
     "--output-tokens", "--reasoning-tokens", "--file", "--reason", "--replacement-id", "--limit", "--trust-tier",
-    "--routing-config", "--skills-root"
+    "--routing-config", "--skills-root", "--database", "--organization-id", "--repository-id",
+    "--actor-id", "--actor-role", "--module", "--run-id", "--session-id", "--created-by",
+    "--source-type", "--reference", "--idempotency-key", "--visibility", "--token-budget",
+    "--expected-revision", "--candidate-hash", "--handoff-hash", "--reviewed-by", "--decision",
+    "--migration-id", "--output", "--input", "--signing-secret-env", "--key-id", "--expires-at"
   ]);
   for (let index = 2; index < argv.length; index += 1) {
     const flag = argv[index];
+    if (flag === "--apply" || flag === "--with-receipt") {
+      options[flag === "--apply" ? "apply" : "withReceipt"] = true;
+      continue;
+    }
     if (!valueFlags.has(flag)) throw new Error(`Unknown runtime option: ${flag}`);
     const value = argv[++index];
     if (!value) throw new Error(`${flag} requires a value`);
@@ -414,6 +450,9 @@ export function parseRuntimeArgs(argv) {
     else if (flag === "--acceptance") options.acceptanceCriteria.push(value);
     else if (flag === "--step") options.steps.push(value);
     else if (flag === "--required-gate") options.requiredGates.push(value);
+    else if (flag === "--module") options.modules.push(value);
+    else if (flag === "--actor-role") options.actorRoles.push(value);
+    else if (flag === "--reference") options.references.push(value);
     else if (flag === "--server" || flag === "--parameters") {
       const key = flag.slice(2);
       try {
@@ -434,7 +473,7 @@ export function parseRuntimeArgs(argv) {
   if (!["task", "criterion", "check", "review", "usage", "context", "plan", "gateway", "mcp", "policy", "evidence", "memory", "eval"].includes(area)) {
     throw new Error("runtime area must be task, criterion, check, review, usage, context, plan, gateway, mcp, policy, evidence, memory, or eval");
   }
-  if (!((area === "memory" && ["approve", "query", "revoke", "supersede", "health"].includes(action)) || (area === "mcp" && action === "inspect")) && !options.id) {
+  if (!((area === "memory" && ["approve", "query", "revoke", "supersede", "health", "migrate", "rollback", "export", "import", "pack-export", "pack-import", "capabilities", "eval"].includes(action)) || (area === "mcp" && action === "inspect")) && !options.id) {
     throw new Error("runtime command requires --id");
   }
   if (options.format && !["text", "compact", "json"].includes(options.format)) {
@@ -520,6 +559,40 @@ function runRuntime(argv, deps = {}, meta = {}) {
   if (area === "memory" && action === "revoke") return revokeMemory(options);
   if (area === "memory" && action === "supersede") return supersedeMemory(options);
   if (area === "memory" && action === "health") return inspectMemoryHealth(options);
+  if (area === "memory" && action === "capabilities") return withMemoryStore(options, (store) => store.capabilities());
+  if (area === "memory" && action === "eval") return evaluateMemoryFixture(options);
+  if (area === "memory" && action === "candidates") return listTeamMemoryCandidates(options);
+  if (area === "memory" && action === "candidate-review") return reviewTeamMemoryCandidate(options);
+  if (area === "memory" && action === "promote") return promoteTeamMemoryCandidate(options);
+  if (area === "memory" && action === "migrate") return migrateLegacyMemory(options);
+  if (area === "memory" && action === "rollback") return rollbackMemoryMigration(options);
+  if (area === "memory" && action === "export") {
+    if (!options.output) throw new Error("memory export requires --output");
+    const { artifact: output, relative } = resolveMemoryArtifactPath(options, options.output, "memory export output");
+    const content = withMemoryStore(options, (store) => store.exportEntries(options));
+    fs.mkdirSync(path.dirname(output), { recursive: true }); fs.writeFileSync(output, content, { mode: 0o600 });
+    return { schema_version: 1, status: "EXPORTED", output: relative.replaceAll("\\", "/"), sha256: crypto.createHash("sha256").update(content).digest("hex") };
+  }
+  if (area === "memory" && action === "import") {
+    if (!options.input) throw new Error("memory import requires --input");
+    const { artifact: input } = resolveMemoryArtifactPath(options, options.input, "memory import input", { mustExist: true });
+    const entries = fs.readFileSync(input, "utf8").split("\n").filter(Boolean).map((line) => validateMemoryEntry(JSON.parse(line)));
+    return withMemoryStore(options, (store) => store.importEntries(entries, { apply: options.apply, actor: options.actorId }));
+  }
+  if (area === "memory" && ["pack-export", "pack-import"].includes(action)) {
+    const envName = options.signingSecretEnv; if (!envName || !process.env[envName]) throw new Error("signed memory packs require --signing-secret-env naming a populated environment variable");
+    if (action === "pack-export") {
+      if (!options.output) throw new Error("memory pack export requires --output");
+      const pack = withMemoryStore(options, (store) => createMemoryPack(store, { ...options, signingSecret: process.env[envName], repositoryIdentity: resolveRepositoryIdentity(options) }));
+      const { artifact: output, relative } = resolveMemoryArtifactPath(options, options.output, "memory pack output");
+      fs.mkdirSync(path.dirname(output), { recursive: true }); fs.writeFileSync(output, `${JSON.stringify(pack, null, 2)}\n`, { mode: 0o600 });
+      return { schema_version: 1, status: "EXPORTED", output: relative.replaceAll("\\", "/"), entries_hash: pack.entries_hash, key_id: pack.key_id };
+    }
+    if (!options.input) throw new Error("memory pack import requires --input");
+    const { artifact: input } = resolveMemoryArtifactPath(options, options.input, "memory pack input", { mustExist: true });
+    const pack = JSON.parse(fs.readFileSync(input, "utf8"));
+    return withMemoryStore(options, (store) => importMemoryPack(store, pack, { ...options, signingSecret: process.env[envName], repositoryIdentity: resolveRepositoryIdentity(options), actor: options.actorId }));
+  }
   if (area === "eval" && action === "score") return scoreTask(options);
   throw new Error(`Unknown runtime command: ${area} ${action ?? ""}`.trim());
 }

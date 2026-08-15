@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "id": "v130-governed-shared-memory-pass",
+  "thresholds": {
+    "min_task_success_rate": 1,
+    "max_false_retrieval_rate": 0,
+    "min_stale_rejection_rate": 1,
+    "max_mean_estimated_tokens": 1000,
+    "max_mean_latency_ms": 250,
+    "max_lost_updates": 0,
+    "max_failures": 0
+  },
+  "runs": [
+    { "id": "local", "task_success": true, "selected": 3, "false_retrievals": 0, "stale_candidates": 2, "stale_rejected": 2, "estimated_tokens": 420, "latency_ms": 18, "concurrent_operations": 1, "lost_updates": 0, "failures": 0 },
+    { "id": "cross-session", "task_success": true, "selected": 2, "false_retrievals": 0, "stale_candidates": 1, "stale_rejected": 1, "estimated_tokens": 310, "latency_ms": 22, "concurrent_operations": 1, "lost_updates": 0, "failures": 0 },
+    { "id": "multi-agent", "task_success": true, "selected": 4, "false_retrievals": 0, "stale_candidates": 3, "stale_rejected": 3, "estimated_tokens": 650, "latency_ms": 34, "concurrent_operations": 8, "lost_updates": 0, "failures": 0 },
+    { "id": "cross-worktree-pack", "task_success": true, "selected": 3, "false_retrievals": 0, "stale_candidates": 1, "stale_rejected": 1, "estimated_tokens": 510, "latency_ms": 41, "concurrent_operations": 2, "lost_updates": 0, "failures": 0 }
+  ]
+}

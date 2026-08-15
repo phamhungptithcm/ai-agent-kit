@@ -4,7 +4,7 @@ import path from "node:path";
 import { requireGitRoot, getCommit } from "./git.mjs";
 import { createRunner } from "./runner.mjs";
 import { hasSymlinkComponent, normalizeRelPath } from "./paths.mjs";
-import { queryEligibleMemory } from "./memory-lifecycle.mjs";
+import { retrieveScopedMemory } from "./memory-lifecycle.mjs";
 import { bindTaskContextPack } from "./governed-runtime.mjs";
 
 const MANDATORY_CORE = [
@@ -118,6 +118,15 @@ ${pack.task.acceptanceCriteria.map((item) => `- ${item}`).join("\n") || "- None"
 - Mode: ${pack.repository.intelligence.mode}
 - Reason: ${pack.repository.intelligence.reason}
 
+## Governed Memory Retrieval
+
+- Receipt: \`${pack.memoryRetrievalReceipt.receipt_id}\`
+- Status: ${pack.memoryRetrievalReceipt.status}
+- Selected: ${pack.memoryRetrievalReceipt.selected.length}
+- Excluded: ${pack.memoryRetrievalReceipt.excluded.length}
+- Budget: ${pack.memoryRetrievalReceipt.budget.used_estimated_tokens}/${pack.memoryRetrievalReceipt.budget.max_estimated_tokens} estimated tokens
+- Conversation state: ${pack.conversationState}
+
 ## Included Context
 
 ${pack.items.map((item) => `### ${item.path}\n\nReason: ${item.selectionReason}\nProvenance: ${item.provenance}\n\n\`\`\`\n${item.content}\n\`\`\``).join("\n\n")}
@@ -136,13 +145,14 @@ export function compileContext(options, deps = {}) {
   const intelligence = repositoryIntelligence(root, runner, commit);
   const maxEstimatedTokens = Number(options.budget ?? 12_000);
   if (!Number.isInteger(maxEstimatedTokens) || maxEstimatedTokens < 500) throw new Error("context budget must be an integer of at least 500 tokens");
-  const intent = words([
+  const intentText = [
     task.goal,
     ...(task.acceptance_criteria ?? []),
     ...(task.plan?.steps ?? []).map((step) => step.description),
     ...(task.context?.facts ?? []).map((fact) => fact.statement),
     ...(task.context?.assumptions ?? []).map((assumption) => assumption.statement)
-  ].join("\n"));
+  ].join("\n");
+  const intent = words(intentText);
   const candidates = [];
   for (const relPath of MANDATORY_CORE) {
     const file = path.join(root, relPath);
@@ -184,11 +194,24 @@ export function compileContext(options, deps = {}) {
       score: Number.MAX_SAFE_INTEGER
     });
   }
-  for (const memory of queryEligibleMemory({ target: root, limit: 10 })) {
+  const memoryRetrieval = retrieveScopedMemory({
+    target: root,
+    id: task.id,
+    taskId: task.id,
+    agentId: options.agentId,
+    sessionId: options.sessionId,
+    runId: options.runId,
+    modules: task.capability?.allowed_paths ?? [],
+    query: intentText,
+    limit: Math.min(5, Number(options.memoryLimit ?? 5)),
+    tokenBudget: Math.max(1, Math.floor(maxEstimatedTokens / 3)),
+    store: deps.memoryStore
+  }, { semanticRanker: deps.semanticRanker });
+  for (const memory of memoryRetrieval.entries) {
     candidates.push({
       path: `memory://${memory.id}`,
       content: `${memory.title}\n${memory.content}`,
-      provenance: memory.source,
+      provenance: memory.provenance.references.join(", "),
       mandatory: false,
       score: scoreCandidate(`${memory.title}\n${memory.category}`, memory.content, intent),
       memory
@@ -227,7 +250,7 @@ export function compileContext(options, deps = {}) {
   const status = missingMandatory.length ? "BLOCKED" : intelligence.mode;
   for (const relPath of missingMandatory) exclusions.push({ path: relPath, reason: "required context missing or over budget" });
   const pack = {
-    schemaVersion: 1,
+    schemaVersion: 2,
     status,
     task: {
       id: task.id,
@@ -242,6 +265,8 @@ export function compileContext(options, deps = {}) {
     },
     repository: { root, commit, intelligence },
     policyRevision: task.capability?.policy_revision ?? "unknown",
+    conversationState: "HOST_MANAGED_NOT_PERSISTED",
+    memoryRetrievalReceipt: memoryRetrieval.receipt,
     budget: { maxEstimatedTokens, usedEstimatedTokens, estimator: "ceil(utf8-characters/4)" },
     items,
     exclusions: exclusions.sort((a, b) => a.path.localeCompare(b.path))
