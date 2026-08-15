@@ -644,6 +644,7 @@ See [Agent Adapter Strategy](docs/AGENT_ADAPTER_STRATEGY.md) for details.
 | `1.0.1` | Cleaner product positioning and a complete, current capability overview. |
 | `1.1.0` | Append-only Decision Chronicle, portable Run Envelopes, safe resume and recovery, governed plugin runtime, `ai-agent-kit why`, `.aakrun`, TraceLab, and dogfooded proof. |
 | `1.2.0` | Local Plugin Trust Center, privacy-safe agent observability, reproducible reliability benchmark, and evidence-backed case studies. |
+| `1.3.0` | Governed shared memory for agents, subagents, worktrees, and later sessions with independent promotion, scoped retrieval receipts, and fail-closed trust boundaries. |
 
 ## Documentation
 
@@ -658,8 +659,8 @@ See [Agent Adapter Strategy](docs/AGENT_ADAPTER_STRATEGY.md) for details.
 - [Additive AI Change Assurance Deep Review](docs/ADDITIVE_AI_CHANGE_ASSURANCE_DEEP_REVIEW.md)
 - [Additive AI Change Assurance Discovery Plan](docs/ADDITIVE_AI_CHANGE_ASSURANCE_DISCOVERY_PLAN.md)
 - [Runtime Enforcement and MCP Trust](docs/RUNTIME_ENFORCEMENT_AND_MCP_TRUST.md)
-- [Governed Shared Memory v1.3.0 (implementation draft)](docs/GOVERNED_SHARED_MEMORY_V130.md)
-- [v1.3.0 story and release notes (draft)](docs/releases/v1.3.0-governed-shared-memory-draft.md)
+- [Governed Shared Memory v1.3.0](docs/GOVERNED_SHARED_MEMORY_V130.md)
+- [v1.3.0 story and release notes](docs/releases/v1.3.0-governed-shared-memory.md)
 - [Code Quality Intelligence](docs/CODE_QUALITY_INTELLIGENCE.md)
 - [Security](SECURITY.md) · [Contributing](CONTRIBUTING.md)
 
