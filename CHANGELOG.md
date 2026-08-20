@@ -2,6 +2,37 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.4.1 - 2026-08-20
+
+- Replaced aggregate-only cycle and boundary comparison with stable finding
+  fingerprints and explicit `new`, `unchanged`, `updated`, and `fixed` states.
+- Added truthful supported, unsupported, policy-excluded, external, unresolved,
+  ambiguous, and parse-failed coverage semantics; unsupported source can no
+  longer appear as complete analysis.
+- Split analysis and policy digests, moved baseline compatibility from package
+  version to analyzer semantic versions, and added explicit v1 migration
+  previews without silent cross-version comparison.
+- Added evidence-tiered adapters, comment-aware JavaScript/TypeScript parsing,
+  tsconfig/workspace resolution, Python AST evidence, and optional bounded Go
+  and Cargo resolver provenance.
+- Added a typed, component-aware file graph, layer and public-API findings, cycle witnesses,
+  base/head diff, changed edges, affected components, and dependency paths.
+- Added non-authoritative content-addressed caching, one end-to-end deadline,
+  bounded artifact writing, and digest-addressed graph and inventory shards.
+- Added forbidden, required, transitive, layer, public-API, and no-new-finding
+  policy rules with approved evidence-tier requirements.
+- Added exact integrity-bound expiring waivers that fail closed when invalid,
+  expired, future-dated, or tampered; CI cannot create baselines or waivers.
+- Added `pulse doctor`, `pulse policy validate`, `pulse diff`, baseline inspect
+  and migration preview, richer explain output, SARIF export, and hash-chained
+  local trend history.
+- Added a seven-language golden dependency graph, mutation gates for finding
+  identity and coverage honesty, cache and waiver adversarial tests, artifact
+  bounds, and measured precision/recall output through `npm run eval:pulse`.
+- Added the separately approved Product Language Gate and natural UI/UX writing
+  skill, including mandatory workflow, routing, adapter, quality-profile, and
+  final-review integration.
+
 ## 1.4.0 - 2026-08-19
 
 - Added a clean-room, first-party Architecture Pulse contract with canonical

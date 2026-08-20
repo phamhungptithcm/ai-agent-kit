@@ -22,6 +22,8 @@ For any existing application, service, module, function, database flow, runtime 
 
 During implementation after approval, preserve existing behavior unless explicitly changed by the approved scope, follow local patterns, keep edits reviewable, protect security and data integrity, and add focused tests or validation evidence. Detect the project language/version/framework/tooling and application/platform/domain, then apply `.ai/core/code-quality-intelligence.md` plus matching `.ai/quality-profiles/`. For database persistence, do not call `repository.save()` inside large loops; use batch or bulk persistence unless an approved exception documents transaction size, flush/clear behavior, locking risk, and retry/idempotency behavior.
 
+Whenever UI, UX, localization, accessibility text, or displayed-data meaning changes, the Product Language Gate is mandatory: apply `write-product-content` and `.ai/quality-profiles/product-content.yaml`. Inventory every changed string and applicable state, verify business and data meaning against actual behavior, map all eight Human Interface principles, and verify target-platform fit. Complete `.ai/templates/product-content-review.md` with current in-context evidence. Missing, failed, stale, string-file-only, generic Apple-like, or incomplete principle evidence blocks successful handoff. Apply current Apple HIG conventions on Apple platforms; elsewhere use the principles without copying Apple-only expression or displacing native conventions.
+
 Before completion, run relevant checks and the mandatory `final-implementation-review` skill. Review requirement match, security, code quality, failure paths, error handling, production readiness, and trade-offs. Repeat `review → fix approved findings → verify → review again` until a fresh cycle passes. Do not produce a successful final handoff while the newest review is missing, stale, rejected, or blocked. Record and render `.ai/core/task-completion-report.md`, including every review cycle, findings and fixes, progress, remaining work, production readiness, token usage, and cost status.
 
 For protected execution, use `.ai/core/governed-runtime.md`, `.ai/core/universal-action-gateway.md`, and `.ai/guards/capability-policy.yaml`: bind work to a task capability, evaluate the normalized action envelope at the execution boundary, stop on ask/deny, and require independent evidence verification. Route MCP startup and requests through `.ai/core/zero-trust-mcp.md`; untrusted or changed servers must not auto-start.
@@ -44,6 +46,7 @@ Load durable policy from:
 - `.ai/core/code-quality-intelligence.md`
 - `.ai/guards/code-quality-profile-gate.yaml`
 - `.ai/quality-profiles/`
+- `.ai/templates/product-content-review.md`
 - `.ai/core/memory-policy.md`
 - `.ai/workflows/repository-intelligence-workflow.md`
 - `.ai/core/risk-model.md`

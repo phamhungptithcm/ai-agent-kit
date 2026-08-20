@@ -9,7 +9,7 @@ const temporaryRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ai-agent-kit-packed
 const packageData = JSON.parse(fs.readFileSync(path.join(workspace, "package.json"), "utf8"));
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 
-function execute(command, args, cwd) {
+function execute(command, args, cwd, options = {}) {
   const spawnArgs = process.platform === "win32"
     ? args.map((argument) => `"${argument.replaceAll('"', '\\"')}"`)
     : args;
@@ -20,7 +20,8 @@ function execute(command, args, cwd) {
     env: {
       ...process.env,
       npm_config_cache: path.join(temporaryRoot, "npm-cache"),
-      npm_config_logs_dir: path.join(temporaryRoot, "npm-logs")
+      npm_config_logs_dir: path.join(temporaryRoot, "npm-logs"),
+      ...(options.env ?? {})
     }
   });
   if (result.status !== 0) {
@@ -53,7 +54,7 @@ try {
   fs.writeFileSync(path.join(packedCliRoot, "package.json"), `${JSON.stringify({ name: "packed-cli-runner", private: true })}\n`);
   execute(npmCommand, ["install", tarball], packedCliRoot);
   const packedCli = path.join(packedCliRoot, "node_modules", "@hunpeolabs", "ai-agent-kit", "dist", "bin", "ai-agent-kit.mjs");
-  const executePacked = (args, cwd) => execute(process.execPath, [packedCli, ...args], cwd);
+  const executePacked = (args, cwd, options) => execute(process.execPath, [packedCli, ...args], cwd, options);
   const fixture = path.join(temporaryRoot, "fixture");
   fs.mkdirSync(fixture);
   execute("git", ["init"], fixture);
@@ -169,8 +170,19 @@ try {
   const pulseScan = executePacked(["pulse", "scan", "--task-id", "PULSE-SMOKE", "--format", "text"], fixture);
   assert.match(pulseScan.stdout, /Architecture Pulse: COMPLETE/);
   assert.ok(fs.existsSync(path.join(fixture, ".ai-agent-kit/pulse/tasks/PULSE-SMOKE.json")));
-  const pulseBaseline = executePacked(["pulse", "baseline", "create", "--name", "packed"], fixture);
+  const pulseDoctor = executePacked(["pulse", "doctor"], fixture);
+  assert.match(pulseDoctor.stdout, /"status": "READY"/);
+  const pulseDiff = executePacked(["pulse", "diff", "--base", "HEAD", "--head", "working-tree", "--format", "text"], fixture);
+  assert.match(pulseDiff.stdout, /Architecture Pulse diff/);
+  const pulseSarif = executePacked(["pulse", "sarif", "--file", ".ai-agent-kit/pulse/tasks/PULSE-SMOKE.json", "--output", ".ai-agent-kit/pulse/results/packed.sarif"], fixture);
+  assert.match(pulseSarif.stdout, /"status": "CREATED"/);
+  const pulseTrend = executePacked(["pulse", "trend", "record", "--file", ".ai-agent-kit/pulse/tasks/PULSE-SMOKE.json"], fixture);
+  assert.match(pulseTrend.stdout, /"status": "RECORDED"/);
+  const localEnvironment = { CI: "false", GITHUB_ACTIONS: "false", GITLAB_CI: "false", BUILDKITE: "false", CIRCLECI: "false", JENKINS_URL: "false", TF_BUILD: "false" };
+  const pulseBaseline = executePacked(["pulse", "baseline", "create", "--name", "packed"], fixture, { env: localEnvironment });
   assert.match(pulseBaseline.stdout, /"status": "CREATED"/);
+  const pulseInspect = executePacked(["pulse", "baseline", "inspect", "--baseline", ".ai-agent-kit/pulse/baselines/packed.json"], fixture);
+  assert.match(pulseInspect.stdout, /"status": "VERIFIED"/);
   const pulseVerify = executePacked(["pulse", "baseline", "verify", "--baseline", ".ai-agent-kit/pulse/baselines/packed.json"], fixture);
   assert.match(pulseVerify.stdout, /"status": "VERIFIED"/);
   const pulseCheck = executePacked(["pulse", "check", "--baseline", ".ai-agent-kit/pulse/baselines/packed.json", "--format", "text"], fixture);

@@ -19,6 +19,7 @@
     "orchestrate-agent-department",
     "design-scalable-systems",
     "seo-geo-website",
+    "write-product-content",
     "implement-feature",
     "start-task"
   ],
@@ -107,6 +108,14 @@
       "rules": [
         { "any": ["seo", "geo", "search visibility", "structured data", "crawler"], "weight": 2 },
         { "all": ["website", "search"], "weight": 2 }
+      ]
+    },
+    "write-product-content": {
+      "label": "Write and review product interface content",
+      "skill": "write-product-content/SKILL.md",
+      "rules": [
+        { "any": ["ux writing", "ui copy", "product copy", "microcopy", "button label", "form label", "empty state", "error message", "displayed data", "data label", "apple hig writing", "apple ux writing", "human interface copy", "viết label", "nhãn nút", "nội dung giao diện", "thông báo lỗi", "dữ liệu hiển thị", "viết ui ux như apple", "chuẩn apple hig cho nội dung"], "exclude": ["bug", "fix", "defect", "regression", "sửa lỗi", "implement feature", "build feature", "add feature", "phát triển tính năng", "thêm tính năng", "code review", "review pr", "review pull request"], "weight": 4 },
+        { "all": ["ui", "content"], "exclude": ["bug", "fix", "defect", "regression", "sửa lỗi", "implement feature", "build feature", "add feature", "phát triển tính năng", "thêm tính năng", "code review", "review pr", "review pull request"], "weight": 3 }
       ]
     },
     "implement-feature": {

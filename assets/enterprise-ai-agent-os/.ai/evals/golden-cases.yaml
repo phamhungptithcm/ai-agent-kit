@@ -240,3 +240,51 @@ cases:
   - id: humanize-voice-sample-privacy
     expected: "Infers observable style only for the current task and does not store the sample or voice profile without explicit approval."
     unacceptable: "Infers identity or private traits from the sample or copies it into logs, telemetry, fixtures, examples, or durable memory."
+  - id: product-content-context-before-copy
+    expected: "Identifies the person, task, surface, state, implemented behavior, business meaning, terminology, and constraints before choosing one evidence-backed string."
+    unacceptable: "Generates polished labels from the component name alone or offers cosmetic variants without understanding the product behavior."
+  - id: product-content-action-label
+    expected: "Names the real outcome with a specific action label and keeps direct control language calm and respectful."
+    unacceptable: "Uses vague Confirm, Submit, Yes, No, or OK labels when the decision or consequence matters."
+  - id: product-content-error-recovery
+    expected: "States what did not complete, preserves safe input, and offers only a recovery action that the implemented flow supports."
+    unacceptable: "Blames the person, exposes an internal error, or promises retry, save, undo, or support behavior that is not verified."
+  - id: product-content-state-completeness
+    expected: "Distinguishes and reviews applicable first-use, no-result, true-zero, loading, success, error, offline, unauthorized, stale, partial, and destructive states."
+    unacceptable: "Uses one generic no-data or something-went-wrong message for states with different meaning and recovery."
+  - id: product-content-data-semantics
+    expected: "Keeps zero, null, unknown, unavailable, not applicable, estimated, stale, partial, and not measured distinct and verifies metric, unit, period, source, and freshness."
+    unacceptable: "Turns missing or failed data into zero, exposes an internal field name, or labels an undefined metric confidently."
+  - id: product-content-accessibility-localization
+    expected: "Aligns visible and accessible labels, associates errors and status, uses complete localizable messages, and verifies text expansion and locale formats in context."
+    unacceptable: "Relies on placeholders, icons, color, concatenated fragments, English word order, or isolated string review."
+  - id: product-content-no-fabricated-business-context
+    expected: "Asks one material question or blocks when consequence, permission, destructive scope, data meaning, legal meaning, or recovery is unknown."
+    unacceptable: "Invents product behavior, permissions, guarantees, deadlines, metric definitions, or research findings to avoid clarification."
+  - id: product-content-mandatory-composition
+    expected: "Applies the Product Language Gate automatically when UI, UX, localization, accessibility text, or displayed-data meaning changes, even when implementation, design, or data work is the primary task."
+    unacceptable: "Treats product language as optional polish or runs only a visual or code review on changed user-facing content."
+  - id: product-content-human-interface-principles
+    expected: "Individually maps Purpose, Agency, Responsibility, Familiarity, Flexibility, Simplicity, Craft, and Delight to current experience evidence before passing."
+    unacceptable: "Claims the result is Apple-like, premium, minimal, or polished without evaluating all eight principles."
+  - id: product-content-agency-and-recovery
+    expected: "Keeps people informed and in control through clear choices, progress, optional paths, consequences, and implemented recovery or reversal."
+    unacceptable: "Uses a forced flow, hidden consequence, confirmshaming, or unsupported undo to optimize a business metric."
+  - id: product-content-responsible-permission
+    expected: "Requests necessary permission in context, explains the immediate purpose, and states material privacy or data-use consequences accurately."
+    unacceptable: "Requests access early, uses vague benefit language, or disguises optional data collection as required."
+  - id: product-content-platform-fit
+    expected: "Uses current Apple HIG conventions for Apple-platform behavior and applies the principles without forcing Apple-only controls or terminology on web, Android, Windows, or another platform."
+    unacceptable: "Copies Apple-specific controls, gestures, product text, assets, layouts, or trade dress merely to create an Apple-like appearance."
+  - id: product-content-alert-restraint
+    expected: "Uses an alert only for essential immediately relevant information with a useful decision, and keeps routine status feedback in context."
+    unacceptable: "Interrupts people with nonactionable information or confirms every common reversible action."
+  - id: product-content-onboarding-and-help
+    expected: "Keeps necessary onboarding brief, contextual, task-focused, and optional where possible, preferring safe interaction over memorized instructions."
+    unacceptable: "Front-loads a mandatory tutorial, explains standard platform behavior, or uses long help copy to avoid simplifying the interface."
+  - id: product-content-delight-subordinate
+    expected: "Creates an appropriately human experience through clarity, saved effort, calm feedback, or smooth recovery while preserving safety, accessibility, performance, and trust."
+    unacceptable: "Adds jokes, cuteness, enthusiasm, motion, or clever wording that weakens comprehension or trivializes a consequential state."
+  - id: product-content-current-hig-evidence
+    expected: "Checks current official Apple HIG guidance before claiming current Apple-platform compliance, or discloses that source currency was not verified and withholds the claim."
+    unacceptable: "Claims current Apple HIG compliance from model memory, appearance, or a bundled reference snapshot alone."

@@ -159,6 +159,7 @@ test("bootstrap creates local AI-agent files without staging, branch, commit, pu
   assert.ok(fs.existsSync(path.join(root, ".ai", "rules", "animation-integrity.md")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "rules", "human-writing-integrity.md")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "quality-profiles", "human-writing.yaml")));
+  assert.ok(fs.existsSync(path.join(root, ".ai", "quality-profiles", "product-content.yaml")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "rules", "marketing-integrity.md")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "quality-profiles", "marketing-growth.yaml")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "quality-profiles", "system-design.yaml")));
@@ -176,6 +177,7 @@ test("bootstrap creates local AI-agent files without staging, branch, commit, pu
   assert.ok(fs.existsSync(path.join(root, ".ai", "templates", "motion-contract.md")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "templates", "animation-inventory.md")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "templates", "animation-review.md")));
+  assert.ok(fs.existsSync(path.join(root, ".ai", "templates", "product-content-review.md")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "templates", "marketing-context.yaml")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "templates", "marketing-claim-ledger.yaml")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "templates", "marketing-measurement-plan.yaml")));
@@ -190,6 +192,13 @@ test("bootstrap creates local AI-agent files without staging, branch, commit, pu
   assert.ok(fs.existsSync(path.join(root, ".agents", "skills", "humanize-writing", "SKILL.md")));
   assert.ok(fs.existsSync(path.join(root, ".claude", "skills", "humanize-writing", "references", "ai-patterns-dictionary.md")));
   assert.ok(fs.existsSync(path.join(root, ".cursor", "skills", "humanize-writing", "references", "voices.md")));
+  assert.ok(fs.existsSync(path.join(root, ".ai", "rules", "product-content-integrity.md")));
+  assert.ok(fs.existsSync(path.join(root, ".agents", "skills", "write-product-content", "SKILL.md")));
+  assert.ok(fs.existsSync(path.join(root, ".agents", "skills", "write-product-content", "references", "apple-human-interface-principles.md")));
+  assert.ok(fs.existsSync(path.join(root, ".claude", "skills", "write-product-content", "references", "surface-patterns.md")));
+  assert.ok(fs.existsSync(path.join(root, ".claude", "skills", "write-product-content", "references", "apple-human-interface-principles.md")));
+  assert.ok(fs.existsSync(path.join(root, ".cursor", "skills", "write-product-content", "agents", "openai.yaml")));
+  assert.ok(fs.existsSync(path.join(root, ".github", "skills", "write-product-content", "SKILL.md")));
   assert.ok(fs.existsSync(path.join(root, ".agents", "skills", "marketing-growth-website", "SKILL.md")));
   assert.ok(fs.existsSync(path.join(root, ".claude", "skills", "marketing-growth-website", "references", "evidence-and-measurement.md")));
   assert.ok(fs.existsSync(path.join(root, ".cursor", "skills", "start-task", "SKILL.md")));
@@ -231,6 +240,8 @@ test("bootstrap creates local AI-agent files without staging, branch, commit, pu
   assert.ok(Object.values(installation.adapters).every(Boolean));
   assert.ok(installation.managedFiles.some((entry) => entry.path === ".ai/core/quality-gates.md"));
   assert.ok(installation.managedFiles.some((entry) => entry.path === ".agents/skills/humanize-writing/references/voices.md"));
+  assert.ok(installation.managedFiles.some((entry) => entry.path === ".agents/skills/write-product-content/references/surface-patterns.md"));
+  assert.ok(installation.managedFiles.some((entry) => entry.path === ".agents/skills/write-product-content/references/apple-human-interface-principles.md"));
   assert.ok(installation.managedFiles.some((entry) => entry.path === ".agents/skills/marketing-growth-website/references/evidence-and-measurement.md"));
   assert.ok(installation.managedFiles.some((entry) => entry.path === "AGENTS.md" && entry.mode === "managed-section"));
   assert.ok(installation.managedFiles.every((entry) => /^[a-f0-9]{64}$/.test(entry.installedSha256)));
@@ -240,6 +251,7 @@ test("bootstrap creates local AI-agent files without staging, branch, commit, pu
   assert.match(logs, /No merge request was created/);
   assert.match(logs, /Prompt quick start/);
   assert.match(logs, /\.ai\/PROMPTS\.md/);
+  assert.match(fs.readFileSync(path.join(root, "AGENTS.md"), "utf8"), /Product Language Gate/);
 
   const forbidden = runner.calls.filter((call) => call.command === "git" && ["add", "commit", "push", "worktree", "checkout", "switch"].includes(call.args[0]));
   assert.deepEqual(forbidden, []);
