@@ -20,7 +20,7 @@ test("Product Genesis capability catalog covers every canonical skill and route"
   const report = JSON.parse(result.stdout);
   assert.deepEqual(
     { status: report.status, skills: report.skill_count, routes: report.route_count, artifacts: report.artifact_count },
-    { status: "VALID", skills: 49, routes: 23, artifacts: 27 }
+    { status: "VALID", skills: 57, routes: 31, artifacts: 56 }
   );
 });
 
@@ -52,7 +52,11 @@ test("Product Genesis schemas and routing fixtures are valid JSON", () => {
   const names = [
     "product-idea.schema.json", "product-research.schema.json", "business-requirements.schema.json",
     "product-specification.schema.json", "product-baseline-approval.schema.json",
-    "requirement-traceability.schema.json", "product-delivery-backlog.schema.json", "product-change.schema.json"
+    "requirement-traceability.schema.json", "product-delivery-backlog.schema.json", "product-change.schema.json",
+    "product-workspace.schema.json", "product-question-ledger.schema.json", "business-rules.schema.json",
+    "product-design-bundle.schema.json", "product-analysis.schema.json", "github-issue-plan.schema.json",
+    "product-convergence-evidence.schema.json", "product-convergence.schema.json",
+    "product-verification.schema.json", "product-outcome.schema.json"
   ];
   for (const name of names) assert.doesNotThrow(() => JSON.parse(fs.readFileSync(path.join(aiRoot, "templates", name), "utf8")));
   assert.doesNotThrow(() => JSON.parse(fs.readFileSync(path.join(aiRoot, "evals/e2e/skill-routing-cases.json"), "utf8")));

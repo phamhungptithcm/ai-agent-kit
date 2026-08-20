@@ -7,11 +7,14 @@ description: Review a delivered product increment against its approved business 
 
 Require the approved baseline, delivered scope, verification evidence, and environment classification.
 
-1. Verify trace coverage from approved requirement to implementation, test, release, and observed outcome.
-2. Separate local, staging, pilot, and production evidence.
-3. Compare actual KPI, reliability, performance, security, support, cost, and user feedback with approved targets.
-4. Identify unmet acceptance criteria, unintended effects, operational gaps, and learning.
-5. Recommend `RELEASE`, `LIMITED_RELEASE`, `HOLD`, `ROLLBACK`, `ITERATE`, or `RETIRE` with evidence.
-6. Create new hypotheses or change requests; never rewrite historical outcomes.
+1. Run `product converge` with baseline hashes and requirement-level task, code, test, and evidence references. Resolve every `STALE` or `GAPS_FOUND` result.
+2. Verify trace coverage from approved requirement to implementation, test, release, and observed outcome.
+3. Separate local, staging, pilot, and production evidence.
+4. Compare actual KPI, reliability, performance, security, support, cost, and user feedback with approved targets.
+5. Identify unmet acceptance criteria, unintended effects, operational gaps, and learning.
+6. Recommend `RELEASE`, `LIMITED_RELEASE`, `HOLD`, `ROLLBACK`, `ITERATE`, or `RETIRE` with evidence.
+7. Create new hypotheses or change requests; never rewrite historical outcomes.
+
+Before release, record `.ai/templates/product-verification.schema.json` and run `product analyze --gate RELEASE_DECISION`. Local or synthetic evidence must block the release gate. A named human with release authority must approve the exact verification hash. After pilot or production operation, record `.ai/templates/product-outcome.schema.json`; observed outcomes inform successor versions and never retroactively prove the original decision.
 
 Do not call a product successful or production-ready from documents, prototypes, synthetic tests, or deployment status alone.

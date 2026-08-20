@@ -19,3 +19,5 @@ Follow `.ai/rules/product-research-privacy.md` and `.ai/workflows/research-produ
 Do not upload confidential idea content to an external service without authorization. Do not represent desk research as customer validation.
 
 Return an evidence ledger, opportunity assessment, recommendation (`PROCEED`, `PIVOT`, `PAUSE`, or `STOP`), and the evidence needed for the next decision.
+
+Write the ledger to the `product-research` contract, validate it, and record it with `ai-agent-kit product artifact-put --id <id> --type research --file <file>`. Then run `product analyze --gate DISCOVERY_DECISION`. Do not draft a BRD until a named human approves the exact discovery hash.

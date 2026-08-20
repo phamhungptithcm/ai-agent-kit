@@ -7,6 +7,8 @@
   "skill_catalog": {
     "animation-design-engineering": {"introduced_in": "1.0.0", "dispatch_mode": "EXPLICIT_ONLY", "capability": "experience-engineering"},
     "approve-product-baseline": {"introduced_in": "1.6.0", "dispatch_mode": "ROUTED", "capability": "product-genesis"},
+    "assess-product-viability": {"introduced_in": "1.6.0", "dispatch_mode": "ROUTED", "capability": "product-genesis"},
+    "assure-product-trust": {"introduced_in": "1.6.0", "dispatch_mode": "ROUTED", "capability": "product-genesis"},
     "architecture-diagrams": {"introduced_in": "1.0.0", "dispatch_mode": "COMPOSED", "capability": "architecture"},
     "architecture-review": {"introduced_in": "1.0.0", "dispatch_mode": "COMPOSED", "capability": "architecture"},
     "audit-plugin-trust": {"introduced_in": "1.2.0", "dispatch_mode": "ROUTED", "capability": "plugin-assurance"},
@@ -34,16 +36,21 @@
     "jira-completion-package": {"introduced_in": "1.0.0", "dispatch_mode": "COMPOSED", "capability": "engineering-delivery"},
     "marketing-growth-website": {"introduced_in": "1.0.0", "dispatch_mode": "EXPLICIT_ONLY", "capability": "content-integrity"},
     "observability-review": {"introduced_in": "1.0.0", "dispatch_mode": "COMPOSED", "capability": "engineering-assurance"},
+    "operate-product": {"introduced_in": "1.6.0", "dispatch_mode": "ROUTED", "capability": "product-genesis"},
     "orchestrate-agent-department": {"introduced_in": "1.0.0", "dispatch_mode": "ROUTED", "capability": "team-orchestration"},
     "performance-investigation": {"introduced_in": "1.0.0", "dispatch_mode": "COMPOSED", "capability": "engineering-assurance"},
     "plan-product-delivery": {"introduced_in": "1.6.0", "dispatch_mode": "ROUTED", "capability": "product-genesis"},
+    "prepare-production-readiness": {"introduced_in": "1.6.0", "dispatch_mode": "ROUTED", "capability": "product-genesis"},
     "production-incident": {"introduced_in": "1.0.0", "dispatch_mode": "EXPLICIT_ONLY", "capability": "engineering-operations"},
     "release-readiness": {"introduced_in": "1.0.0", "dispatch_mode": "COMPOSED", "capability": "engineering-operations"},
     "repository-health": {"introduced_in": "1.0.0", "dispatch_mode": "COMPOSED", "capability": "repository-intelligence"},
     "repository-intelligence": {"introduced_in": "1.0.0", "dispatch_mode": "COMPOSED", "capability": "repository-intelligence"},
     "research-product-opportunity": {"introduced_in": "1.6.0", "dispatch_mode": "ROUTED", "capability": "product-genesis"},
+    "run-product-genesis": {"introduced_in": "1.6.0", "dispatch_mode": "ROUTED", "capability": "product-genesis"},
+    "run-product-iteration": {"introduced_in": "1.6.0", "dispatch_mode": "ROUTED", "capability": "product-genesis"},
     "resume-and-recover-run": {"introduced_in": "1.1.0", "dispatch_mode": "ROUTED", "capability": "run-continuity"},
     "review-product-outcome": {"introduced_in": "1.6.0", "dispatch_mode": "ROUTED", "capability": "product-genesis"},
+    "retire-product": {"introduced_in": "1.6.0", "dispatch_mode": "ROUTED", "capability": "product-genesis"},
     "security-review": {"introduced_in": "1.0.0", "dispatch_mode": "ROUTED", "capability": "engineering-assurance"},
     "seo-geo-website": {"introduced_in": "1.0.0", "dispatch_mode": "ROUTED", "capability": "content-integrity"},
     "start-product": {"introduced_in": "1.6.0", "dispatch_mode": "ROUTED", "capability": "product-genesis"},
@@ -51,6 +58,7 @@
     "test-strategy": {"introduced_in": "1.0.0", "dispatch_mode": "COMPOSED", "capability": "engineering-assurance"},
     "threat-model": {"introduced_in": "1.0.0", "dispatch_mode": "COMPOSED", "capability": "engineering-assurance"},
     "trace-decisions-and-runs": {"introduced_in": "1.1.0", "dispatch_mode": "ROUTED", "capability": "run-continuity"},
+    "validate-product-discovery": {"introduced_in": "1.6.0", "dispatch_mode": "ROUTED", "capability": "product-genesis"},
     "write-business-requirements": {"introduced_in": "1.6.0", "dispatch_mode": "ROUTED", "capability": "product-genesis", "source_ids": ["github-awesome-copilot-prd"]},
     "write-product-specification": {"introduced_in": "1.6.0", "dispatch_mode": "ROUTED", "capability": "product-genesis", "source_ids": ["github-awesome-copilot-prd"]},
     "zero-trust-mcp": {"introduced_in": "1.0.0", "dispatch_mode": "COMPOSED", "capability": "agent-runtime"}
@@ -59,14 +67,15 @@
     {
       "id": "product-genesis",
       "stage": "idea-to-production",
-      "skills": ["start-product", "discuss-product-idea", "research-product-opportunity", "write-business-requirements", "write-product-specification", "approve-product-baseline", "plan-product-delivery", "control-product-change", "review-product-outcome"],
+      "skills": ["run-product-genesis", "start-product", "discuss-product-idea", "research-product-opportunity", "validate-product-discovery", "assess-product-viability", "assure-product-trust", "write-business-requirements", "write-product-specification", "approve-product-baseline", "plan-product-delivery", "run-product-iteration", "control-product-change", "prepare-production-readiness", "operate-product", "review-product-outcome", "retire-product"],
       "required_artifacts": [
         "core/product-genesis.md",
-        "rules/product-evidence-integrity.md", "rules/requirements-integrity.md", "rules/product-approval-integrity.md", "rules/product-research-privacy.md", "rules/product-delivery-integrity.md",
+        "rules/product-evidence-integrity.md", "rules/product-production-evidence-integrity.md", "rules/requirements-integrity.md", "rules/product-approval-integrity.md", "rules/product-research-privacy.md", "rules/product-delivery-integrity.md",
         "quality-profiles/product-genesis.yaml", "quality-profiles/product-discovery.yaml", "quality-profiles/business-analysis.yaml", "quality-profiles/requirements-engineering.yaml", "quality-profiles/product-delivery.yaml",
-        "guards/product-genesis-stage-gate.yaml", "guards/product-baseline-approval-gate.yaml",
-        "workflows/product-genesis.md", "workflows/research-product-opportunity.md", "workflows/establish-product-baseline.md", "workflows/deliver-approved-product.md", "workflows/control-product-change.md", "workflows/review-product-outcome.md",
-        "templates/product-idea.schema.json", "templates/product-research.schema.json", "templates/business-requirements.schema.json", "templates/product-specification.schema.json", "templates/product-baseline-approval.schema.json", "templates/requirement-traceability.schema.json", "templates/product-delivery-backlog.schema.json", "templates/product-change.schema.json"
+        "guards/product-genesis-stage-gate.yaml", "guards/product-baseline-approval-gate.yaml", "guards/product-evidence-binding-gate.yaml",
+        "workflows/product-genesis.md", "workflows/validate-product-discovery.md", "workflows/research-product-opportunity.md", "workflows/establish-product-baseline.md", "workflows/deliver-approved-product.md", "workflows/run-product-iteration.md", "workflows/prepare-product-production.md", "workflows/control-product-change.md", "workflows/review-product-outcome.md",
+        "templates/product-idea.schema.json", "templates/product-research.schema.json", "templates/business-requirements.schema.json", "templates/product-specification.schema.json", "templates/product-baseline-approval.schema.json", "templates/requirement-traceability.schema.json", "templates/product-delivery-backlog.schema.json", "templates/product-change.schema.json",
+        "templates/product-workspace.schema.json", "templates/product-question-ledger.schema.json", "templates/business-rules.schema.json", "templates/product-design-bundle.schema.json", "templates/product-analysis.schema.json", "templates/github-issue-plan.schema.json", "templates/product-convergence-evidence.schema.json", "templates/product-convergence.schema.json", "templates/product-verification.schema.json", "templates/product-outcome.schema.json", "templates/product-evidence-receipt.schema.json", "templates/product-environment-attestation.schema.json", "templates/product-discovery-validation.schema.json", "templates/product-business-viability.schema.json", "templates/product-trust-compliance.schema.json", "templates/product-data-lifecycle.schema.json", "templates/product-iteration-plan.schema.json", "templates/product-iteration-review.schema.json", "templates/product-production-readiness.schema.json", "templates/product-analytics.schema.json", "templates/product-support-readiness.schema.json", "templates/product-retirement.schema.json", "templates/product-release-candidate.schema.json", "templates/product-pilot-evaluation.schema.json"
       ]
     }
   ]

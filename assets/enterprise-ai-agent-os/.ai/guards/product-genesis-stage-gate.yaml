@@ -1,12 +1,22 @@
 version: 1
 default: fail-closed
-states: [IDEA, DISCOVERY, RESEARCHED, BRD_DRAFT, BRD_APPROVED, SPEC_DRAFT, SPEC_APPROVED, DELIVERY_PLANNED, IMPLEMENTING, VERIFIED, RELEASE_DECISION, OPERATING]
+states: [IDEA, DISCOVERY, RESEARCHED, EXPERIMENTING, ALPHA_REVIEW, ALPHA_APPROVED, INVESTMENT_REVIEW, INVESTMENT_APPROVED, BRD_DRAFT, BRD_APPROVED, SPEC_DRAFT, DESIGN_DRAFT, SPEC_APPROVED, DELIVERY_PLANNED, ITERATING, IMPLEMENTING, VERIFIED, RELEASE_CANDIDATE, PRODUCTION_REVIEW, RELEASE_DECISION, OPERATING, MONITORING, RETIREMENT_REVIEW, RETIRED]
 required_gates:
+  RESEARCHED: [discovery_hash, research_decision, named_human_approver, approval_timestamp]
+  ALPHA_APPROVED: [hypotheses, experiments, evidence_receipts, continue_pivot_stop_decision, named_human_approver, alpha_hash]
+  INVESTMENT_APPROVED: [business_case, unit_economics, pricing, go_to_market, accessibility, market_privacy_legal, threat_model, security_findings, data_lifecycle, named_human_approver, investment_hash]
   BRD_APPROVED: [brd_id, brd_version, artifact_hash, named_human_approver, approval_timestamp, approved_scope]
   SPEC_DRAFT: [approved_brd_id, approved_brd_version, approved_brd_hash]
-  SPEC_APPROVED: [spec_id, spec_version, artifact_hash, trace_coverage, named_human_approver, approval_timestamp]
-  DELIVERY_PLANNED: [approved_brd_hash, approved_spec_hash, backlog_trace_coverage]
-  IMPLEMENTING: [implementation_approval_record, approved_scope]
-  RELEASE_DECISION: [acceptance_evidence, security_evidence, operational_evidence, rollback_evidence, environment]
+  DESIGN_DRAFT: [approved_brd_hash, specification_hash, risk_profile]
+  SPEC_APPROVED: [solution_hash, bundle_members, trace_coverage, required_design_tracks, named_human_approver, approval_timestamp]
+  DELIVERY_PLANNED: [approved_solution_hash, backlog_trace_coverage]
+  ITERATING: [iteration_goal, capacity, committed_items, baseline_hashes, definition_of_done]
+  IMPLEMENTING: [implementation_approval_record, approved_scope, progress, acceptance, change_propagation, review, retrospective]
+  PRODUCTION_REVIEW: [clean_current_commit, convergence, provider_verified_environment, ci_cd, infrastructure, observability, incidents, migration, capacity, backup_restore, rollback, analytics, support]
+  RELEASE_CANDIDATE: [all_current_artifact_hashes, all_current_approval_hashes, evidence_receipt_hashes, environment_attestation_hash, convergence_hash]
+  RELEASE_DECISION: [production_readiness_approval, exact_release_candidate_hash, named_human_approver]
+  RETIRED: [retirement_plan, customer_communication, dependency_shutdown, data_deletion_evidence, named_human_approver]
 agent_self_authorization_allowed: false
 material_change_requires_reapproval: true
+github_sync_requires: [separate_external_write_authority, current_issue_plan_hash, named_human_approval_hash, explicit_apply]
+production_claim_requires: [production_release_class, production_environment_attestation, provider_verified_or_signed_evidence, current_full_commit, clean_tracked_worktree]

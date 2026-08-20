@@ -24,7 +24,7 @@ complete integration today; every other adapter publishes its limitations
 instead of implying feature parity.
 
 ```text
-Idea → Discuss → Research → BRD → Approve → Spec → Approve → Build → Verify → Operate
+Idea → Discuss → Research → Approve → BRD + Rules → Approve → Spec + Design → Approve → Delivery → Build → Converge → Operate
 ```
 
 > **Every decision should be recoverable. Every run should be traceable.**
@@ -92,6 +92,20 @@ and safety do not depend on one long conversation.
 The kit does not replace human judgment or decide what a team should approve.
 It makes the workflow reproducible and the evidence reviewable.
 
+### Product Genesis: durable idea-to-product execution
+
+Product Genesis stores current artifact heads, immutable predecessors, open decisions, evidence receipts, environment attestations, iterations, release candidates, and exact human approvals under `.ai/products/<product-id>/`. This lets an agent resume from evidence instead of asking the user to repeat the conversation.
+
+```bash
+ai-agent-kit product start --id salon-pilot --idea "Reduce salon no-shows" --profile standard
+ai-agent-kit product resume --id salon-pilot
+ai-agent-kit product next --id salon-pilot
+ai-agent-kit product analyze --id salon-pilot --gate ALPHA_DECISION --write
+ai-agent-kit product dossier-status --id salon-pilot
+```
+
+Discussion is limited to the three highest-impact current questions. `LEAN`, `STANDARD`, and `HIGH_ASSURANCE` profiles vary discovery and assurance depth without removing traceability or approval gates. Hypothesis experiments and business/trust/data decisions precede the BRD. Capacity-bounded iterations prevent stage gates from becoming document-only waterfall. GitHub issue creation remains preview-first and separately approved. `product converge` binds the approved chain to a clean full Git commit, existing code/test file hashes, and evidence receipts. Production readiness requires provider-verified CI/CD, security, accessibility, privacy/legal, deployment/operations, migration, capacity, restore/rollback, analytics, support, and environment evidence.
+
 ## Keep the context focused
 
 Rules, skills, workcells, hooks, memory, and evidence solve different problems.
@@ -117,11 +131,11 @@ blocks implementation; missing optional indexes produce an explicit
 
 | Capability | Included |
 | --- | --- |
-| Canonical skills | **49** skill sources, including nine Product Genesis stages, installed only where the selected adapter supports skill surfaces |
-| Engineering workflows | **33** workflows for product discovery, requirements, delivery, implementation, review, incidents, architecture, policy, memory, recovery, and proof |
-| Quality intelligence | **30** stack/risk/product profiles plus **27** durable engineering rules |
-| Enforcement | **21** guards for product approval, trace completeness, safe resume, plugin activation, capability, repository intelligence, memory, data, dependencies, orchestration, and protected actions |
-| Reusable artifacts | **88** templates and schemas for ideas, research, requirements, specifications, approval, delivery, decisions, runs, plugins, teams, memory, and release assurance |
+| Canonical skills | **57** skill sources, including the Product Genesis orchestrator and sixteen stage skills, installed only where the selected adapter supports skill surfaces |
+| Engineering workflows | **36** workflows for product discovery, experiments, requirements, iterations, production, implementation, review, incidents, architecture, policy, memory, recovery, and proof |
+| Quality intelligence | **30** stack/risk/product profiles plus **28** durable engineering rules |
+| Enforcement | **22** guards for product approval/evidence, trace completeness, safe resume, plugin activation, capability, repository intelligence, memory, data, dependencies, orchestration, and protected actions |
+| Reusable artifacts | **112** templates and schemas for ideas, experiments, viability, trust/data, requirements, design, iterations, evidence, environments, production, support, retirement, decisions, runs, plugins, teams, memory, and release assurance |
 | Agent ecosystem | **12** versioned adapters with machine-readable `native`, `generated`, `bridged`, `advisory`, `preview`, or `unsupported` capability states |
 | Coordination | Four workcell modes, dependency-ready waves, leases, heartbeats, cancellation, bounded retries, recovery, and independent review |
 | Verification | Behavioral evals, adapter/standards conformance, tests, Failure Lab, Agent Proof Replay, Change Passports, and fail-closed readiness |

@@ -1,0 +1,5 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "https://hunpeolabs.com/schemas/product-support-readiness-v1.json", "title": "Product Support Readiness", "type": "object",
+  "required": ["schema_version", "id", "version", "status", "owner", "channels", "runbook", "service_window", "escalations", "customer_success_workflow", "evidence_receipt_ids"],
+  "properties": {"schema_version": {"const": 1}, "id": {"type": "string"}, "version": {"type": "integer", "minimum": 1}, "status": {"type": "string"}, "owner": {"type": "string"}, "channels": {"type": "array", "minItems": 1}, "runbook": {"type": "string"}, "service_window": {"type": "string"}, "escalations": {"type": "array", "minItems": 1}, "customer_success_workflow": {"type": "string"}, "evidence_receipt_ids": {"type": "array", "items": {"type": "string"}}}
+}

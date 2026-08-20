@@ -14,6 +14,7 @@ Require approved BRD and specification baselines. Use `.ai/templates/product-del
 3. Create stable epic/story/task IDs with linked `BR-*`, `FR-*`, `NFR-*`, and `AC-*` IDs.
 4. Include acceptance criteria, test approach, observability, security, documentation, migration, rollout, rollback, dependency, owner role, estimate range, and risk.
 5. Mark discovery spikes explicitly; never disguise uncertainty as a committed estimate.
-6. Produce GitHub issue drafts or API payloads only. Create external issues only when separately authorized.
+6. Record the delivery artifact, run `product analyze --gate DELIVERY_BASELINE`, and obtain exact-hash human approval before implementation.
+7. Run `product github-plan --repository owner/name` for a deterministic preview. Create external issues only with separate external-write authorization, current `GITHUB_ISSUE_PLAN` approval, the exact approval hash, and explicit `product github-sync --apply`. Never blindly retry an ambiguous create; reconcile the remote marker and use `--confirm-absent <item-id>` only after absence is verified.
 
 Return sequencing, critical path, parallelizable work, milestone exit criteria, Definition of Ready, Definition of Done, and the first implementation-ready slice.
