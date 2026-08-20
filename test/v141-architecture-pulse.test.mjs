@@ -337,7 +337,9 @@ test("trend recording rejects forged result evidence", () => {
   } finally { cleanup(root); }
 });
 
-test("native resolver probes are forced offline", () => {
+test("native resolver probes are forced offline", {
+  skip: process.platform === "win32" ? "the exact environment probe uses a POSIX fake executable" : false
+}, () => {
   const root = repository();
   const tools = fs.mkdtempSync(path.join(os.tmpdir(), "aak-pulse-tools-"));
   const previousPath = process.env.PATH;
