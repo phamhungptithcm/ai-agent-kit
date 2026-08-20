@@ -131,11 +131,11 @@ blocks implementation; missing optional indexes produce an explicit
 
 | Capability | Included |
 | --- | --- |
-| Canonical skills | **57** skill sources, including the Product Genesis orchestrator and sixteen stage skills, installed only where the selected adapter supports skill surfaces |
+| Canonical skills | **58** skill sources, including the Product Genesis orchestrator and sixteen stage skills, installed only where the selected adapter supports skill surfaces |
 | Engineering workflows | **36** workflows for product discovery, experiments, requirements, iterations, production, implementation, review, incidents, architecture, policy, memory, recovery, and proof |
-| Quality intelligence | **30** stack/risk/product profiles plus **28** durable engineering rules |
+| Quality intelligence | **31** stack/risk/product profiles plus **29** durable engineering rules |
 | Enforcement | **22** guards for product approval/evidence, trace completeness, safe resume, plugin activation, capability, repository intelligence, memory, data, dependencies, orchestration, and protected actions |
-| Reusable artifacts | **112** templates and schemas for ideas, experiments, viability, trust/data, requirements, design, iterations, evidence, environments, production, support, retirement, decisions, runs, plugins, teams, memory, and release assurance |
+| Reusable artifacts | **113** templates and schemas for ideas, experiments, viability, trust/data, requirements, design, iterations, evidence, environments, production, support, retirement, decisions, runs, plugins, teams, memory, and release assurance |
 | Agent ecosystem | **12** versioned adapters with machine-readable `native`, `generated`, `bridged`, `advisory`, `preview`, or `unsupported` capability states |
 | Coordination | Four workcell modes, dependency-ready waves, leases, heartbeats, cancellation, bounded retries, recovery, and independent review |
 | Verification | Behavioral evals, adapter/standards conformance, tests, Failure Lab, Agent Proof Replay, Change Passports, and fail-closed readiness |
@@ -741,6 +741,7 @@ See [Agent Adapter Strategy](docs/AGENT_ADAPTER_STRATEGY.md) for details.
 - [Adoption Guide](docs/ADOPTION_GUIDE.md)
 - [High-Level Design](docs/HIGH_LEVEL_DESIGN.md)
 - [Product Genesis: Idea to Production](docs/PRODUCT_GENESIS.md)
+- [v1.6.0 Product Genesis release notes (draft)](docs/releases/v1.6.0-product-genesis-draft.md)
 - [Agent Department Proof Loop](docs/AGENT_DEPARTMENT_PROOF_LOOP.md)
 - [Traceable Plugin Runtime](docs/TRACEABLE_PLUGIN_RUNTIME.md)
 - [Agent Reliability Benchmark](docs/AGENT_RELIABILITY_BENCHMARK.md)

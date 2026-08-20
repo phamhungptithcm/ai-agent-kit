@@ -35,7 +35,8 @@ All notable changes to this project will be documented in this file.
 - Added fail-closed capability coverage validation across all canonical skills,
   dispatch modes, routes, source provenance, manifest entries, and required
   Product Genesis artifacts.
-- This section records local implementation only. Commit, push, PR, merge, tag,
+- The clean release candidate is stacked on v1.5.0 and preserves v1.4.1 Pulse,
+  Team Control Plane, and released Product Language capabilities. Merge, tag,
   GitHub Release, npm publication, deployment, and production activation remain
   separately authorized and unperformed.
 
