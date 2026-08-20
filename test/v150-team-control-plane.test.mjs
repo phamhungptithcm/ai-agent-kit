@@ -19,6 +19,7 @@ import { evaluateIndependentReview } from "../src/team-review.mjs";
 import { cleanupTeamWorkspace, evaluateParentSnapshot, planTeamWorkspace, provisionTeamWorkspace } from "../src/team-workspace.mjs";
 import { createBenchmarkRunReceipt, evaluateTeamBenchmark } from "../src/team-benchmark.mjs";
 import { analyzeTeamConflicts } from "../src/team-conflicts.mjs";
+import { sameFilesystemPath } from "../src/paths.mjs";
 
 function git(root, ...args) { return execFileSync("git", args, { cwd: root, encoding: "utf8" }).trim(); }
 const IDENTITY_SECRET = "identity-test-key-0123456789abcdef0123456789abcdef";
@@ -35,6 +36,11 @@ function repository() {
   fs.writeFileSync(path.join(root, "app.mjs"), "export const value = 1;\n"); git(root, "add", "app.mjs"); git(root, "commit", "-m", "test base");
   return root;
 }
+
+test("filesystem path identity follows platform case and separator rules", () => {
+  assert.equal(sameFilesystemPath("D:/a/repository/.git", "d:\\a\\repository\\.git", "win32"), true);
+  assert.equal(sameFilesystemPath("/tmp/Repository/.git", "/tmp/repository/.git", "linux"), false);
+});
 
 test("repository registry coordinates cross-task claims and rejects stale fencing", () => {
   const root = repository(); const now = "2026-08-14T12:00:00.000Z";

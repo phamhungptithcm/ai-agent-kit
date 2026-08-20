@@ -63,6 +63,16 @@ export function hasSymlinkComponent(root, relPath) {
   return false;
 }
 
+export function sameFilesystemPath(left, right, platform = process.platform) {
+  const pathApi = platform === "win32" ? path.win32 : path;
+  const normalize = (value) => pathApi.normalize(pathApi.resolve(String(value)));
+  const normalizedLeft = normalize(left);
+  const normalizedRight = normalize(right);
+  return platform === "win32"
+    ? normalizedLeft.toLowerCase() === normalizedRight.toLowerCase()
+    : normalizedLeft === normalizedRight;
+}
+
 export function isApprovedConfigPath(relPath) {
   const normalized = normalizeRelPath(relPath);
   return APPROVED_CONFIG_PATHS.some((allowed) => {
