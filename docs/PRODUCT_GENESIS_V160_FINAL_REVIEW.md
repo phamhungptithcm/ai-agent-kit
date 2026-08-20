@@ -5,7 +5,7 @@ Review date: 2026-08-20
 Approved scope: local integration, commit, push, two draft pull requests, and
 non-publishing CI dispatch; concurrent Product Content WIP excluded.
 
-Reviewed base: `c9f2cb984fa6a648a76c9f36de243ca07e9dd9f7`
+Reviewed base: `a4e9426a40bf141dedca82805e7e3de17ed25f2f`
 
 Reviewed implementation commit: `822e1aa0e27a26f9691f33af868279113931f5ff`
 
@@ -85,15 +85,14 @@ branches.
 - Draft PR #107 targets `main` from `hunpeolabs/release-v1.5.0`.
 - Draft PR #108 is stacked on `hunpeolabs/release-v1.5.0` from
   `hunpeolabs/release-v1.6.0`.
-- Earlier non-publishing runs passed Node 20, Node 24, and macOS but exposed a
-  Windows canonical-path failure. The updated fix is locally verified; fresh
-  CI evidence on the exact pushed commits remains required.
+- Fresh non-publishing runs passed Node 20, Node 24, macOS, and Windows on both
+  stacked candidates, including packed smoke and transactional recovery; npm
+  publication was skipped by `publish=false`.
 
 ## Remaining release gates
 
-- Push the updated v1.6.0 candidate and keep both pull requests in draft.
-- Pass supported Node/OS CI and fresh explicitly non-publishing workflows on
-  the exact final pushed commits; `publish=false` must continue to skip npm.
+- Keep both pull requests in draft and retain green supported Node/OS and
+  explicitly non-publishing checks on the final docs-only evidence checkpoint.
 - Release owner reviews limitations, package contents, CI evidence, and stacked
   merge order.
 - After separate authorization only: merge, tag the exact merge SHA, create the
