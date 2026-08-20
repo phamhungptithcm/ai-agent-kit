@@ -60,6 +60,7 @@
     "trace-decisions-and-runs": {"introduced_in": "1.1.0", "dispatch_mode": "ROUTED", "capability": "run-continuity"},
     "validate-product-discovery": {"introduced_in": "1.6.0", "dispatch_mode": "ROUTED", "capability": "product-genesis"},
     "write-business-requirements": {"introduced_in": "1.6.0", "dispatch_mode": "ROUTED", "capability": "product-genesis", "source_ids": ["github-awesome-copilot-prd"]},
+    "write-product-content": {"introduced_in": "1.4.1", "dispatch_mode": "ROUTED", "capability": "content-integrity"},
     "write-product-specification": {"introduced_in": "1.6.0", "dispatch_mode": "ROUTED", "capability": "product-genesis", "source_ids": ["github-awesome-copilot-prd"]},
     "zero-trust-mcp": {"introduced_in": "1.0.0", "dispatch_mode": "COMPOSED", "capability": "agent-runtime"}
   },

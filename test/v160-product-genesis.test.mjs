@@ -20,7 +20,7 @@ test("Product Genesis capability catalog covers every canonical skill and route"
   const report = JSON.parse(result.stdout);
   assert.deepEqual(
     { status: report.status, skills: report.skill_count, routes: report.route_count, artifacts: report.artifact_count },
-    { status: "VALID", skills: 57, routes: 31, artifacts: 56 }
+    { status: "VALID", skills: 58, routes: 32, artifacts: 56 }
   );
 });
 
