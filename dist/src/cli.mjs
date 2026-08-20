@@ -93,13 +93,14 @@ import { approveTeamRun, cancelTeamRun, dispatchTeamAssignment, heartbeatTeamAss
 import { buildTeamTimeline, writeTeamTimeline } from "./team-events.mjs";
 import { buildTeamConformanceTemplate, verifyTeamConformance } from "./team-conformance.mjs";
 import { buildTeamBenchmarkTemplate, evaluateTeamBenchmark } from "./team-benchmark.mjs";
-import { acquireRepositoryClaim, heartbeatRepositoryClaim, inspectTeamRegistry, registerRepositoryTask, releaseRepositoryClaim, validateRepositoryFence } from "./team-registry.mjs";
+import { acquireRepositoryClaim, heartbeatRepositoryClaim, inspectTeamRegistry, inspectTeamRegistryHealth, migrateLegacyTeamRegistry, registerRepositoryTask, releaseRepositoryClaim, takeoverRepositoryClaim, validateRepositoryFence } from "./team-registry.mjs";
 import { cleanupTeamWorkspace, inspectTeamWorkspace, planTeamWorkspace, provisionTeamWorkspace } from "./team-workspace.mjs";
 import { analyzeTeamConflicts } from "./team-conflicts.mjs";
-import { createIntegrationPackage, enqueueIntegrationPackage, inspectIntegrationQueue } from "./team-integration.mjs";
+import { createIntegrationPackage, enqueueIntegrationPackage, evaluateIntegrationAdmission, inspectIntegrationQueue, recordIntegrationDecision, recordIntegrationReview, recoverIntegrationState, rejectIntegrationPackage } from "./team-integration.mjs";
 import { evaluateIndependentReview } from "./team-review.mjs";
-import { buildTeamMetrics, evaluateTeamSlos } from "./team-metrics.mjs";
-import { createSignedTeamIdentity, identitySummary, verifyTeamIdentityAuthentication } from "./team-control-contract.mjs";
+import { buildTeamMetrics, buildTeamMetricsFromLedger, evaluateTeamSlos } from "./team-metrics.mjs";
+import { createSignedTeamAction, createSignedTeamIdentity, identitySummary, verifyTeamIdentityAuthentication } from "./team-control-contract.mjs";
+import { inspectTeamTrust, registerTeamTrustedKey, resolveRepositoryTeamKey, revokeTeamTrustedKey } from "./team-trust.mjs";
 import { runTeamDemo } from "./team-demo.mjs";
 import {
   buildOtelTrace,
@@ -254,12 +255,22 @@ Usage:
   ai-agent-kit team benchmark-template
   ai-agent-kit team benchmark --fixture <four-mode-fixture.json>
   ai-agent-kit team identity-sign|identity-verify --file <identity.json> --identity-key-env <ENV_NAME>
-  ai-agent-kit team registry|workspace-inspect|integration-status [--target <path>]
+  ai-agent-kit team action-sign --file <action-input.json> --identity-key-env <PRIVATE_KEY_ENV>
+  ai-agent-kit team registry|registry-health|registry-migrate|workspace-inspect|integration-status|integration-recover [--target <path>] [--apply]
   ai-agent-kit team register-task --id <task-id> --identity-file <json> [--parent-commit <sha>]
   ai-agent-kit team repo-claim --id <task-id> --assignment <id> --identity-file <json> --surfaces-file <json>
   ai-agent-kit team repo-heartbeat|repo-release --claim <id> --fencing-token <n> --identity-file <json>
+  ai-agent-kit team claim-takeover --claim <id> --identity-file <json> --recovery-evidence-hash <sha256>
   ai-agent-kit team fence --claim <id> --fencing-token <n>
   ai-agent-kit team workspace-plan --id <task-id> --assignment <id> --parent-commit <sha>
+  ai-agent-kit team integration-preview --package-id <id> --identity-file <integration-owner.json>
+  ai-agent-kit team integration-admit --file <decision.json> --identity-file <integration-owner.json> --action-file <signed-action.json> --apply
+  ai-agent-kit team integration-reject --package-id <id> --reason-code <code> --evidence-hash <sha256> --identity-file <integration-owner.json> --action-file <signed-action.json>
+  ai-agent-kit team integration-enqueue --file <package.json> --identity-file <author.json> --action-file <signed-action.json>
+  ai-agent-kit team integration-review --file <review.json> --identity-file <reviewer.json> --action-file <signed-action.json>
+  ai-agent-kit team trust-register --file <public-key-policy.json> (--approved-by <id> --approval-hash <sha256> | --identity-file <operator.json> --action-file <signed-action.json>) --apply
+  ai-agent-kit team trust-status|metrics-ledger [--target <path>]
+  ai-agent-kit team trust-revoke --key-id <id> --identity-file <operator.json> --action-file <signed-action.json> --apply
   ai-agent-kit team conflicts|integration-package|integration-enqueue|review|metrics|slos --file <json>
   ai-agent-kit team capabilities
   ai-agent-kit team status|report --id <task-id>
@@ -878,13 +889,14 @@ export function parsePulseArgs(argv) {
 
 export function parseTeamArgs(argv) {
   const action = argv[0];
-  const actions = new Set(["plan", "start", "next", "dispatch", "heartbeat", "ingest", "approve", "cancel", "resume", "recover", "watch", "demo", "conformance-template", "conformance", "benchmark-template", "benchmark", "capabilities", "status", "context", "claim", "handoff", "conflict", "decide", "record", "report", "eval", "identity-sign", "identity-verify", "registry", "register-task", "repo-claim", "repo-heartbeat", "repo-release", "fence", "workspace-plan", "workspace-provision", "workspace-cleanup", "workspace-inspect", "conflicts", "integration-package", "integration-enqueue", "integration-status", "review", "metrics", "slos"]);
+  const actions = new Set(["plan", "start", "next", "dispatch", "heartbeat", "ingest", "approve", "cancel", "resume", "recover", "watch", "demo", "conformance-template", "conformance", "benchmark-template", "benchmark", "capabilities", "status", "context", "claim", "handoff", "conflict", "decide", "record", "report", "eval", "identity-sign", "identity-verify", "action-sign", "registry", "registry-health", "registry-migrate", "register-task", "repo-claim", "repo-heartbeat", "repo-release", "claim-takeover", "fence", "workspace-plan", "workspace-provision", "workspace-cleanup", "workspace-inspect", "conflicts", "integration-package", "integration-enqueue", "integration-status", "integration-review", "integration-preview", "integration-admit", "integration-reject", "integration-recover", "trust-register", "trust-revoke", "trust-status", "review", "metrics", "metrics-ledger", "slos"]);
   if (!actions.has(action)) throw new Error("team action is invalid");
   const options = { target: process.cwd(), paths: [], handoffHashes: [], controlPlane: false };
-  const flags = new Set(["--id", "--target", "--fixture", "--file", "--result-file", "--capabilities-file", "--identity-file", "--identity-key-env", "--host-attestation-file", "--surfaces-file", "--output", "--approval-hash", "--goal", "--shape", "--risk", "--adapter", "--assignment", "--agent", "--external-run-id", "--reviewed-orphaned-writer", "--claim", "--conflict", "--selected-handoff", "--reason", "--decided-by", "--summary", "--expected-revision", "--lease-seconds", "--fencing-token", "--status", "--evidence-hash", "--handoff-hash", "--finding-count", "--tokens", "--actions", "--duration-seconds", "--max-agents", "--max-concurrency", "--token-budget", "--timeout-seconds", "--max-actions", "--parent-commit", "--workspace-path", "--worktree-root", "--branch", "--host-key-env", "--path", "--control-plane"]);
+  const flags = new Set(["--id", "--target", "--fixture", "--file", "--action-file", "--result-file", "--capabilities-file", "--identity-file", "--identity-key-env", "--host-attestation-file", "--surfaces-file", "--output", "--approval-hash", "--approved-by", "--goal", "--shape", "--risk", "--adapter", "--assignment", "--agent", "--external-run-id", "--reviewed-orphaned-writer", "--claim", "--conflict", "--selected-handoff", "--reason", "--reason-code", "--recovery-evidence-hash", "--key-id", "--package-id", "--decided-by", "--summary", "--expected-revision", "--lease-seconds", "--fencing-token", "--status", "--evidence-hash", "--handoff-hash", "--finding-count", "--tokens", "--actions", "--duration-seconds", "--max-agents", "--max-concurrency", "--token-budget", "--timeout-seconds", "--max-actions", "--parent-commit", "--workspace-path", "--worktree-root", "--branch", "--host-key-env", "--path", "--control-plane", "--apply"]);
   for (let index = 1; index < argv.length; index += 1) {
     const flag = argv[index]; if (!flags.has(flag)) throw new Error(`Unknown team option: ${flag}`);
     if (flag === "--control-plane") { options.controlPlane = true; continue; }
+    if (flag === "--apply") { options.apply = true; continue; }
     const value = argv[++index]; if (!value) throw new Error(`${flag} requires a value`);
     if (flag === "--path") options.paths.push(value);
     else if (flag === "--handoff-hash" && action === "conflict") options.handoffHashes.push(value);
@@ -895,7 +907,7 @@ export function parseTeamArgs(argv) {
   if (action === "benchmark" && !options.fixture) throw new Error("team benchmark requires --fixture");
   if (action === "conformance" && !options.file) throw new Error("team conformance requires --file");
   if (action === "conformance-template" && !options.adapter) throw new Error("team conformance-template requires --adapter");
-  const idOptional = new Set(["eval", "capabilities", "demo", "conformance-template", "conformance", "benchmark-template", "benchmark", "identity-sign", "identity-verify", "registry", "repo-heartbeat", "repo-release", "fence", "workspace-provision", "workspace-cleanup", "workspace-inspect", "conflicts", "integration-package", "integration-enqueue", "integration-status", "review", "metrics", "slos"]);
+  const idOptional = new Set(["eval", "capabilities", "demo", "conformance-template", "conformance", "benchmark-template", "benchmark", "identity-sign", "identity-verify", "action-sign", "registry", "registry-health", "registry-migrate", "repo-heartbeat", "repo-release", "claim-takeover", "fence", "workspace-provision", "workspace-cleanup", "workspace-inspect", "conflicts", "integration-package", "integration-enqueue", "integration-status", "integration-review", "integration-preview", "integration-admit", "integration-reject", "integration-recover", "trust-register", "trust-revoke", "trust-status", "review", "metrics", "metrics-ledger", "slos"]);
   if (!idOptional.has(action) && !options.id) throw new Error(`team ${action} requires --id`);
   if (action === "start" && !options.adapter) throw new Error("team start requires --adapter");
   if (action === "dispatch" && (!options.assignment || !options.agent)) throw new Error("team dispatch requires --assignment and --agent");
@@ -910,11 +922,23 @@ export function parseTeamArgs(argv) {
   if (action === "register-task" && !options.identityFile) throw new Error("team register-task requires --identity-file");
   if (action === "repo-claim" && (!options.assignment || !options.identityFile || !options.surfacesFile)) throw new Error("team repo-claim requires --assignment, --identity-file, and --surfaces-file");
   if (["repo-heartbeat", "repo-release"].includes(action) && (!options.claim || options.fencingToken == null || !options.identityFile)) throw new Error(`team ${action} requires --claim, --fencing-token, and --identity-file`);
+  if (action === "claim-takeover" && (!options.claim || !options.identityFile || !options.recoveryEvidenceHash)) throw new Error("team claim-takeover requires --claim, --identity-file, and --recovery-evidence-hash");
   if (action === "fence" && (!options.claim || options.fencingToken == null)) throw new Error("team fence requires --claim and --fencing-token");
   if (action === "workspace-plan" && (!options.assignment || !options.parentCommit)) throw new Error("team workspace-plan requires --assignment and --parent-commit");
   if (["workspace-provision", "workspace-cleanup"].includes(action) && (!options.file || !options.identityFile)) throw new Error(`team ${action} requires --file and --identity-file`);
-  if (["conflicts", "integration-package", "integration-enqueue", "review", "metrics", "slos"].includes(action) && !options.file) throw new Error(`team ${action} requires --file`);
-  if (["identity-sign", "identity-verify"].includes(action) && (!options.file || !options.identityKeyEnv)) throw new Error(`team ${action} requires --file and --identity-key-env`);
+  if (["conflicts", "integration-package", "integration-enqueue", "integration-review", "integration-admit", "review", "metrics", "slos", "trust-register"].includes(action) && !options.file) throw new Error(`team ${action} requires --file`);
+  if (["integration-enqueue", "integration-review", "integration-preview", "integration-admit", "integration-reject", "trust-revoke"].includes(action) && !options.identityFile) throw new Error(`team ${action} requires --identity-file`);
+  if (["integration-enqueue", "integration-review"].includes(action) && !options.actionFile) throw new Error(`team ${action} requires --action-file`);
+  if (action === "integration-preview" && !options.packageId) throw new Error("team integration-preview requires --package-id");
+  if (action === "integration-admit" && (!options.apply || !options.actionFile)) throw new Error("team integration-admit requires --action-file and explicit --apply");
+  if (action === "integration-reject" && (!options.packageId || !options.reasonCode || !options.evidenceHash || !options.actionFile)) throw new Error("team integration-reject requires --package-id, --reason-code, --evidence-hash, and --action-file");
+  if (action === "trust-register") {
+    const bootstrapApproval = Boolean(options.approvedBy && options.approvalHash);
+    const signedAdministration = Boolean(options.identityFile && options.actionFile);
+    if (!options.apply || (!bootstrapApproval && !signedAdministration)) throw new Error("team trust-register requires --apply and either bootstrap approval or a signed administrator action");
+  }
+  if (action === "trust-revoke" && (!options.apply || !options.keyId || !options.actionFile)) throw new Error("team trust-revoke requires --key-id, --action-file, and --apply");
+  if (["identity-sign", "identity-verify", "action-sign"].includes(action) && (!options.file || !options.identityKeyEnv)) throw new Error(`team ${action} requires --file and --identity-key-env`);
   if (options.hostKeyEnv && !/^[A-Z_][A-Z0-9_]{0,127}$/.test(options.hostKeyEnv)) throw new Error("--host-key-env must name a safe uppercase environment variable");
   if (options.identityKeyEnv && !/^[A-Z_][A-Z0-9_]{0,127}$/.test(options.identityKeyEnv)) throw new Error("--identity-key-env must name a safe uppercase environment variable");
   for (const key of ["expectedRevision", "leaseSeconds", "fencingToken", "findingCount", "tokens", "actions", "durationSeconds", "maxAgents", "maxConcurrency", "tokenBudget", "timeoutSeconds", "maxActions"]) if (options[key] != null) { const value = Number(options[key]); if (!Number.isInteger(value) || value < 0) throw new Error(`${key} must be a non-negative integer`); options[key] = value; }
@@ -1358,11 +1382,14 @@ export async function main(argv = process.argv.slice(2), io = console, deps = {}
     else if (action === "conformance-template") result = buildTeamConformanceTemplate(options);
     else if (action === "conformance") result = verifyTeamConformance(readSystemDesignJson(options.target, options.file, "team conformance attestation"), options);
     else if (action === "benchmark-template") result = buildTeamBenchmarkTemplate();
-    else if (action === "benchmark") result = evaluateTeamBenchmark(readSystemDesignJson(options.target, options.fixture, "team benchmark fixture"));
+    else if (action === "benchmark") result = evaluateTeamBenchmark(readSystemDesignJson(options.target, options.fixture, "team benchmark fixture"), { resolveKey: resolveRepositoryTeamKey(options) });
     else if (action === "capabilities") result = { schema_version: 1, adapters: listExecutionAdapters() };
     else if (action === "identity-sign") result = createSignedTeamIdentity(readSystemDesignJson(options.target, options.file, "team identity input"), identitySecret);
     else if (action === "identity-verify") result = { schema_version: 1, status: "VERIFIED", identity: identitySummary(verifyTeamIdentityAuthentication(readSystemDesignJson(options.target, options.file, "team identity"), { identitySecret })) };
+    else if (action === "action-sign") result = createSignedTeamAction({ ...readSystemDesignJson(options.target, options.file, "signed team action input"), privateKeyPem: identitySecret });
     else if (action === "registry") result = inspectTeamRegistry(options);
+    else if (action === "registry-health") result = inspectTeamRegistryHealth(options);
+    else if (action === "registry-migrate") result = migrateLegacyTeamRegistry(options);
     else if (action === "register-task") result = registerRepositoryTask({ ...options, taskId: options.id, goalHash: options.goal, parentCommit: options.parentCommit, identity, identitySecret });
     else if (action === "repo-claim") {
       const surfaces = readSystemDesignJson(options.target, options.surfacesFile, "team claim surfaces");
@@ -1370,17 +1397,27 @@ export async function main(argv = process.argv.slice(2), io = console, deps = {}
     }
     else if (action === "repo-heartbeat") result = heartbeatRepositoryClaim({ ...options, claimId: options.claim, identity, identitySecret });
     else if (action === "repo-release") result = releaseRepositoryClaim({ ...options, claimId: options.claim, identity, identitySecret });
+    else if (action === "claim-takeover") result = takeoverRepositoryClaim({ ...options, claimId: options.claim, recoveryEvidenceHash: options.recoveryEvidenceHash, identity, identitySecret });
     else if (action === "fence") result = validateRepositoryFence({ ...options, claimId: options.claim });
     else if (action === "workspace-plan") result = planTeamWorkspace({ ...options, taskId: options.id, assignmentId: options.assignment });
     else if (action === "workspace-provision") { const plan = readSystemDesignJson(options.target, options.file, "workspace plan"); result = provisionTeamWorkspace({ plan, identity, identitySecret, apply: true, confirmPlanHash: plan.plan_hash }); }
     else if (action === "workspace-cleanup") { const plan = readSystemDesignJson(options.target, options.file, "workspace plan"); result = cleanupTeamWorkspace({ plan, identity, identitySecret, apply: true, confirmPlanHash: plan.plan_hash }); }
     else if (action === "workspace-inspect") result = inspectTeamWorkspace(options);
     else if (action === "conflicts") { const payload = readSystemDesignJson(options.target, options.file, "team conflict packages"); result = analyzeTeamConflicts({ packages: Array.isArray(payload) ? payload : payload.packages }); }
-    else if (action === "integration-package") result = createIntegrationPackage({ ...readSystemDesignJson(options.target, options.file, "integration package input"), identitySecret });
-    else if (action === "integration-enqueue") result = enqueueIntegrationPackage({ ...options, package: readSystemDesignJson(options.target, options.file, "integration package") });
+    else if (action === "integration-package") { const payload = readSystemDesignJson(options.target, options.file, "integration package input"); result = createIntegrationPackage({ target: options.target, ...payload, author: identity ?? payload.author, identitySecret }); }
+    else if (action === "integration-enqueue") result = enqueueIntegrationPackage({ ...options, package: readSystemDesignJson(options.target, options.file, "integration package"), actionEnvelope: readSystemDesignJson(options.target, options.actionFile, "signed integration action"), author: identity, identitySecret, requireReleaseGradeTrust: true });
     else if (action === "integration-status") result = inspectIntegrationQueue(options);
+    else if (action === "integration-review") result = recordIntegrationReview({ ...options, review: readSystemDesignJson(options.target, options.file, "integration review"), actionEnvelope: readSystemDesignJson(options.target, options.actionFile, "signed integration action"), reviewer: identity, identitySecret, requireReleaseGradeTrust: true });
+    else if (action === "integration-preview") result = evaluateIntegrationAdmission({ ...options, packageId: options.packageId, integrationOwner: identity, identitySecret, requireReleaseGradeTrust: true });
+    else if (action === "integration-admit") result = recordIntegrationDecision({ ...options, decision: readSystemDesignJson(options.target, options.file, "integration decision"), actionEnvelope: readSystemDesignJson(options.target, options.actionFile, "signed integration action"), integrationOwner: identity, identitySecret, requireReleaseGradeTrust: true });
+    else if (action === "integration-reject") result = rejectIntegrationPackage({ ...options, packageId: options.packageId, reasonCode: options.reasonCode, evidenceHash: options.evidenceHash, actionEnvelope: readSystemDesignJson(options.target, options.actionFile, "signed integration action"), integrationOwner: identity, identitySecret, requireReleaseGradeTrust: true });
+    else if (action === "integration-recover") result = recoverIntegrationState(options);
+    else if (action === "trust-register") result = registerTeamTrustedKey({ ...options, key: readSystemDesignJson(options.target, options.file, "team public-key trust policy"), actionEnvelope: options.actionFile ? readSystemDesignJson(options.target, options.actionFile, "signed trust action") : null, bootstrap: Boolean(options.approvedBy && options.approvalHash), approvedBy: options.approvedBy, approvalHash: options.approvalHash, identity });
+    else if (action === "trust-revoke") result = revokeTeamTrustedKey({ ...options, keyId: options.keyId, actionEnvelope: readSystemDesignJson(options.target, options.actionFile, "signed trust action"), identity });
+    else if (action === "trust-status") result = inspectTeamTrust(options);
     else if (action === "review") result = evaluateIndependentReview({ ...readSystemDesignJson(options.target, options.file, "independent review input"), identitySecret });
     else if (action === "metrics") { const payload = readSystemDesignJson(options.target, options.file, "team metric events"); result = buildTeamMetrics(Array.isArray(payload) ? payload : payload.events, payload.options ?? {}); }
+    else if (action === "metrics-ledger") result = buildTeamMetricsFromLedger(options);
     else if (action === "slos") { const payload = readSystemDesignJson(options.target, options.file, "team SLO input"); result = evaluateTeamSlos(payload.report, payload.targets); }
     else if (action === "status") result = inspectTeam(options);
     else if (action === "context") result = teamContextSummary(options);
@@ -1392,7 +1429,7 @@ export async function main(argv = process.argv.slice(2), io = console, deps = {}
     else if (action === "eval") result = evaluateTeamCases(readSystemDesignJson(options.target, options.fixture, "team eval fixture"));
     else result = reportTeam(options);
     io.log(JSON.stringify(result, null, 2));
-    return ["NOT_READY", "FAILED", "NOT_RUN", "INSUFFICIENT_EVIDENCE", "PARTIAL"].includes(result.status) || result.state === "BLOCKED" ? 1 : 0;
+    return ["NOT_READY", "FAILED", "NOT_RUN", "INSUFFICIENT_EVIDENCE", "PARTIAL", "UNVERIFIED", "DEGRADED", "NEEDS_OPERATOR", "MIGRATION_REQUIRED"].includes(result.status) || result.state === "BLOCKED" ? 1 : 0;
   }
   if (command === "status") {
     const options = parseTargetArgs(argv.slice(1));

@@ -26,8 +26,8 @@ All notable changes to this project will be documented in this file.
   privacy-safe metrics/SLOs, and a four-mode benchmark requiring unique signed
   runtime receipts across at least 30 comparable task cases.
 - Added v1.5 CLI surfaces, canonical schemas, guard/workflow/operator guidance,
-  migration documentation, and adversarial tests. Distribution regeneration is
-  a remaining release gate while concurrent worktree changes are present.
+  migration documentation, adversarial tests, and regenerated distribution
+  artifacts on the v1.4.1-based release candidate.
 - The local registry does not claim cross-host distributed consensus; synthetic
   tests do not prove real-world productivity or world-class quality.
 
