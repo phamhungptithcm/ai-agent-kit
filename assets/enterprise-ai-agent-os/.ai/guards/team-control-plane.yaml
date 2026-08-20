@@ -6,19 +6,32 @@ authority:
   cross_host_without_authenticated_shared_backend: deny
 identity:
   authenticated: true
+  release_grade_method: ED25519
+  repository_trust_policy: required
+  revocation_checked: true
+  signed_action_envelope: required_for_mutation
+  durable_nonce_replay_protection: true
+  legacy_hmac_status: DEGRADED
   expiry_required: true
   evidence_digest_required: true
   unknown_capability: deny
   least_privilege: true
 registry:
+  backend: SQLITE_TRANSACTIONAL
+  journal_mode: WAL
+  synchronous: FULL
+  foreign_keys: true
+  transaction_mode: BEGIN_IMMEDIATE
   optimistic_revision: true
   atomic_write: true
-  bounded_lock_recovery: true
+  legacy_migration_preview_and_backup: true
   cross_task_scope_check: true
 leases:
   heartbeat_required: true
   monotonic_fencing_token: true
   stale_writer_result: deny
+  expiry_allows_automatic_takeover: false
+  takeover_evidence_required: true
 workspace:
   isolated_for_writers: true
   exact_parent_snapshot: true
@@ -31,6 +44,9 @@ integration:
   dependency_order_required: true
   rollback_reference_required: true
   protected_unknown_surface: deny
+  actual_git_diff_required: true
+  exact_review_input_required: true
+  atomic_admission_recheck: true
 privacy:
   raw_prompts: deny
   source_bodies: deny
