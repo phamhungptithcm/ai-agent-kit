@@ -414,39 +414,42 @@ v2 migration interchange rather than the concurrent writer. Remote capability
 claims, writes, encryption, retention, and replay protection are verified at
 the adapter boundary; they are not inferred from a host name.
 
-## Native Architecture Pulse in v1.4.0
+## Change-aware Architecture Pulse in v1.4.1
 
 Architecture Pulse adds a repository-local structural evidence lane alongside
 behavioral tests, final review, proof, and governed memory:
 
 ```mermaid
 flowchart LR
-  Git["Git-aware bounded inventory"] --> Extract["Conservative polyglot extractors"]
-  Extract --> Graph["Evidence-backed dependency graph"]
-  Graph --> Metrics["Versioned structural signals"]
-  Metrics --> Baseline["Repository-bound trusted baseline"]
-  Baseline --> Policy["Named rules and explicit deltas"]
-  Policy --> Report["Task report and Change Passport"]
+  Git["Git snapshot or working tree"] --> Scope["Bounded truthful scope"]
+  Scope --> Extract["Tiered adapters and optional resolvers"]
+  Extract --> Graph["Typed, component-aware file graph"]
+  Graph --> Catalog["Stable finding catalog and witnesses"]
+  Catalog --> Compare["Baseline or base/head diff"]
+  Compare --> Policy["Named policy and governed waivers"]
+  Policy --> Report["Task report, SARIF, trend, and Passport"]
 ```
 
 The scanner refuses path escapes, symlinks and hard links; applies count, byte,
-and time budgets; and records every material exclusion. Extractors resolve
-within a language ecosystem by default. Cross-language edges require an
-explicit bridge naming two inventoried files, preventing same-name collisions
-from becoming fabricated architecture.
+artifact, shard, and end-to-end time budgets; and separates unsupported source
+from deliberate policy exclusions. Extractors declare whether evidence came
+from source fallback, an AST, a native resolver, a trusted index, or an explicit
+manifest. Cross-language edges still require an explicit bridge.
 
 The graph engine calculates SCCs, a condensation DAG spanning every root,
-cohesion, configured boundary violations, hotspots, and bounded reachable-node
-blast radius. Coverage, confidence, source/config hashes, and semantic versions
-travel with every metric. The aggregate index is diagnostic and has no runtime
-authority.
+weighted cohesion, configured boundary/layer/public-API violations, hotspots,
+and bounded reachable-node blast radius. Stable fingerprints make exact
+findings new, unchanged, updated, or fixed, so a new cycle cannot hide behind a
+fixed cycle with the same aggregate count. Base/head analysis adds affected
+components and dependency witness paths.
 
-Baselines bind repository identity and state, analyzer semantics, config,
-source, and optional plan/approval provenance behind a canonical integrity
-digest. Changed source is expected during comparison; foreign repositories,
-tampering, config drift, or incompatible semantics return `UNTRUSTED` or
-`STALE`. Only named configured rules may block. Existing approval, task,
-runtime, and Passport authority remains unchanged.
+Baselines bind repository identity and state, analyzer semantics, analysis
+configuration, source, and optional plan/approval provenance behind a canonical
+integrity digest. Policy has a separate digest, so a threshold change does not
+erase architectural history. Exact expiring waivers are integrity-bound and
+fail closed. Low-tier matches for a blocking rule return `DEGRADED`; the
+diagnostic index has no authority. Existing approval, task, runtime, and
+Passport authority remains unchanged.
 
 Agent Proof Replay composes these contracts into a redacted proof model. It
 uses the same production-readiness evaluation as the final task report and

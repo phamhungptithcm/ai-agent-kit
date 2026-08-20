@@ -9,7 +9,7 @@ const temporaryRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ai-agent-kit-packed
 const packageData = JSON.parse(fs.readFileSync(path.join(workspace, "package.json"), "utf8"));
 const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
 
-function execute(command, args, cwd) {
+function execute(command, args, cwd, options = {}) {
   const spawnArgs = process.platform === "win32"
     ? args.map((argument) => `"${argument.replaceAll('"', '\\"')}"`)
     : args;
@@ -20,7 +20,8 @@ function execute(command, args, cwd) {
     env: {
       ...process.env,
       npm_config_cache: path.join(temporaryRoot, "npm-cache"),
-      npm_config_logs_dir: path.join(temporaryRoot, "npm-logs")
+      npm_config_logs_dir: path.join(temporaryRoot, "npm-logs"),
+      ...(options.env ?? {})
     }
   });
   if (result.status !== 0) {
@@ -41,6 +42,8 @@ try {
     || entry.includes("/.codegraph/")
     || entry.includes("/.cocoindex_code/")
     || entry.includes("/__pycache__/")
+    || entry.startsWith(".ai-agent-kit/")
+    || entry.startsWith("docs/approvals/")
     || /\.py[co]$/.test(entry)
   );
   assert.deepEqual(forbiddenPackageState, [], `package contains local or generated state: ${forbiddenPackageState.join(", ")}`);
@@ -51,7 +54,7 @@ try {
   fs.writeFileSync(path.join(packedCliRoot, "package.json"), `${JSON.stringify({ name: "packed-cli-runner", private: true })}\n`);
   execute(npmCommand, ["install", tarball], packedCliRoot);
   const packedCli = path.join(packedCliRoot, "node_modules", "@hunpeolabs", "ai-agent-kit", "dist", "bin", "ai-agent-kit.mjs");
-  const executePacked = (args, cwd) => execute(process.execPath, [packedCli, ...args], cwd);
+  const executePacked = (args, cwd, options) => execute(process.execPath, [packedCli, ...args], cwd, options);
   const fixture = path.join(temporaryRoot, "fixture");
   fs.mkdirSync(fixture);
   execute("git", ["init"], fixture);
@@ -144,11 +147,42 @@ try {
   fs.writeFileSync(path.join(fixture, "src/smoke.mjs"), "export const smoke = 1;\n");
   execute("git", ["add", "src/smoke.mjs"], fixture);
   execute("git", ["commit", "-m", "smoke base"], fixture);
+  const traceLab = executePacked(["tracelab", "run", "--scenario", "production-bug"], fixture);
+  assert.match(traceLab.stdout, /"status": "RECOVERED"/);
+  const pluginPreview = executePacked(["plugin", "init", "--plugin-id", "packed-review"], fixture);
+  assert.match(pluginPreview.stdout, /"status": "PREVIEW"/);
+  assert.equal(fs.existsSync(path.join(fixture, "plugins/packed-review")), false);
+  const pluginCreated = executePacked(["plugin", "init", "--plugin-id", "packed-review", "--apply"], fixture);
+  assert.match(pluginCreated.stdout, /"status": "CREATED"/);
+  assert.ok(fs.existsSync(path.join(fixture, "plugins/packed-review/plugin.json")));
+  execute("git", ["add", "plugins/packed-review"], fixture);
+  execute("git", ["commit", "-m", "add packed plugin fixture"], fixture);
+  executePacked(["decision", "record", "--decision-id", "PACKED-DEC", "--event-id", "packed-dec-1", "--actor", "smoke", "--question", "Why trace?", "--choice", "recoverable", "--rationale", "portable evidence", "--artifact", "src/smoke.mjs"], fixture);
+  executePacked(["decision", "transition", "--decision-id", "PACKED-DEC", "--event-id", "packed-dec-2", "--action", "approve", "--actor", "smoke", "--rationale", "fixture approval"], fixture);
+  executePacked(["run", "record", "--run-id", "PACKED-RUN", "--event-id", "packed-run-1", "--phase", "start", "--actor", "smoke", "--decision-id", "PACKED-DEC"], fixture);
+  const why = executePacked(["why", "src/smoke.mjs"], fixture);
+  assert.match(why.stdout, /"status": "EXPLAINED"/);
+  executePacked(["run", "export", "--run-id", "PACKED-RUN", "--output", ".ai-agent-kit/exports/PACKED-RUN.aakrun"], fixture);
+  const bundle = executePacked(["run", "verify", "--file", ".ai-agent-kit/exports/PACKED-RUN.aakrun"], fixture);
+  assert.match(bundle.stdout, /"status": "VERIFIED"/);
+  const control = executePacked(["control", "view"], fixture);
+  assert.match(control.stdout, /"status": "HEALTHY"/);
   const pulseScan = executePacked(["pulse", "scan", "--task-id", "PULSE-SMOKE", "--format", "text"], fixture);
   assert.match(pulseScan.stdout, /Architecture Pulse: COMPLETE/);
   assert.ok(fs.existsSync(path.join(fixture, ".ai-agent-kit/pulse/tasks/PULSE-SMOKE.json")));
-  const pulseBaseline = executePacked(["pulse", "baseline", "create", "--name", "packed"], fixture);
+  const pulseDoctor = executePacked(["pulse", "doctor"], fixture);
+  assert.match(pulseDoctor.stdout, /"status": "READY"/);
+  const pulseDiff = executePacked(["pulse", "diff", "--base", "HEAD", "--head", "working-tree", "--format", "text"], fixture);
+  assert.match(pulseDiff.stdout, /Architecture Pulse diff/);
+  const pulseSarif = executePacked(["pulse", "sarif", "--file", ".ai-agent-kit/pulse/tasks/PULSE-SMOKE.json", "--output", ".ai-agent-kit/pulse/results/packed.sarif"], fixture);
+  assert.match(pulseSarif.stdout, /"status": "CREATED"/);
+  const pulseTrend = executePacked(["pulse", "trend", "record", "--file", ".ai-agent-kit/pulse/tasks/PULSE-SMOKE.json"], fixture);
+  assert.match(pulseTrend.stdout, /"status": "RECORDED"/);
+  const localEnvironment = { CI: "false", GITHUB_ACTIONS: "false", GITLAB_CI: "false", BUILDKITE: "false", CIRCLECI: "false", JENKINS_URL: "false", TF_BUILD: "false" };
+  const pulseBaseline = executePacked(["pulse", "baseline", "create", "--name", "packed"], fixture, { env: localEnvironment });
   assert.match(pulseBaseline.stdout, /"status": "CREATED"/);
+  const pulseInspect = executePacked(["pulse", "baseline", "inspect", "--baseline", ".ai-agent-kit/pulse/baselines/packed.json"], fixture);
+  assert.match(pulseInspect.stdout, /"status": "VERIFIED"/);
   const pulseVerify = executePacked(["pulse", "baseline", "verify", "--baseline", ".ai-agent-kit/pulse/baselines/packed.json"], fixture);
   assert.match(pulseVerify.stdout, /"status": "VERIFIED"/);
   const pulseCheck = executePacked(["pulse", "check", "--baseline", ".ai-agent-kit/pulse/baselines/packed.json", "--format", "text"], fixture);
@@ -247,6 +281,31 @@ try {
     ".agents/skills/design-scalable-systems/scripts/capacity_cost_model.py",
     ".ai/quality-profiles/system-design.yaml",
     ".ai/evals/system-design-cases.yaml",
+    ".ai/core/traceable-plugin-runtime.md",
+    ".ai/rules/plugin-trust.md",
+    ".ai/rules/decision-trace-integrity.md",
+    ".ai/rules/run-continuity.md",
+    ".ai/rules/portable-evidence-privacy.md",
+    ".ai/rules/benchmark-claim-integrity.md",
+    ".ai/quality-profiles/agent-runtime.yaml",
+    ".ai/quality-profiles/plugin-development.yaml",
+    ".ai/quality-profiles/agent-evaluation.yaml",
+    ".ai/guards/trace-completeness-gate.yaml",
+    ".ai/guards/plugin-activation-gate.yaml",
+    ".ai/guards/resume-safety-gate.yaml",
+    ".agents/skills/trace-decisions-and-runs/SKILL.md",
+    ".agents/skills/resume-and-recover-run/SKILL.md",
+    ".agents/skills/author-governed-plugin/SKILL.md",
+    ".agents/skills/audit-plugin-trust/SKILL.md",
+    ".agents/skills/benchmark-agent-reliability/SKILL.md",
+    ".agents/skills/investigate-agent-runtime/SKILL.md",
+    ".ai/workflows/trace-and-recover-run.md",
+    ".ai/templates/decision-event.schema.json",
+    ".ai/templates/run-envelope.schema.json",
+    ".ai/templates/plugin-manifest.schema.json",
+    ".ai/templates/aakrun.schema.json",
+    ".ai/templates/reliability-benchmark.schema.json",
+    ".ai/templates/reliability-benchmark.example.json",
     ".ai/core/architecture-pulse.md",
     ".ai/templates/architecture-pulse-config.schema.json",
     ".ai/templates/architecture-pulse-result.schema.json",

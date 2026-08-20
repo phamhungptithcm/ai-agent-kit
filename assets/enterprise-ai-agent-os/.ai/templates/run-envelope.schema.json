@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hunpeolabs.dev/schemas/run-envelope.v1.json",
+  "title": "AI Agent Kit Run Envelope Event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "type", "offset", "timestamp", "previous_hash", "data", "record_hash"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "type": { "const": "run.event" },
+    "offset": { "type": "integer", "minimum": 1 },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "previous_hash": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
+    "record_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "data": {
+      "type": "object",
+      "required": ["event_id", "run_id", "phase", "actor", "repository"],
+      "properties": {
+        "event_id": { "type": "string", "maxLength": 128 },
+        "run_id": { "type": "string", "maxLength": 128 },
+        "phase": { "enum": ["start", "checkpoint", "pause", "resume-preview", "resume-confirm", "close", "fail", "cancel"] },
+        "actor": { "type": "string", "maxLength": 256 },
+        "decision_ids": { "type": "array", "items": { "type": "string" } },
+        "blockers": { "type": "array", "items": { "type": "string" } },
+        "next_action": { "type": ["string", "null"] },
+        "repository": { "type": "object" }
+      },
+      "additionalProperties": true
+    }
+  }
+}

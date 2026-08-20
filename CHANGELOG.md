@@ -26,15 +26,46 @@ All notable changes to this project will be documented in this file.
   privacy-safe metrics/SLOs, and a four-mode benchmark requiring unique signed
   runtime receipts across at least 30 comparable task cases.
 - Added v1.5 CLI surfaces, canonical schemas, guard/workflow/operator guidance,
-  migration documentation, and adversarial tests. Distribution regeneration is
-  a remaining release gate while concurrent worktree changes are present.
+  migration documentation, adversarial tests, and regenerated distribution
+  artifacts.
 - The local registry does not claim cross-host distributed consensus; synthetic
   tests do not prove real-world productivity or world-class quality.
-- This section records local implementation only. Commit, push, PR, merge, tag,
-  GitHub Release, npm publication, deployment, and production activation remain
-  separately authorized and unperformed.
+- This section records the local release candidate. Push, PR, merge to `main`,
+  tag, GitHub Release, npm publication, deployment, and production activation
+  remain unperformed.
 
-## Unreleased — v1.4.0 Native Architecture Pulse
+## 1.4.1 - 2026-08-20
+
+- Replaced aggregate-only cycle and boundary comparison with stable finding
+  fingerprints and explicit `new`, `unchanged`, `updated`, and `fixed` states.
+- Added truthful supported, unsupported, policy-excluded, external, unresolved,
+  ambiguous, and parse-failed coverage semantics; unsupported source can no
+  longer appear as complete analysis.
+- Split analysis and policy digests, moved baseline compatibility from package
+  version to analyzer semantic versions, and added explicit v1 migration
+  previews without silent cross-version comparison.
+- Added evidence-tiered adapters, comment-aware JavaScript/TypeScript parsing,
+  tsconfig/workspace resolution, Python AST evidence, and optional bounded Go
+  and Cargo resolver provenance.
+- Added a typed, component-aware file graph, layer and public-API findings, cycle witnesses,
+  base/head diff, changed edges, affected components, and dependency paths.
+- Added non-authoritative content-addressed caching, one end-to-end deadline,
+  bounded artifact writing, and digest-addressed graph and inventory shards.
+- Added forbidden, required, transitive, layer, public-API, and no-new-finding
+  policy rules with approved evidence-tier requirements.
+- Added exact integrity-bound expiring waivers that fail closed when invalid,
+  expired, future-dated, or tampered; CI cannot create baselines or waivers.
+- Added `pulse doctor`, `pulse policy validate`, `pulse diff`, baseline inspect
+  and migration preview, richer explain output, SARIF export, and hash-chained
+  local trend history.
+- Added a seven-language golden dependency graph, mutation gates for finding
+  identity and coverage honesty, cache and waiver adversarial tests, artifact
+  bounds, and measured precision/recall output through `npm run eval:pulse`.
+- Added the separately approved Product Language Gate and natural UI/UX writing
+  skill, including mandatory workflow, routing, adapter, quality-profile, and
+  final-review integration.
+
+## 1.4.0 - 2026-08-19
 
 - Added a clean-room, first-party Architecture Pulse contract with canonical
   hashing, stable reason codes, explicit evidence states, metric/extractor
@@ -60,19 +91,47 @@ All notable changes to this project will be documented in this file.
   baseline, policy, CLI, task-report, Passport, and packed-package coverage.
 - Added canonical configuration/result/baseline/comparison schemas and complete
   workflow, trust, adoption, limitation, and clean-room documentation.
-- This section records local implementation scope only. Commit, PR, tag,
-  GitHub Release, npm publication, deployment, and production activation remain
-  separately authorized and unperformed.
+- Added clean-room documentation and release guidance confirming that v1.4.0
+  contains no Sentrux code, dependency, service, telemetry, or compatibility
+  layer.
 
-## Unreleased — v1.3.0 Governed Shared Memory
+## 1.3.0 - 2026-08-15
 
-- Implementation draft: canonical `memory-entry-v3`, transactional local
-  SQLite storage, reviewed subagent candidate promotion, scoped retrieval
-  receipts, signed repository-bound interchange, migration/recovery controls,
-  adversarial coverage, and release-assurance documentation.
-- This section is not release evidence. Version bump, tag, GitHub Release, npm
-  publication, deployment, and production activation remain separately
-  authorized and unperformed.
+- Added canonical `memory-entry-v3`, transactional local SQLite storage,
+  reviewed subagent candidate promotion, and scoped retrieval receipts.
+- Added signed repository-bound interchange, verified remote adapter
+  boundaries, migration and recovery controls, adversarial coverage, and
+  release-assurance documentation.
+
+## 1.2.0 - 2026-08-14
+
+- Added a local-first Plugin Trust Center with versioned manifests, previewable
+  lifecycle changes, provenance and compatibility checks, least-privilege
+  invocation, tamper quarantine, and hash-chained receipts.
+- Added privacy-safe run traces shaped for OpenTelemetry GenAI conventions and
+  a reproducible Agent Reliability Benchmark with explicit denominators,
+  failures, unknown costs, limitations, and bounded claims.
+- Added reproducible traceability cases and release-proof contracts suitable
+  for product demos without presenting synthetic evidence as production proof.
+- Added six auto-routed workflows for decision/run tracing, safe recovery,
+  governed plugin authoring and trust review, reliability benchmarking, and
+  agent-runtime investigation, with English and Vietnamese routing fixtures.
+- Added dedicated runtime, plugin-development, and agent-evaluation quality
+  profiles plus fail-closed trace-completeness, plugin-activation, and
+  resume-safety gates.
+- Added preview-first `plugin init` scaffolding, explicit trace/plugin adapter
+  capability states, and CI verification for canonical release evidence.
+- Hardened plugin trust so self-signed keys require repository enrollment,
+  invocation authority requires signed single-use capabilities, untracked
+  worktree drift blocks resume, and unverified plugins make Trust Center health
+  fail closed.
+- Added an append-only, hash-chained Decision Chronicle with explicit approval,
+  rejection, supersession, revocation, invalidation, and repository provenance.
+- Added portable Run Envelopes, stale-state detection, non-destructive recovery
+  previews, redacted `.aakrun` exports, local trace output, and `ai-agent-kit
+  why` intent lookup.
+- Added TraceLab scenarios for failure paths, parent drift, plugin escape,
+  incomplete evidence, interrupted agents, and conflicting findings.
 
 ## 1.0.1 - 2026-08-13
 

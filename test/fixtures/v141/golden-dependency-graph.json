@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "files": {
+    "package.json": "{\"name\":\"pulse-golden\",\"private\":true}",
+    "tsconfig.json": "{\"compilerOptions\":{\"baseUrl\":\".\",\"paths\":{\"@core/*\":[\"ts/core/*\"]}}}",
+    "js/a.js": "import './b.js';\n",
+    "js/b.js": "export const b = true;\n",
+    "ts/a.ts": "import { b } from '@core/b';\nexport { b };\n",
+    "ts/core/b.ts": "export const b = true;\n",
+    "python/a.py": "from python import b\n",
+    "python/b.py": "value = 1\n",
+    "go.mod": "module example.invalid/golden\n\ngo 1.22\n",
+    "go/a/a.go": "package a\nimport _ \"example.invalid/golden/go/b\"\n",
+    "go/b/b.go": "package b\n",
+    "Cargo.toml": "[package]\nname = \"pulse-golden\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+    "src/lib.rs": "mod worker;\n",
+    "src/worker.rs": "pub fn run() {}\n",
+    "jvm/a/App.java": "package golden.a;\nimport golden.b.Helper;\nclass App {}\n",
+    "jvm/b/Helper.java": "package golden.b;\nclass Helper {}\n",
+    "dotnet/a.cs": "using Golden.Core;\nnamespace Golden.App;\n",
+    "dotnet/core.cs": "namespace Golden.Core;\n"
+  },
+  "expected_edges": [
+    ["js/a.js", "js/b.js"],
+    ["ts/a.ts", "ts/core/b.ts"],
+    ["python/a.py", "python/b.py"],
+    ["go/a/a.go", "go/b/b.go"],
+    ["src/lib.rs", "src/worker.rs"],
+    ["jvm/a/App.java", "jvm/b/Helper.java"],
+    ["dotnet/a.cs", "dotnet/core.cs"]
+  ]
+}

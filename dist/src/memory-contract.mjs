@@ -131,7 +131,8 @@ export function resolveRepositoryIdentity(options = {}) {
   const remote = git(root, ["config", "--get", "remote.origin.url"]);
   const rootCommit = git(root, ["rev-list", "--max-parents=0", "HEAD"]);
   const fallback = git(root, ["rev-parse", "--show-toplevel"]) ?? root;
-  const commonGit = git(root, ["rev-parse", "--git-common-dir"]);
+  const commonGit = git(root, ["rev-parse", "--path-format=absolute", "--git-common-dir"])
+    ?? git(root, ["rev-parse", "--git-common-dir"]);
   const rawCommonGitPath = commonGit ? path.resolve(root, commonGit) : null;
   const commonGitPath = rawCommonGitPath && fs.existsSync(rawCommonGitPath) ? fs.realpathSync(rawCommonGitPath) : rawCommonGitPath;
   const repositoryId = safeId(options.repositoryId ?? `repo-${memoryDigest({ remote, root_commit: rootCommit, local_git_identity: remote ? null : commonGitPath ?? fallback }).slice(0, 24)}`, "repository id");

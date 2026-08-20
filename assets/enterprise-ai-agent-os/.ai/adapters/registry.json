@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "sdk_version": "1.0.0",
+  "sdk_version": "1.2.0",
   "owner": "repository maintainers",
   "lifecycle": {
     "source_of_truth": ".ai/adapters/registry.json",
@@ -8,139 +8,491 @@
     "updates": "preserve the installed adapter selection and local ownership state",
     "removal": "preview ownership and preserve modified files"
   },
-  "capability_states": ["native", "generated", "bridged", "advisory", "preview", "unsupported"],
+  "capability_states": [
+    "native",
+    "generated",
+    "bridged",
+    "advisory",
+    "preview",
+    "unsupported"
+  ],
   "adapters": [
     {
       "id": "claude",
       "label": "Claude Code",
-      "exact_paths": ["CLAUDE.md"],
-      "path_prefixes": [".claude/"],
-      "skill_roots": [".claude/skills"],
+      "exact_paths": [
+        "CLAUDE.md"
+      ],
+      "path_prefixes": [
+        ".claude/"
+      ],
+      "skill_roots": [
+        ".claude/skills"
+      ],
       "shared_skill_roots": [],
-      "capabilities": { "instructions": "native", "skills": "native", "roles": "native", "hooks": "native", "permissions": "native", "action_gateway": "bridged", "evidence": "generated" },
-      "required_capabilities": ["instructions", "skills", "action_gateway", "evidence"],
+      "capabilities": {
+        "instructions": "native",
+        "skills": "native",
+        "roles": "native",
+        "hooks": "native",
+        "permissions": "native",
+        "action_gateway": "bridged",
+        "evidence": "generated",
+        "decision_chronicle": "generated",
+        "run_envelope": "generated",
+        "safe_resume": "bridged",
+        "plugin_lifecycle": "bridged",
+        "plugin_receipts": "generated",
+        "trace_control_view": "generated"
+      },
+      "required_capabilities": [
+        "instructions",
+        "skills",
+        "action_gateway",
+        "evidence",
+        "decision_chronicle",
+        "run_envelope",
+        "plugin_receipts",
+        "trace_control_view"
+      ],
       "limitations": []
     },
     {
       "id": "codex",
       "label": "OpenAI Codex",
-      "exact_paths": ["AGENTS.md"],
-      "path_prefixes": [".codex/"],
-      "skill_roots": [".agents/skills"],
-      "shared_skill_roots": [".agents/skills"],
-      "capabilities": { "instructions": "native", "skills": "native", "roles": "native", "hooks": "native", "permissions": "native", "action_gateway": "bridged", "evidence": "generated" },
-      "required_capabilities": ["instructions", "skills", "action_gateway", "evidence"],
+      "exact_paths": [
+        "AGENTS.md"
+      ],
+      "path_prefixes": [
+        ".codex/"
+      ],
+      "skill_roots": [
+        ".agents/skills"
+      ],
+      "shared_skill_roots": [
+        ".agents/skills"
+      ],
+      "capabilities": {
+        "instructions": "native",
+        "skills": "native",
+        "roles": "native",
+        "hooks": "native",
+        "permissions": "native",
+        "action_gateway": "bridged",
+        "evidence": "generated",
+        "decision_chronicle": "generated",
+        "run_envelope": "generated",
+        "safe_resume": "bridged",
+        "plugin_lifecycle": "bridged",
+        "plugin_receipts": "generated",
+        "trace_control_view": "generated"
+      },
+      "required_capabilities": [
+        "instructions",
+        "skills",
+        "action_gateway",
+        "evidence",
+        "decision_chronicle",
+        "run_envelope",
+        "plugin_receipts",
+        "trace_control_view"
+      ],
       "limitations": []
     },
     {
       "id": "copilot",
       "label": "GitHub Copilot",
-      "exact_paths": ["AGENTS.md", ".github/copilot-instructions.md"],
-      "path_prefixes": [".github/instructions/", ".github/agents/", ".github/skills/", ".github/hooks/"],
-      "skill_roots": [".github/skills"],
+      "exact_paths": [
+        "AGENTS.md",
+        ".github/copilot-instructions.md"
+      ],
+      "path_prefixes": [
+        ".github/instructions/",
+        ".github/agents/",
+        ".github/skills/",
+        ".github/hooks/"
+      ],
+      "skill_roots": [
+        ".github/skills"
+      ],
       "shared_skill_roots": [],
-      "capabilities": { "instructions": "native", "skills": "native", "roles": "native", "hooks": "preview", "permissions": "advisory", "action_gateway": "bridged", "evidence": "generated" },
-      "required_capabilities": ["instructions", "skills", "action_gateway", "evidence"],
-      "limitations": ["Hook support varies by Copilot surface and command-hook timeouts are fail-open.", "Copilot code review findings require independent validation and do not replace required human review."]
+      "capabilities": {
+        "instructions": "native",
+        "skills": "native",
+        "roles": "native",
+        "hooks": "preview",
+        "permissions": "advisory",
+        "action_gateway": "bridged",
+        "evidence": "generated",
+        "decision_chronicle": "generated",
+        "run_envelope": "generated",
+        "safe_resume": "bridged",
+        "plugin_lifecycle": "bridged",
+        "plugin_receipts": "generated",
+        "trace_control_view": "generated"
+      },
+      "required_capabilities": [
+        "instructions",
+        "skills",
+        "action_gateway",
+        "evidence",
+        "decision_chronicle",
+        "run_envelope",
+        "plugin_receipts",
+        "trace_control_view"
+      ],
+      "limitations": [
+        "Hook support varies by Copilot surface and command-hook timeouts are fail-open.",
+        "Copilot code review findings require independent validation and do not replace required human review."
+      ]
     },
     {
       "id": "cursor",
       "label": "Cursor",
-      "exact_paths": ["AGENTS.md"],
-      "path_prefixes": [".cursor/"],
-      "skill_roots": [".cursor/skills"],
+      "exact_paths": [
+        "AGENTS.md"
+      ],
+      "path_prefixes": [
+        ".cursor/"
+      ],
+      "skill_roots": [
+        ".cursor/skills"
+      ],
       "shared_skill_roots": [],
-      "capabilities": { "instructions": "native", "skills": "native", "roles": "unsupported", "hooks": "unsupported", "permissions": "advisory", "action_gateway": "advisory", "evidence": "generated" },
-      "required_capabilities": ["instructions", "skills", "evidence"],
-      "limitations": ["Deterministic hook enforcement is not shipped for this adapter."]
+      "capabilities": {
+        "instructions": "native",
+        "skills": "native",
+        "roles": "unsupported",
+        "hooks": "unsupported",
+        "permissions": "advisory",
+        "action_gateway": "advisory",
+        "evidence": "generated",
+        "decision_chronicle": "generated",
+        "run_envelope": "generated",
+        "safe_resume": "advisory",
+        "plugin_lifecycle": "advisory",
+        "plugin_receipts": "generated",
+        "trace_control_view": "generated"
+      },
+      "required_capabilities": [
+        "instructions",
+        "skills",
+        "evidence",
+        "decision_chronicle",
+        "run_envelope",
+        "plugin_receipts",
+        "trace_control_view"
+      ],
+      "limitations": [
+        "Deterministic hook enforcement is not shipped for this adapter."
+      ]
     },
     {
       "id": "windsurf",
       "label": "Windsurf / Cascade",
-      "exact_paths": ["AGENTS.md"],
-      "path_prefixes": [".windsurf/"],
-      "skill_roots": [".windsurf/skills"],
+      "exact_paths": [
+        "AGENTS.md"
+      ],
+      "path_prefixes": [
+        ".windsurf/"
+      ],
+      "skill_roots": [
+        ".windsurf/skills"
+      ],
       "shared_skill_roots": [],
-      "capabilities": { "instructions": "native", "skills": "native", "roles": "unsupported", "hooks": "unsupported", "permissions": "advisory", "action_gateway": "advisory", "evidence": "generated" },
-      "required_capabilities": ["instructions", "skills", "evidence"],
-      "limitations": ["Deterministic hook enforcement is not shipped for this adapter."]
+      "capabilities": {
+        "instructions": "native",
+        "skills": "native",
+        "roles": "unsupported",
+        "hooks": "unsupported",
+        "permissions": "advisory",
+        "action_gateway": "advisory",
+        "evidence": "generated",
+        "decision_chronicle": "generated",
+        "run_envelope": "generated",
+        "safe_resume": "advisory",
+        "plugin_lifecycle": "advisory",
+        "plugin_receipts": "generated",
+        "trace_control_view": "generated"
+      },
+      "required_capabilities": [
+        "instructions",
+        "skills",
+        "evidence",
+        "decision_chronicle",
+        "run_envelope",
+        "plugin_receipts",
+        "trace_control_view"
+      ],
+      "limitations": [
+        "Deterministic hook enforcement is not shipped for this adapter."
+      ]
     },
     {
       "id": "gemini",
       "label": "Google Gemini CLI",
-      "exact_paths": ["GEMINI.md"],
+      "exact_paths": [
+        "GEMINI.md"
+      ],
       "path_prefixes": [],
       "skill_roots": [],
       "shared_skill_roots": [],
-      "capabilities": { "instructions": "native", "skills": "unsupported", "roles": "unsupported", "hooks": "unsupported", "permissions": "advisory", "action_gateway": "advisory", "evidence": "generated" },
-      "required_capabilities": ["instructions", "evidence"],
-      "limitations": ["Portable Agent Skills are not installed for this adapter."]
+      "capabilities": {
+        "instructions": "native",
+        "skills": "unsupported",
+        "roles": "unsupported",
+        "hooks": "unsupported",
+        "permissions": "advisory",
+        "action_gateway": "advisory",
+        "evidence": "generated",
+        "decision_chronicle": "generated",
+        "run_envelope": "generated",
+        "safe_resume": "advisory",
+        "plugin_lifecycle": "advisory",
+        "plugin_receipts": "generated",
+        "trace_control_view": "generated"
+      },
+      "required_capabilities": [
+        "instructions",
+        "evidence",
+        "decision_chronicle",
+        "run_envelope",
+        "plugin_receipts",
+        "trace_control_view"
+      ],
+      "limitations": [
+        "Portable Agent Skills are not installed for this adapter."
+      ]
     },
     {
       "id": "amazonq",
       "label": "Amazon Q Developer",
       "exact_paths": [],
-      "path_prefixes": [".amazonq/"],
+      "path_prefixes": [
+        ".amazonq/"
+      ],
       "skill_roots": [],
       "shared_skill_roots": [],
-      "capabilities": { "instructions": "native", "skills": "unsupported", "roles": "unsupported", "hooks": "unsupported", "permissions": "advisory", "action_gateway": "advisory", "evidence": "generated" },
-      "required_capabilities": ["instructions", "evidence"],
-      "limitations": ["Portable Agent Skills are not installed for this adapter."]
+      "capabilities": {
+        "instructions": "native",
+        "skills": "unsupported",
+        "roles": "unsupported",
+        "hooks": "unsupported",
+        "permissions": "advisory",
+        "action_gateway": "advisory",
+        "evidence": "generated",
+        "decision_chronicle": "generated",
+        "run_envelope": "generated",
+        "safe_resume": "advisory",
+        "plugin_lifecycle": "advisory",
+        "plugin_receipts": "generated",
+        "trace_control_view": "generated"
+      },
+      "required_capabilities": [
+        "instructions",
+        "evidence",
+        "decision_chronicle",
+        "run_envelope",
+        "plugin_receipts",
+        "trace_control_view"
+      ],
+      "limitations": [
+        "Portable Agent Skills are not installed for this adapter."
+      ]
     },
     {
       "id": "junie",
       "label": "JetBrains Junie",
-      "exact_paths": ["AGENTS.md"],
-      "path_prefixes": [".junie/"],
+      "exact_paths": [
+        "AGENTS.md"
+      ],
+      "path_prefixes": [
+        ".junie/"
+      ],
       "skill_roots": [],
       "shared_skill_roots": [],
-      "capabilities": { "instructions": "native", "skills": "unsupported", "roles": "unsupported", "hooks": "unsupported", "permissions": "advisory", "action_gateway": "advisory", "evidence": "generated" },
-      "required_capabilities": ["instructions", "evidence"],
-      "limitations": ["Portable Agent Skills are not installed for this adapter."]
+      "capabilities": {
+        "instructions": "native",
+        "skills": "unsupported",
+        "roles": "unsupported",
+        "hooks": "unsupported",
+        "permissions": "advisory",
+        "action_gateway": "advisory",
+        "evidence": "generated",
+        "decision_chronicle": "generated",
+        "run_envelope": "generated",
+        "safe_resume": "advisory",
+        "plugin_lifecycle": "advisory",
+        "plugin_receipts": "generated",
+        "trace_control_view": "generated"
+      },
+      "required_capabilities": [
+        "instructions",
+        "evidence",
+        "decision_chronicle",
+        "run_envelope",
+        "plugin_receipts",
+        "trace_control_view"
+      ],
+      "limitations": [
+        "Portable Agent Skills are not installed for this adapter."
+      ]
     },
     {
       "id": "cline",
       "label": "Cline",
-      "exact_paths": ["AGENTS.md"],
-      "path_prefixes": [".cline/", ".clinerules/"],
-      "skill_roots": [".cline/skills"],
+      "exact_paths": [
+        "AGENTS.md"
+      ],
+      "path_prefixes": [
+        ".cline/",
+        ".clinerules/"
+      ],
+      "skill_roots": [
+        ".cline/skills"
+      ],
       "shared_skill_roots": [],
-      "capabilities": { "instructions": "native", "skills": "native", "roles": "unsupported", "hooks": "unsupported", "permissions": "advisory", "action_gateway": "advisory", "evidence": "generated" },
-      "required_capabilities": ["instructions", "skills", "evidence"],
-      "limitations": ["Deterministic hook enforcement is not shipped for this adapter."]
+      "capabilities": {
+        "instructions": "native",
+        "skills": "native",
+        "roles": "unsupported",
+        "hooks": "unsupported",
+        "permissions": "advisory",
+        "action_gateway": "advisory",
+        "evidence": "generated",
+        "decision_chronicle": "generated",
+        "run_envelope": "generated",
+        "safe_resume": "advisory",
+        "plugin_lifecycle": "advisory",
+        "plugin_receipts": "generated",
+        "trace_control_view": "generated"
+      },
+      "required_capabilities": [
+        "instructions",
+        "skills",
+        "evidence",
+        "decision_chronicle",
+        "run_envelope",
+        "plugin_receipts",
+        "trace_control_view"
+      ],
+      "limitations": [
+        "Deterministic hook enforcement is not shipped for this adapter."
+      ]
     },
     {
       "id": "devin",
       "label": "Devin",
-      "exact_paths": ["AGENTS.md"],
+      "exact_paths": [
+        "AGENTS.md"
+      ],
       "path_prefixes": [],
-      "skill_roots": [".agents/skills"],
-      "shared_skill_roots": [".agents/skills"],
-      "capabilities": { "instructions": "native", "skills": "native", "roles": "unsupported", "hooks": "unsupported", "permissions": "advisory", "action_gateway": "advisory", "evidence": "generated" },
-      "required_capabilities": ["instructions", "skills", "evidence"],
-      "limitations": ["Deterministic hook enforcement is not shipped for this adapter."]
+      "skill_roots": [
+        ".agents/skills"
+      ],
+      "shared_skill_roots": [
+        ".agents/skills"
+      ],
+      "capabilities": {
+        "instructions": "native",
+        "skills": "native",
+        "roles": "unsupported",
+        "hooks": "unsupported",
+        "permissions": "advisory",
+        "action_gateway": "advisory",
+        "evidence": "generated",
+        "decision_chronicle": "generated",
+        "run_envelope": "generated",
+        "safe_resume": "advisory",
+        "plugin_lifecycle": "advisory",
+        "plugin_receipts": "generated",
+        "trace_control_view": "generated"
+      },
+      "required_capabilities": [
+        "instructions",
+        "skills",
+        "evidence",
+        "decision_chronicle",
+        "run_envelope",
+        "plugin_receipts",
+        "trace_control_view"
+      ],
+      "limitations": [
+        "Deterministic hook enforcement is not shipped for this adapter."
+      ]
     },
     {
       "id": "aider",
       "label": "Aider",
-      "exact_paths": ["CONVENTIONS.md", ".aider.conf.yml"],
+      "exact_paths": [
+        "CONVENTIONS.md",
+        ".aider.conf.yml"
+      ],
       "path_prefixes": [],
       "skill_roots": [],
       "shared_skill_roots": [],
-      "capabilities": { "instructions": "native", "skills": "unsupported", "roles": "unsupported", "hooks": "unsupported", "permissions": "advisory", "action_gateway": "advisory", "evidence": "generated" },
-      "required_capabilities": ["instructions", "evidence"],
-      "limitations": ["Portable Agent Skills are not installed for this adapter."]
+      "capabilities": {
+        "instructions": "native",
+        "skills": "unsupported",
+        "roles": "unsupported",
+        "hooks": "unsupported",
+        "permissions": "advisory",
+        "action_gateway": "advisory",
+        "evidence": "generated",
+        "decision_chronicle": "generated",
+        "run_envelope": "generated",
+        "safe_resume": "advisory",
+        "plugin_lifecycle": "advisory",
+        "plugin_receipts": "generated",
+        "trace_control_view": "generated"
+      },
+      "required_capabilities": [
+        "instructions",
+        "evidence",
+        "decision_chronicle",
+        "run_envelope",
+        "plugin_receipts",
+        "trace_control_view"
+      ],
+      "limitations": [
+        "Portable Agent Skills are not installed for this adapter."
+      ]
     },
     {
       "id": "continue",
       "label": "Continue",
       "exact_paths": [],
-      "path_prefixes": [".continue/"],
+      "path_prefixes": [
+        ".continue/"
+      ],
       "skill_roots": [],
       "shared_skill_roots": [],
-      "capabilities": { "instructions": "native", "skills": "unsupported", "roles": "unsupported", "hooks": "unsupported", "permissions": "advisory", "action_gateway": "advisory", "evidence": "generated" },
-      "required_capabilities": ["instructions", "evidence"],
-      "limitations": ["Portable Agent Skills are not installed for this adapter."]
+      "capabilities": {
+        "instructions": "native",
+        "skills": "unsupported",
+        "roles": "unsupported",
+        "hooks": "unsupported",
+        "permissions": "advisory",
+        "action_gateway": "advisory",
+        "evidence": "generated",
+        "decision_chronicle": "generated",
+        "run_envelope": "generated",
+        "safe_resume": "advisory",
+        "plugin_lifecycle": "advisory",
+        "plugin_receipts": "generated",
+        "trace_control_view": "generated"
+      },
+      "required_capabilities": [
+        "instructions",
+        "evidence",
+        "decision_chronicle",
+        "run_envelope",
+        "plugin_receipts",
+        "trace_control_view"
+      ],
+      "limitations": [
+        "Portable Agent Skills are not installed for this adapter."
+      ]
     }
   ]
 }

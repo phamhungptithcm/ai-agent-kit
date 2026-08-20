@@ -1,0 +1,15 @@
+version: 1
+name: plugin-activation-gate
+mode: fail-closed
+required_for: [plugin-install, plugin-activation, plugin-upgrade, permission-expansion]
+checks:
+  - manifest_schema_valid
+  - identity_checksum_and_signature_verified
+  - signer_trusted
+  - dependencies_present_and_conflicts_absent
+  - requested_permissions_within_policy_and_invocation_ceiling
+  - path_domain_command_and_symlink_boundaries_valid
+  - lifecycle_receipt_bound_to_current_content
+pass_status: ACTIVATION_ALLOWED
+fail_status: QUARANTINED
+on_failure: "Do not execute the plugin; record the trust finding and remediation evidence."

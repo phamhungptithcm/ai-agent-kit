@@ -1,0 +1,21 @@
+version: 1
+id: plugin-development
+name: Governed Plugin Development Profile
+description: Review plugin identity, provenance, least privilege, lifecycle, dependency, conflict, receipt, signature, quarantine, and rollback behavior.
+applies_when:
+  - "plugin manifest, plugin lifecycle, capability extension, plugin activation, or trust audit"
+required_review:
+  - "manifest identity and checksum bind to immutable content"
+  - "signature and signer trust are independently verified"
+  - "path, domain, command, and invocation permissions are least privilege"
+  - "dependencies and conflicts are deterministic"
+  - "symlink, traversal, permission expansion, forged state, and drift fail closed"
+  - "private keys never enter plugin, evidence bundle, log, or package"
+  - "activation, quarantine, deactivation, and rollback emit verifiable receipts"
+required_output:
+  - trust_decision
+  - permission_delta
+  - lifecycle_evidence
+  - findings_and_fixes
+  - activation_or_quarantine_status
+allowed_statuses: [TRUSTED, UNVERIFIED, DENIED, TAMPERED, QUARANTINED]

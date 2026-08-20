@@ -1,0 +1,21 @@
+version: 1
+id: agent-runtime
+name: Traceable Agent Runtime Profile
+description: Review decision recovery, run continuity, capability boundaries, concurrency, evidence integrity, privacy, and failure handling in agent runtimes.
+applies_when:
+  - "agent run, decision chronicle, session recovery, trace export, control view, or runtime investigation"
+required_review:
+  - "events are append-only, uniquely identified, ordered, and hash-linked"
+  - "writer concurrency cannot corrupt or fork a run silently"
+  - "resume previews completed work, drift, conflicts, and approval needs"
+  - "protected actions remain separately authorized"
+  - "sensitive data is rejected or redacted before persistence and export"
+  - "crash, retry, duplicate action, stale evidence, and partial failure are tested"
+  - "final status is derived from evidence rather than agent assertion"
+required_output:
+  - runtime_invariants
+  - failure_matrix
+  - trace_and_recovery_evidence
+  - privacy_review
+  - remaining_risk
+allowed_statuses: [PASSED, FAILED, NOT_APPLICABLE, NOT_RUN]

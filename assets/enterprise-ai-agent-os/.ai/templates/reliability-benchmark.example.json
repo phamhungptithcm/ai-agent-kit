@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "fixture_id": "example-production-bug",
+  "measured_at": "2026-08-14T00:00:00.000Z",
+  "environment": {
+    "host": "offline-fixture",
+    "model": "recorded",
+    "repository_commit": "fixture"
+  },
+  "runs": [
+    {
+      "configuration": "baseline",
+      "status": "COMPLETED",
+      "requirements_met": 1,
+      "requirements_total": 2,
+      "regressions": 1,
+      "escaped_findings": 1,
+      "trace_items_present": 1,
+      "trace_items_required": 5,
+      "recovery_required": true,
+      "recovery_succeeded": false,
+      "elapsed_seconds": 10,
+      "tokens": 100,
+      "estimated_cost_usd": null,
+      "limitations": ["Synthetic example; not a product comparison"]
+    },
+    {
+      "configuration": "governed",
+      "status": "COMPLETED",
+      "requirements_met": 2,
+      "requirements_total": 2,
+      "regressions": 0,
+      "escaped_findings": 0,
+      "trace_items_present": 5,
+      "trace_items_required": 5,
+      "recovery_required": true,
+      "recovery_succeeded": true,
+      "elapsed_seconds": 12,
+      "tokens": 120,
+      "estimated_cost_usd": null,
+      "limitations": ["Synthetic example; not a product comparison"]
+    }
+  ]
+}

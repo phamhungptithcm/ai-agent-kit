@@ -110,7 +110,7 @@ export function issueChangePassport(options, deps = {}) {
     if (document.governance?.task_id !== proof.task.id) throw new Error("passport Architecture Pulse evidence is not bound to the proof task");
     const freshness = verifyPulseFreshness(document, { target: root });
     if (freshness.status !== "VERIFIED") throw new Error(`passport rejects ${freshness.status.toLowerCase()} Architecture Pulse evidence: ${freshness.reason}`);
-    if (document.protocol === "aak-architecture-pulse-v1") {
+    if (["aak-architecture-pulse-v1", "aak-architecture-pulse-v2"].includes(document.protocol)) {
       if (document.analysis_status !== "COMPLETE" || document.confidence.band === "LOW") throw new Error("passport requires complete, sufficiently confident Architecture Pulse evidence");
       architecturePulse = { status: "VERIFIED", outcome: document.analysis_status, evidence_digest: document.result_digest, coverage: document.coverage.files, confidence: document.confidence.band };
     } else {

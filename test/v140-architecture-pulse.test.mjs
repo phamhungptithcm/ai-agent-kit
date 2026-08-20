@@ -37,6 +37,20 @@ function commit(root, message = "fixture") {
   execFileSync("git", ["commit", "-qm", message], { cwd: root });
 }
 
+const CI_VARIABLES = ["CI", "GITHUB_ACTIONS", "GITLAB_CI", "BUILDKITE", "CIRCLECI", "JENKINS_URL", "TF_BUILD"];
+
+function asLocalDeveloper(action) {
+  const previous = Object.fromEntries(CI_VARIABLES.map((name) => [name, process.env[name]]));
+  try {
+    for (const name of CI_VARIABLES) process.env[name] = "false";
+    return action();
+  } finally {
+    for (const name of CI_VARIABLES) {
+      if (previous[name] == null) delete process.env[name]; else process.env[name] = previous[name];
+    }
+  }
+}
+
 test("pulse scan is deterministic and resolves only same-language evidence by default", () => {
   const root = repository();
   try {
@@ -78,7 +92,7 @@ test("graph metrics cover cycles, disconnected roots, boundaries, hotspots, and 
     assert.equal(graph.findings.blast_radius[0].node, "src/ui/view.js");
     assert.equal(graph.findings.blast_radius[0].reachable_dependents, 2);
     assert.ok(graph.findings.hotspots.length > 0);
-    assert.match(graph.metric_version, /^1\./);
+    assert.match(graph.metric_version, /^2\./);
   } finally { fs.rmSync(root, { recursive: true, force: true }); }
 });
 
@@ -93,7 +107,7 @@ test("scanner bounds candidate discovery and rejects unsafe or excessive configu
     assert.equal(scan.inventory.counts.exclusion_reasons.resource_limit, 1);
     const degraded = analyzeArchitecturePulse({ target: root, configObject: { max_files: 2 } });
     assert.equal(degraded.analysis_status, "DEGRADED");
-    const baseline = createArchitecturePulseBaseline({ target: root, configObject: { max_files: 2 } });
+    const baseline = asLocalDeveloper(() => createArchitecturePulseBaseline({ target: root, configObject: { max_files: 2 } }));
     assert.equal(baseline.artifact, null);
     assert.equal(fs.existsSync(path.join(root, ".ai-agent-kit/pulse/baselines/default.json")), false);
     assert.throws(() => scanRepository({ target: root, config: { max_file_bytes: 16 * 1024 * 1024 + 1 } }), /between 1 and/);
@@ -128,14 +142,14 @@ test("trusted baselines reject tampering, foreign repositories, and incompatible
     write(root, "src/a.js", "export const a = true;\n"); commit(root);
     write(foreign, "src/a.js", "export const a = true;\n"); commit(foreign);
     const current = analyzeArchitecturePulse({ target: root });
-    const baseline = createPulseBaseline(current, { createdAt: "2026-08-14T00:00:00.000Z" });
+    const baseline = asLocalDeveloper(() => createPulseBaseline(current, { createdAt: "2026-08-14T00:00:00.000Z" }));
     assert.equal(verifyPulseBaseline(baseline, current).status, "VERIFIED");
     const tampered = structuredClone(baseline); tampered.snapshot.metrics.cycle_count += 1;
     assert.equal(verifyPulseBaseline(tampered, current).reason_code, "BASELINE_TAMPERED");
     assert.equal(verifyPulseBaseline(baseline, analyzeArchitecturePulse({ target: foreign })).reason_code, "BASELINE_FOREIGN_REPOSITORY");
-    assert.equal(verifyPulseBaseline(baseline, analyzeArchitecturePulse({ target: root, configObject: { exclude: ["src"] } })).reason_code, "BASELINE_CONFIG_DRIFT");
+    assert.equal(verifyPulseBaseline(baseline, analyzeArchitecturePulse({ target: root, configObject: { exclude: ["src"] } })).reason_code, "BASELINE_ANALYSIS_CONFIG_DRIFT");
     const upgraded = structuredClone(current); upgraded.tool_version = "99.0.0";
-    assert.equal(verifyPulseBaseline(baseline, upgraded).reason_code, "BASELINE_INCOMPATIBLE");
+    assert.equal(verifyPulseBaseline(baseline, upgraded).status, "VERIFIED");
     const malformedBaseline = structuredClone(baseline); malformedBaseline.snapshot.metrics = null;
     const { integrity: _integrity, ...malformedBody } = malformedBaseline; malformedBaseline.integrity.digest = pulseDigest(malformedBody);
     assert.equal(verifyPulseBaseline(malformedBaseline, current).status, "UNTRUSTED");
@@ -151,7 +165,7 @@ test("explicit blocking policy detects new cycles while diagnostic index has no 
   try {
     write(root, "src/a.js", "import './b.js';\n"); write(root, "src/b.js", "export const b = true;\n"); commit(root);
     const baselineResult = analyzeArchitecturePulse({ target: root, configObject: config });
-    const baseline = createPulseBaseline(baselineResult, { createdAt: "2026-08-14T00:00:00.000Z" });
+    const baseline = asLocalDeveloper(() => createPulseBaseline(baselineResult, { createdAt: "2026-08-14T00:00:00.000Z" }));
     write(root, "src/b.js", "import './a.js';\n");
     const current = analyzeArchitecturePulse({ target: root, configObject: config });
     const verification = verifyPulseBaseline(baseline, current);
@@ -169,7 +183,7 @@ test("CLI creates, verifies, checks, explains, and rejects escaped outputs", () 
     write(root, "src/a.js", "import './b.js';\n"); write(root, "src/b.js", "export const b = true;\n");
     write(root, "pulse.json", JSON.stringify({ schema_version: 1, rules: [{ id: "cycles", type: "new-cycles", threshold: 0, severity: "block" }] }));
     commit(root);
-    const created = spawnSync(process.execPath, [cli, "pulse", "baseline", "create", "--target", root, "--config", "pulse.json"], { encoding: "utf8" });
+    const created = asLocalDeveloper(() => spawnSync(process.execPath, [cli, "pulse", "baseline", "create", "--target", root, "--config", "pulse.json"], { encoding: "utf8" }));
     assert.equal(created.status, 0, created.stderr);
     const verified = spawnSync(process.execPath, [cli, "pulse", "baseline", "verify", "--target", root, "--config", "pulse.json"], { encoding: "utf8" });
     assert.equal(verified.status, 0, verified.stderr);
@@ -230,7 +244,7 @@ test("check workflow preserves baseline comparison evidence with a self-verifyin
   const root = repository();
   try {
     write(root, "src/a.js", "export const a = true;\n"); commit(root);
-    createArchitecturePulseBaseline({ target: root });
+    asLocalDeveloper(() => createArchitecturePulseBaseline({ target: root }));
     write(root, "src/a.js", "export const a = false;\n");
     const result = checkArchitecturePulse({ target: root });
     assert.match(result.evidence_digest, /^[a-f0-9]{64}$/);

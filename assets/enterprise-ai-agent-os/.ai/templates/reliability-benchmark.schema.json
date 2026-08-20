@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hunpeolabs.dev/schemas/reliability-benchmark.v1.json",
+  "title": "AI Agent Kit Reliability Benchmark",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "fixture_id", "measured_at", "environment", "runs"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "fixture_id": { "type": "string", "minLength": 1, "maxLength": 128 },
+    "measured_at": { "type": "string", "format": "date-time" },
+    "environment": { "type": "object" },
+    "runs": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["configuration", "status", "requirements_met", "requirements_total", "regressions", "escaped_findings", "trace_items_present", "trace_items_required", "elapsed_seconds", "tokens"],
+        "properties": {
+          "configuration": { "type": "string" },
+          "status": { "enum": ["COMPLETED", "FAILED", "TIMED_OUT", "CANCELLED"] },
+          "requirements_met": { "type": "integer", "minimum": 0 },
+          "requirements_total": { "type": "integer", "minimum": 0 },
+          "regressions": { "type": "integer", "minimum": 0 },
+          "escaped_findings": { "type": "integer", "minimum": 0 },
+          "trace_items_present": { "type": "integer", "minimum": 0 },
+          "trace_items_required": { "type": "integer", "minimum": 0 },
+          "recovery_required": { "type": "boolean" },
+          "recovery_succeeded": { "type": "boolean" },
+          "elapsed_seconds": { "type": "number", "minimum": 0 },
+          "tokens": { "type": "integer", "minimum": 0 },
+          "estimated_cost_usd": { "type": ["number", "null"], "minimum": 0 },
+          "limitations": { "type": "array", "items": { "type": "string" } }
+        },
+        "additionalProperties": true
+      }
+    }
+  }
+}

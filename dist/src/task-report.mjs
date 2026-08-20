@@ -115,7 +115,7 @@ function inspectArchitecturePulse(root, task) {
     if (document.governance?.task_id !== task.id) return { status: "UNTRUSTED", outcome: null, artifact: relative, reason: "Architecture Pulse artifact is not bound to this task." };
     const freshness = verifyPulseFreshness(document, { target: root });
     if (freshness.status !== "VERIFIED") return { status: freshness.status, outcome: null, artifact: relative, reason: freshness.reason };
-    if (document.protocol === "aak-architecture-pulse-v1") {
+    if (["aak-architecture-pulse-v1", "aak-architecture-pulse-v2"].includes(document.protocol)) {
       return { status: document.analysis_status === "COMPLETE" ? "VERIFIED" : "DEGRADED", outcome: document.analysis_status, artifact: relative, evidence_digest: document.result_digest, coverage: document.coverage, confidence: document.confidence, reason_codes: document.reason_codes };
     }
     const invalid = ["STALE", "UNTRUSTED", "DEGRADED"].includes(document.status);

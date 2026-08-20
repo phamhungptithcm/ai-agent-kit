@@ -1,0 +1,22 @@
+---
+name: author-governed-plugin
+description: Design, scaffold, and validate a least-privilege AI Agent Kit plugin. Use when creating or changing plugin manifests, lifecycle hooks, permissions, dependencies, conflicts, signatures, receipts, tests, or installation documentation.
+---
+
+# Author Governed Plugin
+
+Treat a plugin as executable capability with an auditable trust boundary.
+
+## Workflow
+
+1. Define one bounded capability and its owner.
+2. Run `ai-agent-kit plugin init` in preview mode; apply only after confirming output paths.
+3. Declare exact filesystem paths, domains, commands, lifecycle hooks, dependencies, and conflicts. Start with no permission and add only demonstrated needs.
+4. Keep private keys outside plugin and package directories. Sign immutable release content through an approved release process.
+5. Emit lifecycle and action receipts bound to plugin ID, checksum, run, task, permissions, and approval.
+6. Test valid install, denied permission, path escape, symlink escape, conflict, missing dependency, checksum drift, signature failure, quarantine, and rollback.
+7. Run trust inspection before activation.
+
+## Output
+
+Return manifest path, permission rationale, threat boundaries, test evidence, trust status, limitations, and activation decision.

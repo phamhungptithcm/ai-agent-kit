@@ -1,7 +1,7 @@
 # Governed Shared Memory v1.3.0
 
-Status: implementation draft. This document does not authorize a tag, GitHub
-Release, npm publication, deployment, or production activation.
+Status: v1.3.0 release scope. Publication state is verified externally through
+the matching Git tag, GitHub Release, CI run, and npm registry metadata.
 
 ## Purpose
 

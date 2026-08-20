@@ -3,9 +3,9 @@
   "dataLicense": "CC0-1.0",
   "SPDXID": "SPDXRef-DOCUMENT",
   "name": "@hunpeolabs/ai-agent-kit-1.5.0",
-  "documentNamespace": "https://github.com/phamhungptithcm/ai-agent-kit/sbom/1.5.0/7017986c-95d6-4ada-92d2-d3099cb849df",
+  "documentNamespace": "https://github.com/phamhungptithcm/ai-agent-kit/sbom/1.5.0/26f5ea35-f8aa-4712-940d-628c1df0376c",
   "creationInfo": {
-    "created": "2026-08-20T22:35:53.135Z",
+    "created": "2026-08-20T23:05:08.036Z",
     "creators": [
       "Tool: @hunpeolabs/ai-agent-kit"
     ]
@@ -28,7 +28,7 @@
     {
       "SPDXID": "SPDXRef-Package-2",
       "name": "node_modules/better-sqlite3",
-      "versionInfo": "11.10.0",
+      "versionInfo": "12.11.1",
       "downloadLocation": "NOASSERTION",
       "filesAnalyzed": false
     },
