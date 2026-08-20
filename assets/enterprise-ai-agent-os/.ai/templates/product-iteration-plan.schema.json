@@ -1,0 +1,5 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "https://hunpeolabs.com/schemas/product-iteration-plan-v1.json", "title": "Product Iteration Plan", "type": "object",
+  "required": ["schema_version", "id", "version", "status", "iteration_id", "goal", "starts_at", "ends_at", "baseline_hashes", "capacity", "item_ids", "definition_of_done"],
+  "properties": {"schema_version": {"const": 1}, "id": {"type": "string"}, "version": {"type": "integer", "minimum": 1}, "status": {"type": "string"}, "iteration_id": {"type": "string"}, "goal": {"type": "string"}, "starts_at": {"type": "string", "format": "date-time"}, "ends_at": {"type": "string", "format": "date-time"}, "baseline_hashes": {"type": "array", "minItems": 1, "items": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}, "capacity": {"type": "object", "required": ["unit", "available", "committed"]}, "item_ids": {"type": "array", "minItems": 1}, "definition_of_done": {"type": "array", "minItems": 1}}
+}

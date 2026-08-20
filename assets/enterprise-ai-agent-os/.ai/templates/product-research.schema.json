@@ -11,6 +11,7 @@
     "evidence": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["id", "kind", "source", "retrieved_at", "claim", "confidence", "limitations"], "properties": {"id": {"type": "string"}, "kind": {"enum": ["USER_INTERVIEW", "OBSERVATION", "PRIMARY_SOURCE", "OFFICIAL_DATA", "VENDOR_DOC", "DESK_RESEARCH", "PROTOTYPE", "INFERENCE"]}, "source": {"type": "string"}, "retrieved_at": {"type": "string", "format": "date-time"}, "claim": {"type": "string"}, "confidence": {"enum": ["LOW", "MEDIUM", "HIGH"]}, "limitations": {"type": "array", "items": {"type": "string"}}}}},
     "findings": {"type": "array", "items": {"type": "object", "required": ["id", "statement", "evidence_ids"], "properties": {"id": {"type": "string"}, "statement": {"type": "string"}, "evidence_ids": {"type": "array", "items": {"type": "string"}}}, "additionalProperties": false}},
     "limitations": {"type": "array", "items": {"type": "string"}},
-    "decision": {"type": "object", "required": ["recommendation", "rationale"], "properties": {"recommendation": {"enum": ["PROCEED", "PIVOT", "PAUSE", "STOP"]}, "rationale": {"type": "string"}}, "additionalProperties": false}
+    "decision": {"type": "object", "required": ["recommendation", "rationale"], "properties": {"recommendation": {"enum": ["PROCEED", "PIVOT", "PAUSE", "STOP"]}, "rationale": {"type": "string"}}, "additionalProperties": false},
+    "recorded_at": {"type": "string", "format": "date-time"}, "parent_hash": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"}, "content_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
   }
 }

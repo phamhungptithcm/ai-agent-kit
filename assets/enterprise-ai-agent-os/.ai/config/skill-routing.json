@@ -7,6 +7,14 @@
     "minimum_margin": 1
   },
   "priority": [
+    "run-product-genesis",
+    "prepare-production-readiness",
+    "retire-product",
+    "operate-product",
+    "run-product-iteration",
+    "assure-product-trust",
+    "assess-product-viability",
+    "validate-product-discovery",
     "approve-product-baseline",
     "control-product-change",
     "review-product-outcome",
@@ -33,6 +41,50 @@
     "start-task"
   ],
   "routes": {
+    "run-product-genesis": {
+      "label": "Orchestrate a product from idea to production evidence",
+      "skill": "run-product-genesis/SKILL.md",
+      "rules": [
+        { "any": ["end-to-end product genesis", "from rough idea to production", "idea to production with requirements", "no codebase no requirements no spec", "resume product genesis", "avoid repeated prompting", "từ ý tưởng đến sản phẩm thật", "từ ý tưởng đến production", "chưa có codebase chưa có requirement chưa có spec", "không prompt đi prompt lại", "ý tưởng biz requirement spec design triển khai"], "weight": 5 },
+        { "all": ["business logic", "ux", "system design"], "weight": 5 },
+        { "all": ["biz logic", "spec", "design"], "weight": 5 }
+      ]
+    },
+    "validate-product-discovery": {
+      "label": "Validate product hypotheses and Alpha evidence",
+      "skill": "validate-product-discovery/SKILL.md",
+      "rules": [{"any": ["product hypothesis experiment", "prototype usability test", "alpha product validation", "customer discovery evidence", "kiểm chứng giả thuyết sản phẩm", "test prototype với người dùng", "quyết định continue pivot stop"], "weight": 3}]
+    },
+    "assess-product-viability": {
+      "label": "Assess product business viability",
+      "skill": "assess-product-viability/SKILL.md",
+      "rules": [{"any": ["product business case", "product unit economics", "product pricing strategy", "go to market product", "đánh giá tính khả thi kinh doanh", "unit economics pricing", "chiến lược go to market"], "weight": 3}]
+    },
+    "assure-product-trust": {
+      "label": "Assure product trust compliance and data lifecycle",
+      "skill": "assure-product-trust/SKILL.md",
+      "rules": [{"any": ["product accessibility privacy legal", "product threat model security findings", "product data retention deletion", "đánh giá accessibility privacy legal cho sản phẩm", "threat model và security finding", "data migration retention deletion"], "weight": 4}]
+    },
+    "run-product-iteration": {
+      "label": "Run a capacity-bounded product iteration",
+      "skill": "run-product-iteration/SKILL.md",
+      "rules": [{"any": ["run product sprint", "product iteration goal capacity", "sprint review retrospective acceptance", "chạy sprint sản phẩm", "iteration goal capacity", "review retrospective acceptance"], "weight": 3}]
+    },
+    "prepare-production-readiness": {
+      "label": "Prepare evidence-backed product production readiness",
+      "skill": "prepare-production-readiness/SKILL.md",
+      "rules": [{"any": ["product production readiness dossier", "bind ci deployment rollback evidence", "backup restore rollback drill product", "release candidate environment attestation", "chuẩn bị production readiness sản phẩm", "bằng chứng ci cd deployment rollback", "runbook alert on call incident product"], "weight": 4}]
+    },
+    "operate-product": {
+      "label": "Operate a released product with live outcomes",
+      "skill": "operate-product/SKILL.md",
+      "rules": [{"any": ["operate released product", "live product outcome metrics", "product support customer success", "vận hành sản phẩm production", "live metrics và customer support", "đánh giá outcome sản phẩm live"], "weight": 3}]
+    },
+    "retire-product": {
+      "label": "Retire a product and verify data deletion",
+      "skill": "retire-product/SKILL.md",
+      "rules": [{"any": ["retire product data deletion", "sunset product", "product end of life", "ngừng sản phẩm và xóa dữ liệu", "retirement data deletion plan", "sunset sản phẩm"], "weight": 4}]
+    },
     "approve-product-baseline": {
       "label": "Approve a product baseline",
       "skill": "approve-product-baseline/SKILL.md",
@@ -93,7 +145,7 @@
       "label": "Start a product from an idea",
       "skill": "start-product/SKILL.md",
       "rules": [
-        { "any": ["start product from idea", "start a product from an idea", "product idea no codebase", "idea to production product", "chỉ có ý tưởng chưa có code", "làm sản phẩm từ ý tưởng", "bắt đầu sản phẩm từ ý tưởng"], "weight": 3 }
+        { "any": ["start product from idea", "start a product from an idea", "product idea no codebase", "chỉ có ý tưởng chưa có code", "làm sản phẩm từ ý tưởng", "bắt đầu sản phẩm từ ý tưởng", "tôi có ý tưởng app", "mình có ý tưởng app", "i have an app idea"], "weight": 3 }
       ]
     },
     "investigate-agent-runtime": {

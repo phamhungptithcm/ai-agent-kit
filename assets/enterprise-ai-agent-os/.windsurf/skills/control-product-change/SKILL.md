@@ -16,4 +16,6 @@ Use `.ai/templates/product-change.schema.json` and `.ai/rules/product-delivery-i
 5. Create a successor artifact version and trace old-to-new IDs.
 6. Require named human reapproval for material changes before implementation continues.
 
+Use immutable `product artifact-put` successors. Re-run the affected analysis gate; never manually restore a stale approval.
+
 Return `ACCEPTED`, `CHANGES_REQUESTED`, `REJECTED`, or `NEEDS_DECISION`, plus the exact work that is paused or still authorized.

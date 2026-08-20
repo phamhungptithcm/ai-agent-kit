@@ -6,13 +6,29 @@ All notable changes to this project will be documented in this file.
 
 - Added a governed idea-to-production Product Genesis workflow for users who
   begin without a codebase, BRD, product specification, or architecture.
-- Added nine routed skills for idea intake, discovery discussion, opportunity
-  research, business requirements, product specification, baseline approval,
-  Agile delivery planning, change control, and outcome review.
-- Added append-only idea, research, BRD, specification, approval, traceability,
-  backlog, and change schemas with named-human approval gates.
+- Added a Product Genesis orchestrator plus sixteen routed stage skills, including hypothesis/experiment validation,
+  business viability, product trust/data assurance, capacity-bounded iterations,
+  production readiness, live operation, and retirement/data deletion.
+- Added a sealed local Product Workspace runtime and CLI with immutable artifact
+  heads, bounded decision questions, classified context, hash-chained events,
+  stale-approval detection, cross-artifact analysis, and resume/next actions.
+- Added append-only idea, research, BRD, business-rule, specification, design,
+  approval, traceability, backlog, GitHub-plan, convergence, and change schemas
+  with named-human exact-hash approval gates.
+- Added `LEAN`, `STANDARD`, and `HIGH_ASSURANCE` design depth, preview-first
+  duplicate-protected GitHub issue synchronization with reconciliation-gated retries, and requirement-to-code/test/evidence
+  convergence checks before release review.
 - Added Product Genesis rules and quality profiles for evidence, privacy,
   business analysis, requirements engineering, delivery, and release truth.
+- Added immutable evidence receipts bound to repository identity, full Git commit,
+  regular-file SHA-256, authorized provider verification, expiry, trust level,
+  environment attestation, and fail-closed drift detection.
+- Added Alpha and investment gates; business case, unit economics, pricing/GTM,
+  accessibility, market privacy/legal, threat/security, migrations and retained
+  data; Sprint-style execution; CI/CD, infrastructure, observability, incident,
+  load, restore/rollback, analytics, support, and retirement dossiers.
+- Added immutable limited/production release candidates, portable Markdown
+  dossier export, adversarial evidence tests, and dossier latency benchmarking.
 - Added an exact-commit external-skill provenance lock. Mixed-license catalogs
   remain reference-only; adapted sources require an allowed license, source
   hash, manual review, and quarantine without executing upstream code.

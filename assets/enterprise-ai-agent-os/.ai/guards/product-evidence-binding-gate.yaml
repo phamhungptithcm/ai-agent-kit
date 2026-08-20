@@ -1,0 +1,20 @@
+version: 1
+id: product-evidence-binding
+default: fail-closed
+required_binding:
+  repository: [remote_or_root_identity, full_commit]
+  local_file: [repository_contained_regular_file, sha256, size]
+  provider: [provider_name, run_or_deployment_id, authorized_verifier]
+  environment: [environment_id, class, attestation_hash]
+  lifecycle: [collected_at, expires_at, status, trust_level, limitations]
+blocked:
+  - missing_or_unknown_receipt
+  - expired_or_future_dated_receipt
+  - repository_or_commit_drift
+  - file_hash_or_size_drift
+  - path_escape_symlink_hardlink_or_oversize
+  - self_declared_provider_or_production_claim
+  - mixed_environment_evidence
+  - verifier_rejected_receipt
+production_minimum_trust: PROVIDER_VERIFIED
+agent_may_elevate_trust: false

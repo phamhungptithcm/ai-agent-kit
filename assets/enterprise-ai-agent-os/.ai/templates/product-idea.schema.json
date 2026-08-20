@@ -21,6 +21,8 @@
     "unknowns": {"type": "array", "items": {"$ref": "#/$defs/ownedItem"}},
     "parent_versions": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
     "change_reason": {"type": "string"},
+    "recorded_at": {"type": "string", "format": "date-time"},
+    "parent_hash": {"type": ["string", "null"], "pattern": "^[a-f0-9]{64}$"},
     "content_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
   },
   "$defs": {"ownedItem": {"type": "object", "additionalProperties": false, "required": ["id", "text", "owner"], "properties": {"id": {"type": "string"}, "text": {"type": "string"}, "owner": {"type": "string"}, "due_gate": {"type": "string"}}}}

@@ -153,6 +153,28 @@ import {
   writePulseResult
 } from "./pulse.mjs";
 import { pulseExitCode } from "./pulse-policy.mjs";
+import {
+  addProductQuestion,
+  analyzeProduct,
+  answerProductQuestion,
+  approveProductBaseline,
+  convergeProduct,
+  createProductWorkspace,
+  exportProductDossier,
+  inspectProduct,
+  inspectProductDossier,
+  nextProductAction,
+  planProductGithubIssues,
+  prepareProductReleaseCandidate,
+  putProductArtifact,
+  recordProductContext,
+  recordProductEnvironment,
+  recordProductEvidence,
+  resumeProduct,
+  syncProductGithubIssues,
+  validateProductArtifact,
+  verifyProductEvidence
+} from "./product-genesis.mjs";
 
 const FORBIDDEN_BOOTSTRAP_OPTIONS = new Set(["--commit", "--push", "--create-mr", "--git-mode"]);
 const SUPPORTED_PRESETS = new Set(["governed", "full"]);
@@ -238,6 +260,13 @@ Usage:
   ai-agent-kit pulse trend record --file <pulse-result-or-comparison.json> [--history <history.jsonl>]
   ai-agent-kit pulse trend show [--history <history.jsonl>]
   ai-agent-kit pulse explain --file <pulse-result-or-comparison.json>
+  ai-agent-kit product start|status|resume|next [options]
+  ai-agent-kit product question-add|answer|context-add [options]
+  ai-agent-kit product artifact-put|artifact-validate|analyze|approve [options]
+  ai-agent-kit product github-plan|github-sync|converge [options]
+  ai-agent-kit product evidence-put|evidence-verify|environment-put [options]
+  ai-agent-kit product release-candidate|dossier-status|dossier-export [options]
+    github-sync ambiguous retries require --confirm-absent <delivery-item-id>
   ai-agent-kit team plan --id <task-id> [--shape <type>] [--path <scope>]
   ai-agent-kit team start --id <task-id> --adapter <id> [--capabilities-file <json>]
   ai-agent-kit team next --id <task-id>
@@ -363,6 +392,38 @@ export function parseDecisionArgs(argv) {
 
 export function parseRunArgs(argv) {
   return parseGovernedFeatureArgs(argv, ["record", "inspect", "recovery", "resume", "export", "verify", "otel"], ["--target", "--run-id", "--event-id", "--phase", "--task-id", "--actor", "--goal", "--approval-ref", "--decision-id", "--context-hash", "--plugin-receipt-hash", "--check-ref", "--finding-ref", "--blocker", "--next-action", "--failed-attempt", "--not-tried", "--timestamp", "--output", "--profile", "--file"], ["--apply"]);
+}
+
+export function parseProductArgs(argv) {
+  const actions = ["start", "status", "resume", "next", "question-add", "answer", "context-add", "artifact-put", "artifact-validate", "analyze", "approve", "github-plan", "github-sync", "converge", "evidence-put", "evidence-verify", "environment-put", "release-candidate", "dossier-status", "dossier-export"];
+  const action = argv[0];
+  if (!actions.includes(action)) throw new Error(`product requires one of: ${actions.join(", ")}`);
+  const valueFlags = new Set([
+    "--target", "--id", "--name", "--idea", "--profile", "--actor", "--created-by", "--timestamp",
+    "--question-id", "--question", "--rationale", "--decision-id", "--priority", "--stage", "--answer",
+    "--answer-status", "--source", "--category", "--context-id", "--statement", "--supersedes", "--type",
+    "--file", "--gate", "--decision", "--approver", "--approver-type", "--authority", "--scope",
+    "--constraint", "--accepted-risk", "--repository", "--repo", "--approval-hash", "--confirm-absent",
+    "--evidence-id", "--minimum-trust", "--release-class", "--limitation", "--output"
+  ]);
+  const keyMap = {
+    "created-by": "createdBy", "question-id": "questionId", "decision-id": "decisionId",
+    "answer-status": "answerStatus", "context-id": "contextId", "approver-type": "approverType",
+    "approval-hash": "approvalHash", "confirm-absent": "confirmAbsent", constraint: "constraints", "accepted-risk": "acceptedRisks",
+    "evidence-id": "evidenceId", "minimum-trust": "minimumTrust", "release-class": "releaseClass", limitation: "limitations"
+  };
+  const options = { target: process.cwd() };
+  for (let index = 1; index < argv.length; index += 1) {
+    const flag = argv[index];
+    if (["--apply", "--write"].includes(flag)) { options[flag.slice(2)] = true; continue; }
+    if (!valueFlags.has(flag)) throw new Error(`Unknown product ${action} option: ${flag}`);
+    const value = argv[++index];
+    if (!value) throw new Error(`${flag} requires a value`);
+    const raw = flag.slice(2); const key = keyMap[raw] ?? raw;
+    if (["scope", "constraints", "acceptedRisks", "confirmAbsent", "limitations"].includes(key)) (options[key] ??= []).push(value);
+    else options[key] = value;
+  }
+  return { action, options };
 }
 
 export function parsePluginArgs(argv) {
@@ -1360,6 +1421,32 @@ export async function main(argv = process.argv.slice(2), io = console, deps = {}
     const artifact = options.output || options.taskId ? writePulseDocument(result, { ...options, output: options.output ?? `.ai-agent-kit/pulse/tasks/${options.taskId}.json` }, ".ai-agent-kit/pulse/results/comparison.json") : null;
     io.log(options.format === "text" ? `${renderPulseSummary(result)}${artifact ? `\nArtifact: ${artifact}` : ""}` : JSON.stringify(artifact ? { ...result, artifact } : result, null, 2));
     return pulseExitCode(result);
+  }
+  if (command === "product") {
+    const { action, options } = parseProductArgs(argv.slice(1));
+    let result;
+    if (action === "start") result = createProductWorkspace(options);
+    else if (action === "status") result = inspectProduct(options);
+    else if (action === "resume") result = resumeProduct(options);
+    else if (action === "next") result = nextProductAction(options);
+    else if (action === "question-add") result = addProductQuestion(options);
+    else if (action === "answer") result = answerProductQuestion(options);
+    else if (action === "context-add") result = recordProductContext(options);
+    else if (action === "artifact-put") result = putProductArtifact(options);
+    else if (action === "artifact-validate") result = validateProductArtifact(options.type, readSystemDesignJson(options.target, options.file, "product artifact"));
+    else if (action === "analyze") result = analyzeProduct(options);
+    else if (action === "approve") result = approveProductBaseline(options);
+    else if (action === "github-plan") result = planProductGithubIssues(options);
+    else if (action === "github-sync") result = syncProductGithubIssues(options, deps);
+    else if (action === "converge") result = convergeProduct(options);
+    else if (action === "evidence-put") result = recordProductEvidence(options, deps);
+    else if (action === "evidence-verify") result = verifyProductEvidence(options);
+    else if (action === "environment-put") result = recordProductEnvironment(options, deps);
+    else if (action === "release-candidate") result = prepareProductReleaseCandidate(options);
+    else if (action === "dossier-status") result = inspectProductDossier(options);
+    else result = exportProductDossier(options);
+    io.log(JSON.stringify(result, null, 2));
+    return ["INVALID", "BLOCKED", "PARTIAL", "RECONCILIATION_REQUIRED", "STALE", "GAPS_FOUND", "CHANGES_REQUESTED", "REJECTED", "NOT_READY"].includes(result.status) ? 1 : 0;
   }
   if (command === "team") {
     const { action, options } = parseTeamArgs(argv.slice(1));

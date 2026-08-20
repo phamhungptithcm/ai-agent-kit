@@ -1,0 +1,6 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "https://hunpeolabs.com/schemas/product-trust-compliance-v1.json", "title": "Product Trust and Compliance", "type": "object",
+  "required": ["schema_version", "id", "version", "status", "source_versions", "markets", "accessibility", "privacy_legal", "threat_model", "security_findings"],
+  "properties": {"schema_version": {"const": 1}, "id": {"type": "string"}, "version": {"type": "integer", "minimum": 1}, "status": {"type": "string"}, "source_versions": {"type": "array", "items": {"type": "string"}}, "markets": {"type": "array", "minItems": 1, "items": {"type": "string"}}, "accessibility": {"$ref": "#/$defs/control"}, "privacy_legal": {"type": "array", "minItems": 1, "items": {"$ref": "#/$defs/control"}}, "threat_model": {"$ref": "#/$defs/control"}, "security_findings": {"type": "array"}},
+  "$defs": {"control": {"type": "object", "required": ["status", "evidence_receipt_ids"], "properties": {"status": {"enum": ["READY", "OPEN", "NOT_APPLICABLE"]}, "rationale": {"type": "string"}, "evidence_receipt_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}}}}}
+}

@@ -5,7 +5,7 @@ description: Facilitate structured product discovery with a non-technical user. 
 
 # Discuss Product Idea
 
-Run a collaborative interview in small rounds. Ask only questions that unlock the next decision.
+Run `ai-agent-kit product resume --id <id>` first. Ask only the current highest-impact questions, at most three per round. Explain the decision each answer unlocks; do not repeat answered questions.
 
 Cover:
 
@@ -16,6 +16,6 @@ Cover:
 - business model, timing, budget, legal, privacy, and operational constraints
 - non-goals and unacceptable outcomes
 
-After each round, show `confirmed`, `assumed`, `unknown`, and `changed` items. Never erase an earlier answer; issue a new idea version with a reason for change.
+Record each answer with `product answer`. Record new facts, assumptions, unknowns, and superseding changes with `product context-add`. After each round, show `confirmed`, `assumed`, `unknown`, and `changed` items. Never erase an earlier answer; issue a new idea version with a reason for change.
 
-Finish with a discovery brief, research questions, contradictions, decision owners, and readiness status. Route to `research-product-opportunity` when material market or user claims remain unverified; otherwise route to `write-business-requirements`.
+Finish with a discovery brief, research questions, contradictions, decision owners, and readiness status. Material external claims route to `research-product-opportunity`. Discovery must still receive exact-hash human approval before BRD drafting, even when little external research is needed.

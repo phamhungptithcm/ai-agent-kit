@@ -5,7 +5,7 @@ description: Convert approved discovery evidence into a versioned Business Requi
 
 # Write Business Requirements
 
-Use `.ai/templates/business-requirements.schema.json` and `.ai/rules/requirements-integrity.md`.
+Require a current discovery approval. Use `.ai/templates/business-requirements.schema.json`, `.ai/templates/business-rules.schema.json`, and `.ai/rules/requirements-integrity.md`.
 
 Build the BRD from cited idea and research versions. Assign stable `BR-*` identifiers. Include:
 
@@ -17,6 +17,8 @@ Build the BRD from cited idea and research versions. Assign stable `BR-*` identi
 - dependencies, constraints, assumptions, risks, and unresolved decisions
 - acceptance and approval criteria
 
+For `STANDARD` and `HIGH_ASSURANCE`, create a separate rule catalog with stable `RULE-*` IDs, explicit conditions, outcomes, owners, examples, exceptions, and source requirements. Keep policies out of prose-only sections.
+
 Mark each requirement `DRAFT`, `PROPOSED`, `APPROVED`, `CHANGED`, or `RETIRED`. A missing fact remains `TBD(owner, due date)`; never invent it.
 
-Run a review for ambiguity, conflicts, unverifiable language, solution bias, and orphan goals. Stop at `BRD_READY_FOR_APPROVAL`. Only a named human approver may establish the approved BRD baseline.
+Validate and record `brd` and `business-rules` artifacts, then run `product analyze --gate BUSINESS_REQUIREMENTS`. Resolve blockers and stop at `BRD_READY_FOR_APPROVAL`. Only a named human approver bound to the exact BRD hash may establish the baseline.
