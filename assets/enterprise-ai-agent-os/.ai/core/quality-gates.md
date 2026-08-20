@@ -13,6 +13,7 @@ Every implementation completion must report each gate with `PASSED`, `FAILED`, `
 | Platform/domain quality profile selected | TODO | TODO |
 | Public web SEO/GEO profile selected where applicable | TODO | TODO |
 | Visual design profile selected for user-facing changes where applicable | TODO | TODO |
+| Product content profile selected for user-facing text or displayed-data changes where applicable | TODO | TODO |
 | Animation and motion profile selected where applicable | TODO | TODO |
 | Language-aware static analysis passed | TODO | TODO |
 | Security checks passed | TODO | TODO |
@@ -23,6 +24,7 @@ Every implementation completion must report each gate with `PASSED`, `FAILED`, `
 | Final implementation review current and passed | TODO | `.ai/templates/final-implementation-review.json` and runtime review receipt |
 | Search metadata, crawler policy, structured data, and claims reviewed where applicable | TODO | TODO |
 | Design direction, responsive composition, UI states, accessibility, motion, and visual evidence reviewed where applicable | TODO | TODO |
+| Product language meaning, tone, brevity, states, accessibility, localization, data semantics, eight Human Interface principles, target-platform fit, and in-context evidence reviewed where applicable | TODO | `.ai/templates/product-content-review.md` |
 | Animation purpose, reduced motion, interruptibility, performance, compatibility, lifecycle cleanup, and evidence reviewed where applicable | TODO | TODO |
 
 `NOT_RUN` is allowed only when paired with a reason and reviewer-visible risk. `NOT_APPLICABLE` is allowed only when the gate truly does not apply to the scoped change.

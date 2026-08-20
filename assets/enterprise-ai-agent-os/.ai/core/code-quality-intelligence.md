@@ -9,7 +9,7 @@ Code Quality Intelligence makes AI-assisted changes language-aware and platform-
    - `universal.yaml` for every project.
    - language profiles such as `go.yaml`, `java.yaml`, `python.yaml`, `typescript-javascript.yaml`, and `frontend-html-css.yaml`.
    - platform/domain profiles such as `web-app.yaml`, `mobile-app.yaml`, `desktop-app.yaml`, `infrastructure.yaml`, and `devops.yaml`.
-   - cross-cutting profiles such as `api.yaml`, `database.yaml`, `concurrency.yaml`, `memory.yaml`, `human-writing.yaml`, and `marketing-growth.yaml` when applicable.
+   - cross-cutting profiles such as `api.yaml`, `database.yaml`, `concurrency.yaml`, `memory.yaml`, `product-content.yaml`, `human-writing.yaml`, and `marketing-growth.yaml` when applicable. Select `product-content.yaml` whenever user-facing text, accessible text, or displayed-data meaning changes; this gate is independent of whether natural-voice prose editing was requested and requires the eight Human Interface principles plus target-platform fit.
 3. Prefer existing repository commands and config over generic suggestions.
 4. Run or report the relevant checks with `PASSED`, `FAILED`, `NOT_APPLICABLE`, or `NOT_RUN` status and evidence.
 5. Review risks that tools often miss: connection leaks, transaction boundaries, thread/goroutine/task leaks, deadlocks, event-loop blocking, heap retention, cache growth, listener/timer cleanup, API compatibility, and migration safety.
@@ -36,3 +36,4 @@ Every implementation, bug fix, PR/MR review, and handoff must include:
 - checks not run and reason
 - code quality risks reviewed
 - remaining quality gaps or recommended follow-up
+- Product Language Gate status and `.ai/templates/product-content-review.md` evidence, including eight-principle Human Interface mapping and target-platform fit, whenever user-facing content or displayed-data semantics changed

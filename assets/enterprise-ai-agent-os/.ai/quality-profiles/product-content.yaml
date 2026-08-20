@@ -1,0 +1,157 @@
+version: 1
+
+id: product-content
+
+name: Human-Centered Product Language Quality Profile
+
+description:
+  Mandatory quality standards for user-facing UI text, accessible text, state
+  messages, and displayed-data semantics across websites, mobile apps, desktop
+  apps, and other interactive products.
+
+applies_when:
+  - "a user-facing label, heading, navigation item, button, link, form, hint, placeholder, validation message, confirmation, onboarding step, or notification changes"
+  - "loading, empty, error, success, offline, unauthorized, stale, partial, disabled, pending, or destructive-state content changes"
+  - "an accessible name, description, live announcement, alternative text, table heading, chart label, metric, unit, date, time, currency, or displayed value changes"
+  - "a backend value, enum, field, status, generated response, or dataset is mapped into language that a person can read or assistive technology can announce"
+  - "UI, UX, localization, or data-presentation work can change the meaning people receive from the product"
+
+compose_with:
+  - ".ai/quality-profiles/universal.yaml"
+  - ".ai/rules/product-content-integrity.md"
+  - ".ai/skills-src/write-product-content/references/apple-human-interface-principles.md"
+  - ".ai/quality-profiles/visual-design.yaml when a user-facing visual surface changes"
+  - ".ai/quality-profiles/web-app.yaml, mobile-app.yaml, or desktop-app.yaml for the target platform"
+  - ".ai/quality-profiles/human-writing.yaml only when substantial prose is also being voice-edited"
+  - ".ai/quality-profiles/seo-geo.yaml or marketing-growth.yaml when public discovery or conversion content is in scope"
+
+required_inputs:
+  - "surface, component, and applicable state"
+  - "target platform and applicable platform interaction, terminology, component, and accessibility conventions"
+  - "audience, primary task, and business outcome"
+  - "implemented action, consequence, persistence point, and recovery behavior"
+  - "verified terminology, domain rules, and product voice when available"
+  - "data definition, source, unit, range, freshness, precision, and locale when displayed data changes"
+  - "accessibility, localization, platform, legal, and compliance constraints"
+
+context_decision:
+  ask_or_block_when:
+    - "platform context is unknown and would change a control, gesture, navigation pattern, permission flow, terminology, or accessible behavior"
+    - "different plausible meanings change the action or consequence"
+    - "destructive scope or recoverability is unknown"
+    - "permission wording may reveal protected resource existence or identity"
+    - "a metric, unit, range, timestamp, source, zero, null, or missing-data meaning is ambiguous"
+    - "a promise, guarantee, deadline, recovery path, legal meaning, or regulated claim lacks evidence"
+  safe_default:
+    - "use one reversible wording inference only when it cannot materially change meaning"
+    - "record the inference and evidence in the product-content review"
+    - "never fabricate missing business or user-research facts"
+
+required_review:
+  human_interface_principles:
+    - "Purpose: every element supports the person's goal and the screen's primary job"
+    - "Agency: choices, progress, optional paths, consequences, and implemented recovery keep the person informed and in control"
+    - "Responsibility: privacy, data use, cost, permanence, limitations, and permission rationale are transparent and in the person's best interest"
+    - "Familiarity: concepts, terminology, interaction patterns, and feedback build on the target platform and product conventions"
+    - "Flexibility: supported devices, inputs, abilities, languages, regions, text sizes, reading conditions, and task paths are considered"
+    - "Simplicity: critical information comes first and unnecessary content or interruption is removed without hiding meaning"
+    - "Craft: terminology, hierarchy, states, errors, recovery, accessibility, localization, data formatting, wrapping, and truncation are complete"
+    - "Delight: the experience feels considerate and human without sacrificing clarity, safety, accessibility, performance, or trust"
+  platform_fit:
+    - "the target platform and applicable current conventions are identified"
+    - "Apple-platform work checks current applicable Apple HIG guidance"
+    - "non-Apple work applies human-centered principles without forcing Apple-only controls, terminology, assets, layouts, gestures, or trade dress"
+    - "the product's established brand and design system remain authoritative unless an approved change says otherwise"
+  meaning_and_behavior:
+    - "each string has one defined user job and matches the implemented state and outcome"
+    - "actions, destinations, fields, statuses, and promises are not confused"
+    - "one verified term is used consistently for one concept"
+    - "destructive, financial, privacy, permission, legal, and other consequential meaning is explicit"
+  audience_and_business:
+    - "the audience, task, reading context, and business outcome are identified"
+    - "the business goal does not override comprehension, consent, safety, or user control"
+    - "repository evidence, domain definitions, and research are separated from assumptions"
+    - "unsupported behavior, guarantees, deadlines, permissions, and research findings are not invented"
+  natural_voice:
+    - "language is familiar, concrete, direct, calm, respectful, and suitable for the locale"
+    - "the person is not blamed, shamed, commanded, patronized, pressured, or manipulated"
+    - "politeness, apologies, jokes, celebration, emojis, and casual expressions are used only when context supports them"
+    - "robotic filler, corporate jargon, generic reassurance, and implementation details are removed"
+  brevity_and_structure:
+    - "decision-critical information appears first"
+    - "every remaining word supports meaning, consequence, recovery, accessibility, or required domain context"
+    - "secondary detail uses progressive disclosure where appropriate"
+    - "brevity is judged by comprehension rather than a universal word-count limit"
+  actions_and_states:
+    - "action labels name the real outcome and ambiguous confirm, submit, yes, no, or OK labels are replaced where consequences matter"
+    - "applicable loading, empty, success, error, offline, unauthorized, stale, partial, disabled, pending, confirmation, and destructive states are covered"
+    - "error copy identifies what did not complete and offers only implemented safe recovery"
+    - "success copy reflects the required durable outcome"
+    - "safe user input survives recoverable failures"
+  data_semantics:
+    - "zero, null, unknown, not applicable, unavailable, redacted, estimated, stale, partial, and not measured remain distinct"
+    - "metric definition, unit, currency, period, timezone, aggregation, comparison, source, precision, and freshness are accurate when material"
+    - "internal enum, schema, API, or analytics names are not exposed as user language without verification"
+    - "missing or failed data is not represented as zero, blank success, or certainty"
+    - "privacy and authorization boundaries are preserved"
+  accessibility:
+    - "controls have persistent understandable labels and accessible names align with visible labels"
+    - "placeholder, color, icon, position, sound, or gesture is not the sole carrier of meaning"
+    - "instructions, errors, and dynamic status messages are associated and announced appropriately"
+    - "link, button, chart, table, and alternative text preserve purpose and data context"
+  localization:
+    - "complete messages replace concatenated fragments and English-specific word order"
+    - "pluralization, grammatical variation, bidirectional text, and locale-specific formats are supported"
+    - "slang, idioms, puns, and culture-specific humor have an explicit audience and localization rationale"
+    - "text expansion, zoom, wrapping, truncation, and translated or pseudo-localized content are verified where applicable"
+  evidence:
+    - "all eight Human Interface principles have individual statuses and evidence"
+    - "an Apple-specific compliance claim cites current official HIG guidance; unavailable currency is disclosed and cannot support a current-compliance claim"
+    - "the current rendered surface or an explicitly disclosed proxy was reviewed"
+    - "representative viewport, text-size, state, and data conditions were exercised"
+    - "keyboard and assistive-technology behavior was checked when controls, forms, notifications, or dynamic states changed"
+    - "claims of clarity, naturalness, accessibility, localization, and production readiness do not exceed evidence"
+
+decision:
+  pass_requires:
+    - "Purpose, Agency, Responsibility, Familiarity, Flexibility, Simplicity, Craft, and Delight are individually PASSED or truthfully NOT_APPLICABLE"
+    - "target-platform fit passes and no protected Apple expression is copied"
+    - "every applicable required-review dimension is PASSED"
+    - "NOT_APPLICABLE has a concrete rationale"
+    - "no material business fact, action consequence, permission boundary, data meaning, or recovery behavior remains unknown"
+    - "current in-context evidence is available"
+  blocked_when:
+    - "a required Human Interface principle is FAILED or NOT_RUN"
+    - "platform fit is materially unknown or Apple-only conventions are imposed on another platform without a verified product reason"
+    - "a required dimension is FAILED or NOT_RUN"
+    - "wording promises unsupported behavior or hides a consequence"
+    - "destructive, authorization, legal, regulated, or data semantics are ambiguous"
+    - "the interface cannot be understood or verified in context"
+
+preferred_checks:
+  - "eight-principle Human Interface evidence mapping"
+  - "target-platform convention and cross-platform mismatch review"
+  - "copy inventory across every changed component and applicable state"
+  - "side-by-side behavior, business-definition, and wording trace"
+  - "rendered narrow and wide viewport review"
+  - "zoom, text-size, long-content, and pseudo-localization review"
+  - "keyboard, screen-reader, speech-input, and live-region review where applicable"
+  - "zero, null, empty, unavailable, stale, estimated, and partial-data fixtures"
+  - "read-aloud flow review for robotic, blaming, repetitive, or overlong language"
+  - "repository-defined component, accessibility, localization, visual-regression, and end-to-end tests"
+
+evidence_statuses:
+  - "PASSED"
+  - "FAILED"
+  - "NOT_APPLICABLE"
+  - "NOT_RUN"
+
+agent_constraints:
+  - "do not treat Apple-like appearance, minimalism, rounded controls, animation, or visual polish as proof of Human Interface quality"
+  - "do not copy Apple assets, product text, trade dress, distinctive compositions, or Apple-only behavior into unrelated platforms"
+  - "do not claim current Apple HIG compliance from memory or the bundled snapshot alone when current official guidance was not checked"
+  - "do not treat a style score, reading grade, word count, or AI detector as proof of product-content quality"
+  - "do not shorten away necessary consequences, recovery, accessibility, legal meaning, or data context"
+  - "do not polish around a product-design, state-model, permission, or data-contract defect"
+  - "do not return cosmetic variants when the product decision is already resolved"
+  - "report unresolved meaning or evidence as BLOCKED instead of guessing"

@@ -13,6 +13,7 @@
 8. Determine what existing behavior must remain unchanged.
 9. Classify risk and identify regression-sensitive areas.
 10. Detect language/version/framework/tooling and select matching `.ai/quality-profiles/` under `.ai/core/code-quality-intelligence.md`.
+10a. When UI, UX, localization, accessibility text, or displayed-data meaning is in scope, inventory every changed user-facing string and applicable state, then apply the mandatory `write-product-content` skill with `.ai/quality-profiles/product-content.yaml`. Map `Purpose`, `Agency`, `Responsibility`, `Familiarity`, `Flexibility`, `Simplicity`, `Craft`, and `Delight`, identify target-platform conventions, and block rather than skip a required principle.
 11. Propose the smallest safe change that addresses only the issue or approved requirement.
 12. Identify tests, validation evidence, documentation, specification, diagram, runbook, ADR, API-contract, Jira, deployment, and rollback impacts.
 13. Run the Agent Department orchestration decision. Reuse the shared brief and select the smallest safe team; unsupported subagents fall back to serial personas.
@@ -66,6 +67,7 @@ Stop after presenting the plan. Do not implement until explicit approval evidenc
 9. Add tests that demonstrate expected behavior when feasible.
 10. Add or update operational telemetry where behavior is production-significant.
 11. Keep changes reviewable and reversible.
+12. For user-facing text or displayed data, keep wording bound to verified behavior and business meaning; cover applicable loading, empty, error, success, permission, stale, partial, and destructive states; do not defer product language until after implementation.
 
 ## Phase 4 - Complete With Evidence And Traceability
 
@@ -79,6 +81,7 @@ Stop after presenting the plan. Do not implement until explicit approval evidenc
 8. Update authoritative documentation, specifications, and diagrams or provide a specific no-change rationale.
 9. Query available indexes for changed-symbol impact and refresh CodeGraph/CocoIndex indexes when available. If unavailable, use native evidence and record the limitation.
 10. Re-run the Repository Intelligence Gate and compare actual diff to approved scope; `DEGRADED` is acceptable when evidence remains sufficient.
+10a. For any changed user-facing text or displayed-data semantics, complete `.ai/templates/product-content-review.md`, including all eight mandatory Human Interface principles and target-platform fit; a string-file review, generic Apple-like claim, or missing principle status cannot pass the Product Language Gate.
 11. Prepare PR/MR evidence when requested or when a change is ready for review.
 12. Prepare a Jira completion package when the task is tied to a work item.
 13. Identify any reusable Memory candidates under `.ai/core/memory-policy.md`, or state `None`.

@@ -21,7 +21,7 @@ In `direction` and `review`, do not modify application files. In `redesign`, def
 ## Context Discovery
 
 1. Run the `repository-intelligence` skill.
-2. Load `.ai/rules/visual-design-integrity.md`, `.ai/quality-profiles/frontend-html-css.yaml`, `.ai/quality-profiles/web-app.yaml`, and `.ai/quality-profiles/visual-design.yaml`.
+2. Load `.ai/rules/visual-design-integrity.md`, `.ai/quality-profiles/frontend-html-css.yaml`, `.ai/quality-profiles/web-app.yaml`, and `.ai/quality-profiles/visual-design.yaml`. When readable UI text, accessible text, or displayed data is in scope, also load `write-product-content`, `.ai/quality-profiles/product-content.yaml`, and its `references/apple-human-interface-principles.md` quality bar.
 3. Identify:
    - surface type;
    - audience and primary task;
@@ -51,7 +51,7 @@ These are contextual controls, not universal defaults. Public-sector, regulated,
 1. Preserve information architecture and product constraints.
 2. Select one primary inspiration and at most one secondary influence.
 3. Distinguish an official design system from an aesthetic family.
-4. Define design principles, anti-goals, tokens, typography, color, spacing, layout, imagery, icons, shape, elevation, motion, and state behavior.
+4. Define design principles, anti-goals, tokens, typography, color, spacing, layout, imagery, icons, shape, elevation, motion, and state behavior. Map Purpose, Agency, Responsibility, Familiarity, Flexibility, Simplicity, Craft, and Delight to concrete decisions; an Apple-like visual claim is not a substitute.
 5. Define responsive composition rather than desktop-only scaling.
 6. Inventory default, hover, active, focus, disabled, loading, empty, error, success, offline, unauthorized, stale, and partial states as applicable.
 7. Define accessibility, performance, SEO/content, and asset-rights boundaries.
@@ -65,7 +65,7 @@ These are contextual controls, not universal defaults. Public-sector, regulated,
 4. Prefer the repository's tokens and components. Add or change primitives at the correct design-system layer rather than patching isolated screens repeatedly.
 5. Implement complete responsive behavior and applicable UI states.
 6. Keep motion isolated, purposeful, reduced-motion safe, and performant.
-7. Validate content meaning and SEO/GEO requirements for public surfaces.
+7. Run the Product Language Gate for every changed user-facing string or displayed-data meaning. Validate all eight mandatory Human Interface principles, target-platform fit, and the complete state inventory in context, then validate SEO/GEO requirements for public surfaces. Use current Apple HIG conventions for Apple-platform work; on other platforms preserve native conventions and do not copy Apple-only expression.
 8. Stop for delta approval if the required framework, dependency, content, information architecture, brand, or behavioral scope changes materially.
 
 ## Review And Evidence
@@ -81,4 +81,4 @@ For material findings include:
 - smallest safe recommendation;
 - verification method.
 
-Validate representative mobile, tablet, and desktop widths when applicable, plus focus, reduced motion, loading, empty, error, and success states. Report unavailable evidence instead of claiming success.
+Validate representative mobile, tablet, and desktop widths when applicable, plus focus, reduced motion, loading, empty, error, and success states. Complete `.ai/templates/product-content-review.md`, including the eight-principle and platform-fit evidence, when product language or displayed data changes. Report unavailable evidence instead of claiming success.

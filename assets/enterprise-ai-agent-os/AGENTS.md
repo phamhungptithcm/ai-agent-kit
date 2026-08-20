@@ -31,6 +31,8 @@ For any change to an existing application, service, module, function, database f
 
 During implementation after approval, preserve existing behavior unless the approved scope explicitly changes it, follow local patterns, avoid unrelated refactoring, protect authentication, authorization, sensitive data, and transaction integrity, and add tests or validation evidence proportional to risk. Detect the project language/version/framework/tooling and application/platform/domain, then apply `.ai/core/code-quality-intelligence.md` plus matching `.ai/quality-profiles/`. For database persistence, do not call `repository.save()` inside large loops; use batch or bulk persistence unless an approved exception documents transaction size, flush/clear behavior, locking risk, and retry/idempotency behavior.
 
+Whenever UI, UX, localization, accessibility text, or displayed-data meaning changes, the Product Language Gate is mandatory: apply `write-product-content` and `.ai/quality-profiles/product-content.yaml`. Inventory every changed user-facing string and applicable state, verify business and data meaning against actual behavior, map Purpose, Agency, Responsibility, Familiarity, Flexibility, Simplicity, Craft, and Delight, and verify target-platform fit. Complete `.ai/templates/product-content-review.md` with current in-context evidence. Missing, failed, stale, string-file-only, generic Apple-like, or incomplete principle evidence blocks successful handoff. Apple HIG is a current platform contract on Apple platforms and a human-centered quality reference elsewhere; never copy Apple-only expression or force Apple conventions onto another platform.
+
 Before completion, run relevant checks, complete `.ai/core/quality-gates.md` with evidence, then run the mandatory `final-implementation-review` skill. Review requirement match, security, code quality, failure paths, error handling, production readiness, and trade-offs. Repeat `review → fix approved findings → verify → review again` until a fresh cycle passes. Do not produce a successful final handoff while the newest review is missing, stale, rejected, or blocked. Record and render `.ai/core/task-completion-report.md`, including every review cycle, findings and fixes, progress, remaining work, production readiness, token usage, and cost status. Report memory candidates under `.ai/core/memory-policy.md`, or state `None`. Do not claim a test, MR/PR, Jira update, document, diagram, screenshot, PPTX, or XLSX exists unless verified.
 
 ## Non-Negotiables
@@ -58,6 +60,7 @@ Before completion, run relevant checks, complete `.ai/core/quality-gates.md` wit
 - Command policy: `.ai/scripts/enforce_command_policy.py`
 - Behavioral safety evaluations: `.ai/scripts/evaluate_agent_behavior.py`
 - Quality profiles: `.ai/quality-profiles/`
+- Product content review: `.ai/templates/product-content-review.md`
 - Memory policy: `.ai/core/memory-policy.md`
 - Definition of done: `.ai/core/definition-of-done.md`
 - Governed runtime: `.ai/core/governed-runtime.md`

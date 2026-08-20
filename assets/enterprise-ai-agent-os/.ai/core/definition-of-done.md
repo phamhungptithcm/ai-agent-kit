@@ -22,4 +22,5 @@ Completed AI-assisted engineering work must be able to answer:
 - Did `final-implementation-review` pass against the current implementation, and does the report list reviewed dimensions, findings, fixes, residual risks, and limitations?
 - For public web changes, are canonical/indexing intent, crawler policy, structured data integrity, content claims, and verification evidence explicit?
 - For user-facing visual changes, are audience, design direction, existing-system fidelity, responsive composition, UI states, accessibility, motion, and screenshot or browser evidence explicit?
+- For user-facing text or displayed-data changes, did `write-product-content` pass against verified business meaning, actual behavior, every applicable state, natural respectful tone, accessibility, localization, data semantics, current in-context evidence, all eight mandatory Human Interface principles, and target-platform fit without copying Apple-only expression?
 - For material animation changes, are purpose, frequency, timing, reduced-motion behavior, interruption, cancellation, gesture parity, performance, compatibility, cleanup, and trace or browser evidence explicit?

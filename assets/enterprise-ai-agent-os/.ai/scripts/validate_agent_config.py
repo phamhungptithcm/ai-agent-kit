@@ -162,6 +162,7 @@ def required_paths() -> list[str]:
         ".ai/rules/visual-design-integrity.md",
         ".ai/rules/animation-integrity.md",
         ".ai/rules/human-writing-integrity.md",
+        ".ai/rules/product-content-integrity.md",
         ".ai/rules/marketing-integrity.md",
         ".ai/workflows/start-task.md",
         ".ai/workflows/authorize-governed-action.md",
@@ -205,6 +206,7 @@ def required_paths() -> list[str]:
         ".ai/templates/design-brief.md",
         ".ai/templates/design-direction.md",
         ".ai/templates/visual-design-review.md",
+        ".ai/templates/product-content-review.md",
         ".ai/templates/ui-state-inventory.md",
         ".ai/templates/motion-brief.md",
         ".ai/templates/motion-contract.md",
@@ -278,10 +280,15 @@ def required_paths() -> list[str]:
         ".ai/quality-profiles/memory.yaml",
         ".ai/quality-profiles/governance-maturity.yaml",
         ".ai/quality-profiles/human-writing.yaml",
+        ".ai/quality-profiles/product-content.yaml",
         ".ai/quality-profiles/marketing-growth.yaml",
         ".ai/skills-src/humanize-writing/SKILL.md",
         ".ai/skills-src/humanize-writing/references/ai-patterns-dictionary.md",
         ".ai/skills-src/humanize-writing/references/voices.md",
+        ".ai/skills-src/write-product-content/SKILL.md",
+        ".ai/skills-src/write-product-content/agents/openai.yaml",
+        ".ai/skills-src/write-product-content/references/apple-human-interface-principles.md",
+        ".ai/skills-src/write-product-content/references/surface-patterns.md",
         ".ai/skills-src/marketing-growth-website/SKILL.md",
         ".ai/skills-src/marketing-growth-website/references/evidence-and-measurement.md",
         ".ai/skills-src/seo-geo-website/SKILL.md",
@@ -354,6 +361,7 @@ def validate_root_links(root: Path, errors: list[str]) -> None:
         ".ai/guards/code-quality-profile-gate.yaml",
         ".ai/guards/capability-policy.yaml",
         ".ai/templates/memory-entry.yaml",
+        ".ai/templates/product-content-review.md",
         ".ai/quality-profiles/",
         ".ai/context/repository-map.md",
         ".ai/rules/",
@@ -401,6 +409,7 @@ def validate_skills(root: Path, errors: list[str]) -> None:
                 root / ".cursor" / "skills",
                 root / ".windsurf" / "skills",
                 root / ".cline" / "skills",
+                root / ".github" / "skills",
             ]:
                 dest = dest_root / name / resource_rel
                 if not dest.exists():
@@ -562,6 +571,8 @@ def validate_team_ready_governance(root: Path, errors: list[str]) -> None:
         "API compatibility reviewed",
         "Observability impact reviewed",
         "Diff self-reviewed",
+        "Product content profile selected",
+        "Product language meaning",
         "Evidence command/result",
     ]:
         if fragment not in quality_gates:
@@ -597,6 +608,9 @@ def validate_team_ready_governance(root: Path, errors: list[str]) -> None:
             fail(errors, f"agent persona composition missing from role map: {fragment}")
         if fragment not in guide_text:
             fail(errors, f"agent persona composition missing from team guide: {fragment}")
+
+    if "write-product-content" not in guide_text:
+        fail(errors, "team guide missing mandatory product content skill")
 
     memory_policy = read(root / ".ai" / "core" / "memory-policy.md")
     for fragment in [
@@ -669,6 +683,73 @@ def validate_team_ready_governance(root: Path, errors: list[str]) -> None:
         if fragment not in human_writing_rules:
             fail(errors, f"human writing rules missing required fragment: {fragment}")
 
+    product_content_rules = read(root / ".ai" / "rules" / "product-content-integrity.md")
+    for fragment in [
+        "Apply The Human Interface Quality Bar",
+        "Purpose",
+        "Agency",
+        "Responsibility",
+        "Preserve Platform Integrity",
+        "Preserve Meaning And Trust",
+        "Write Like A Helpful Person",
+        "Preserve Data Semantics",
+        "Protect Accessibility And Localization",
+        "Block final success",
+    ]:
+        if fragment not in product_content_rules:
+            fail(errors, f"product content rules missing required fragment: {fragment}")
+
+    product_content_skill = read(root / ".ai" / "skills-src" / "write-product-content" / "SKILL.md")
+    for fragment in [
+        "Run The Product Language Gate",
+        "Establish The Context Contract",
+        "Apply The Mandatory Human Interface Principles",
+        "apple-human-interface-principles.md",
+        "target-platform conventions",
+        "Preserve Data Semantics",
+        "Verify In The Real Experience",
+        "Return `BLOCKED`",
+        "product-content-review.md",
+    ]:
+        if fragment not in product_content_skill:
+            fail(errors, f"product content skill missing required fragment: {fragment}")
+
+    apple_hig_reference = read(root / ".ai" / "skills-src" / "write-product-content" / "references" / "apple-human-interface-principles.md")
+    for fragment in [
+        "Scope Boundary",
+        "Mandatory Principle Mapping",
+        "Purpose",
+        "Agency",
+        "Responsibility",
+        "Familiarity",
+        "Flexibility",
+        "Simplicity",
+        "Craft",
+        "Delight",
+        "Platform-Fit Decision",
+        "Official Sources",
+        "developer.apple.com/design/human-interface-guidelines/writing",
+    ]:
+        if fragment not in apple_hig_reference:
+            fail(errors, f"Apple Human Interface reference missing required fragment: {fragment}")
+
+    product_content_template = read(root / ".ai" / "templates" / "product-content-review.md")
+    for fragment in [
+        "Content Inventory",
+        "State Coverage",
+        "Data Semantics",
+        "Mandatory Human Interface Principles",
+        "Platform Fit",
+        "Purpose",
+        "Delight",
+        "Natural, respectful tone",
+        "Accessibility",
+        "Localization and text expansion",
+        "Product Language Gate",
+    ]:
+        if fragment not in product_content_template:
+            fail(errors, f"product content review template missing required fragment: {fragment}")
+
     marketing_skill = read(root / ".ai" / "skills-src" / "marketing-growth-website" / "SKILL.md")
     for fragment in [
         "`discover`",
@@ -706,6 +787,22 @@ def validate_team_ready_governance(root: Path, errors: list[str]) -> None:
         "humanize-no-fabricated-specificity",
         "humanize-detector-request",
         "humanize-voice-sample-privacy",
+        "product-content-context-before-copy",
+        "product-content-action-label",
+        "product-content-error-recovery",
+        "product-content-state-completeness",
+        "product-content-data-semantics",
+        "product-content-accessibility-localization",
+        "product-content-no-fabricated-business-context",
+        "product-content-mandatory-composition",
+        "product-content-human-interface-principles",
+        "product-content-agency-and-recovery",
+        "product-content-responsible-permission",
+        "product-content-platform-fit",
+        "product-content-alert-restraint",
+        "product-content-onboarding-and-help",
+        "product-content-delight-subordinate",
+        "product-content-current-hig-evidence",
         "marketing-context-missing",
         "fabricated-marketing-proof",
         "marketing-missing-baseline",
@@ -764,6 +861,7 @@ def validate_code_quality_profiles(root: Path, errors: list[str]) -> None:
         "concurrency.yaml": ["id: concurrency", "deadlock", "task/thread/goroutine lifecycle"],
         "memory.yaml": ["id: memory", "heap retention", "resource cleanup"],
         "human-writing.yaml": ["id: human-writing", "meaning_preservation", "voice_fidelity", "authorship"],
+        "product-content.yaml": ["id: product-content", "human_interface_principles", "platform_fit", "meaning_and_behavior", "data_semantics", "accessibility", "localization", "blocked_when"],
         "marketing-growth.yaml": ["id: marketing-growth", "claims_and_proof", "measurement", "authorization"],
     }
     profile_root = root / ".ai" / "quality-profiles"

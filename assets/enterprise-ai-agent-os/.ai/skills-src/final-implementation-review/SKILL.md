@@ -12,13 +12,14 @@ Act as the final engineering gate, not as a summary writer. Review the actual di
 1. Re-read the approved goal, acceptance criteria, constraints, and explicit out-of-scope behavior.
 2. Compare the actual diff to approval. Stop and request delta approval for material scope drift.
 3. Inspect changed execution paths and affected callers, consumers, contracts, data, configuration, and operations.
-4. Apply `code-review` and `code-quality-review`. Apply `security-review`, `database-change`, `performance-investigation`, `observability-review`, or other domain skills when their risks are present.
+4. Apply `code-review` and `code-quality-review`. Apply `write-product-content` whenever user-facing text, accessible text, or displayed-data meaning changed. Apply `security-review`, `database-change`, `performance-investigation`, `observability-review`, or other domain skills when their risks are present.
 5. Review every required dimension in `.ai/templates/final-implementation-review.json`:
    - requirement and acceptance-criterion match;
    - security, privacy, authorization, secrets, dependency, and abuse paths;
    - correctness, maintainability, compatibility, and code quality;
    - invalid input, empty state, partial failure, timeout, retry, cancellation, concurrency, and dependency-failure paths;
    - error propagation, cleanup, rollback, operator visibility, and user-safe messages;
+   - product-language agreement with behavior and business meaning, all eight mandatory Human Interface principles, target-platform fit, applicable UI states, natural respectful tone, accessibility, localization, displayed-data semantics, and current in-context evidence;
    - production configuration, migration, observability, deployment, and rollback readiness;
    - material trade-offs, limitations, accepted risks, and deferred work.
 6. Run the smallest sufficient focused and regression checks. A passing happy-path test never substitutes for failure-path review.
@@ -39,6 +40,7 @@ Act as the final engineering gate, not as a summary writer. Review the actual di
 ## Decision rules
 
 - `PASSED`: every dimension is `PASSED` or truthfully `NOT_APPLICABLE`, no critical/high finding remains open, and evidence matches the current commit.
+- A review containing changed product language or displayed-data semantics cannot be `PASSED` when `.ai/templates/product-content-review.md` is missing, stale, failed, based only on isolated resource strings, missing any required Human Interface principle status, or lacks target-platform evidence.
 - `BLOCKED`: any required dimension failed or was not run, evidence is insufficient, scope drift needs approval, or a critical/high finding remains open.
 - Never claim production readiness solely because this review passes. The final report must also satisfy acceptance, quality, Git, release, deployment, and environment evidence required by the task.
 - Preserve medium/low residual risks and accepted-risk rationale in the report; do not hide them to obtain a pass.

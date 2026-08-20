@@ -84,11 +84,11 @@ blocks implementation; missing optional indexes produce an explicit
 
 | Capability | Included in AI Agent Kit 1.0 |
 | --- | --- |
-| Canonical skills | **34** skill sources, installed only where the selected adapter supports skill surfaces |
+| Canonical skills | **35** skill sources, installed only where the selected adapter supports skill surfaces |
 | Engineering workflows | **25** workflows for research, planning, implementation, review, incidents, architecture, delivery, policy, memory, and proof |
-| Quality intelligence | **22** stack/risk profiles plus **17** durable engineering rules |
+| Quality intelligence | **23** stack/risk profiles plus **18** durable engineering rules |
 | Enforcement | **15** guards for approval, capability, repository intelligence, memory, data, dependencies, orchestration, and protected actions |
-| Reusable artifacts | **62** templates and schemas for plans, reviews, evidence, system design, teams, memory, marketing, SEO/GEO, and release assurance |
+| Reusable artifacts | **71** templates and schemas for plans, reviews, evidence, system design, teams, memory, product content, marketing, SEO/GEO, and release assurance |
 | Agent ecosystem | **12** versioned adapters with machine-readable `native`, `generated`, `bridged`, `advisory`, `preview`, or `unsupported` capability states |
 | Coordination | Four workcell modes, dependency-ready waves, leases, heartbeats, cancellation, bounded retries, recovery, and independent review |
 | Verification | Behavioral evals, adapter/standards conformance, tests, Failure Lab, Agent Proof Replay, Change Passports, and fail-closed readiness |
@@ -293,6 +293,15 @@ snapshot can be attached to `architecture model` with `--pricing-snapshot` and
 
 - A `humanize-writing` skill for natural voice editing across posts, blogs,
   emails, and personal or marketing drafts.
+- A mandatory `write-product-content` gate for labels, actions, forms, state
+  messages, accessibility text, and displayed-data semantics in websites,
+  mobile apps, desktop apps, and other product interfaces.
+- Context-first copy decisions tied to verified behavior, business meaning,
+  complete UI states, accessibility, localization, and rendered evidence; the
+  gate blocks vague, unsupported, robotic, blaming, or misleading content.
+- A mandatory Apple HIG-derived Human Interface mapping for Purpose, Agency,
+  Responsibility, Familiarity, Flexibility, Simplicity, Craft, and Delight,
+  with target-platform fit and an explicit no-imitation boundary.
 - Task-local voice mirroring, a model-language pattern dictionary, and
   meaning-preserving rules for facts, attribution, authorship, and privacy.
 - No fabricated experiences or specificity, and no claims that a rewrite can

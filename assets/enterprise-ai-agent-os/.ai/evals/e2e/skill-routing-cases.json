@@ -14,7 +14,15 @@
     { "id": "team", "hint": "Use a multi-agent team to inspect this change", "expect": "orchestrate-agent-department" },
     { "id": "system", "hint": "Create a system design for 100k requests per second", "expect": "design-scalable-systems" },
     { "id": "seo", "hint": "Audit website SEO and structured data", "expect": "seo-geo-website" },
+    { "id": "product-content-en", "hint": "Rewrite the button label and empty state for this mobile app", "expect": "write-product-content" },
+    { "id": "product-content-vi", "hint": "Viết label và thông báo lỗi tự nhiên cho màn hình thanh toán", "expect": "write-product-content" },
+    { "id": "displayed-data-vi", "hint": "Kiểm tra ngữ nghĩa dữ liệu hiển thị và nhãn biểu đồ", "expect": "write-product-content" },
+    { "id": "product-content-apple-hig-en", "hint": "Apply Apple HIG writing principles to these button labels and error states", "expect": "write-product-content" },
+    { "id": "product-content-apple-hig-vi", "hint": "Viết UI UX như Apple cho label và trạng thái lỗi nhưng vẫn đúng ngữ cảnh", "expect": "write-product-content" },
+    { "id": "product-content-bug-composition", "hint": "Fix the bug in this button label and add a test", "expect": "fix-bug" },
+    { "id": "product-content-feature-composition", "hint": "Implement feature with new UI content for checkout", "expect": "implement-feature" },
     { "id": "feature-vi", "hint": "Phát triển tính năng xuất dữ liệu", "expect": "implement-feature" },
+    { "id": "internal-data", "hint": "Explain the internal database replication model", "expect": null },
     { "id": "unknown", "hint": "Explain this paragraph in plain language", "expect": null }
   ]
 }
