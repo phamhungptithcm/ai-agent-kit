@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 
-import { hasSymlinkComponent } from "./paths.mjs";
+import { hasSymlinkComponent, sameFilesystemPath } from "./paths.mjs";
 import { requireTeamCapability, teamControlDigest, verifySignedTeamAction, verifyTeamIdentityAuthentication } from "./team-control-contract.mjs";
 import { resolveTeamControlStoreLocation, withTeamControlStore } from "./team-control-store.mjs";
 
@@ -236,12 +236,13 @@ function normalizedRemote(value) {
 
 function currentRepository(root) {
   const top = fs.realpathSync(path.resolve(gitValue(root, ["rev-parse", "--show-toplevel"], "repository root")));
-  if (top !== fs.realpathSync(root)) throw new Error("product target must be the Git repository root for evidence binding");
+  const realRoot = fs.realpathSync(root);
+  if (!sameFilesystemPath(top, realRoot)) throw new Error("product target must be the Git repository root for evidence binding");
   const commit = gitValue(root, ["rev-parse", "HEAD"], "repository commit").toLowerCase();
   if (!/^[a-f0-9]{40,64}$/.test(commit)) throw new Error("repository commit is not a full hexadecimal revision");
   const remoteResult = spawnSync("git", ["config", "--get", "remote.origin.url"], { cwd: root, encoding: "utf8", timeout: 30_000, maxBuffer: 1024 * 1024 });
   const remote = remoteResult.status === 0 ? normalizedRemote(remoteResult.stdout) : null;
-  return { commit, remote, root_hash: productDigest({ protocol: "aak-repository-root-v1", root: fs.realpathSync(root) }) };
+  return { commit, remote, root_hash: productDigest({ protocol: "aak-repository-root-v1", root: realRoot }) };
 }
 
 function sha256File(file, maximum = 64 * 1024 * 1024) {
