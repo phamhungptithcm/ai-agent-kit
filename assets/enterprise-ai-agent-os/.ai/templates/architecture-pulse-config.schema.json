@@ -1,18 +1,123 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://hunpeolabs.com/ai-agent-kit/architecture-pulse-config-v1.schema.json",
+  "$id": "https://hunpeolabs.com/ai-agent-kit/architecture-pulse-config-v2.schema.json",
+  "title": "Architecture Pulse v2 configuration",
   "type": "object",
   "properties": {
-    "schema_version": { "const": 1 },
-    "include": { "type": "array", "items": { "type": "string", "minLength": 1 }, "maxItems": 256 },
-    "exclude": { "type": "array", "items": { "type": "string", "minLength": 1 }, "maxItems": 256 },
+    "schema_version": { "enum": [1, 2] },
+    "include": { "$ref": "#/$defs/paths" },
+    "exclude": { "$ref": "#/$defs/paths" },
     "max_files": { "type": "integer", "minimum": 1, "maximum": 100000 },
     "max_file_bytes": { "type": "integer", "minimum": 1, "maximum": 16777216 },
     "max_total_bytes": { "type": "integer", "minimum": 1, "maximum": 536870912 },
     "timeout_ms": { "type": "integer", "minimum": 1, "maximum": 600000 },
-    "boundaries": { "type": "array", "maxItems": 256, "items": { "type": "object", "required": ["name", "from"], "properties": { "name": { "type": "string", "minLength": 1 }, "from": { "type": "string", "minLength": 1 }, "allow": { "type": "array", "items": { "type": "string" } }, "deny": { "type": "array", "items": { "type": "string" } } }, "additionalProperties": false } },
-    "bridges": { "type": "array", "maxItems": 256, "items": { "type": "object", "required": ["from", "to"], "properties": { "id": { "type": "string" }, "from": { "type": "string" }, "to": { "type": "string" } }, "additionalProperties": false } },
-    "rules": { "type": "array", "maxItems": 256, "items": { "type": "object", "required": ["id", "type"], "properties": { "id": { "type": "string" }, "type": { "enum": ["new-cycles", "boundary-violations", "depth-increase", "cohesion-loss", "hotspot-growth", "blast-radius-growth", "coverage-drop", "confidence-drop"] }, "threshold": { "type": "number", "minimum": 0 }, "severity": { "enum": ["info", "warning", "block"] } }, "additionalProperties": false } }
+    "max_artifact_bytes": { "type": "integer", "minimum": 1, "maximum": 16777216 },
+    "graph_shard_bytes": { "type": "integer", "minimum": 1, "maximum": 8388608 },
+    "blocking_minimum_tier": { "$ref": "#/$defs/tier" },
+    "resolvers": {
+      "type": "object",
+      "properties": {
+        "typescript": { "type": "boolean" },
+        "python": { "type": "boolean" },
+        "go": { "type": "boolean" },
+        "rust": { "type": "boolean" },
+        "jvm": { "type": "boolean" },
+        "csharp": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "cache": {
+      "type": "object",
+      "properties": { "enabled": { "type": "boolean" }, "directory": { "type": "string", "minLength": 1 } },
+      "additionalProperties": false
+    },
+    "boundaries": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "required": ["name", "from"],
+        "properties": { "name": { "type": "string", "minLength": 1 }, "from": { "type": "string" }, "allow": { "$ref": "#/$defs/paths" }, "deny": { "$ref": "#/$defs/paths" }, "owner": { "type": "string" } },
+        "additionalProperties": false
+      }
+    },
+    "bridges": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "required": ["from", "to"],
+        "properties": { "id": { "type": "string" }, "from": { "type": "string" }, "to": { "type": "string" }, "kind": { "type": "string" } },
+        "additionalProperties": false
+      }
+    },
+    "components": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "required": ["id", "paths"],
+        "properties": { "id": { "type": "string" }, "paths": { "$ref": "#/$defs/paths" }, "owner": { "type": "string" }, "public_api": { "$ref": "#/$defs/paths" } },
+        "additionalProperties": false
+      }
+    },
+    "layers": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "required": ["id", "paths", "order"],
+        "properties": { "id": { "type": "string" }, "paths": { "$ref": "#/$defs/paths" }, "order": { "type": "integer" } },
+        "additionalProperties": false
+      }
+    },
+    "rules": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "required": ["id", "type"],
+        "properties": {
+          "id": { "type": "string" },
+          "type": { "enum": ["new-cycles", "boundary-violations", "depth-increase", "cohesion-loss", "hotspot-growth", "blast-radius-growth", "coverage-drop", "confidence-drop", "forbidden-dependency", "required-dependency", "reachable-dependency", "public-api-only", "layer-order", "no-new-findings"] },
+          "threshold": { "type": "number", "minimum": 0 },
+          "severity": { "enum": ["info", "warning", "block"] },
+          "from": { "type": "string" },
+          "to": { "type": "string" },
+          "layer": { "type": "string" },
+          "allow": { "type": "boolean" },
+          "evidence_tier": { "$ref": "#/$defs/tier" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "waivers": {
+      "type": "array",
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "required": ["fingerprint", "owner", "reason", "approved_by", "created_at", "expires_at", "integrity"],
+        "properties": {
+          "fingerprint": { "type": "string", "pattern": "^[a-z-]+:[a-f0-9]{64}$" },
+          "owner": { "type": "string", "minLength": 1 },
+          "reason": { "type": "string", "minLength": 1 },
+          "issue": { "type": "string" },
+          "approved_by": { "type": "string", "minLength": 1 },
+          "created_at": { "type": "string", "format": "date-time" },
+          "expires_at": { "type": "string", "format": "date-time" },
+          "integrity": { "$ref": "#/$defs/integrity" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "external_packages": { "$ref": "#/$defs/paths" },
+    "public_apis": { "$ref": "#/$defs/paths" }
+  },
+  "$defs": {
+    "paths": { "type": "array", "maxItems": 256, "items": { "type": "string", "minLength": 1 } },
+    "tier": { "enum": ["SOURCE_FALLBACK", "AST_VERIFIED", "RESOLVER_VERIFIED", "INDEX_VERIFIED", "EXPLICIT_MANIFEST"] },
+    "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "integrity": { "type": "object", "required": ["algorithm", "digest"], "properties": { "algorithm": { "const": "SHA-256" }, "digest": { "$ref": "#/$defs/digest" } }, "additionalProperties": false }
   },
   "additionalProperties": false
 }

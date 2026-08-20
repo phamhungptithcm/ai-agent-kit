@@ -127,12 +127,20 @@ import { evaluateMemoryFixture } from "./memory-eval.mjs";
 import { hasSymlinkComponent } from "./paths.mjs";
 import {
   analyzeArchitecturePulse,
+  architecturePulseDoctor,
   checkArchitecturePulse,
   createArchitecturePulseBaseline,
+  diffArchitecturePulse,
+  inspectArchitecturePulseBaseline,
+  migrateArchitecturePulseBaseline,
+  readPulseTrend,
   readPulseConfig,
   readPulseDocument,
+  recordPulseTrend,
   renderPulseSummary,
+  validateArchitecturePulsePolicy,
   verifyArchitecturePulseBaseline,
+  writeArchitecturePulseSarif,
   writePulseDocument,
   writePulseResult
 } from "./pulse.mjs";
@@ -212,7 +220,15 @@ Usage:
   ai-agent-kit pulse scan [--config <pulse.json>] [--output <result.json>] [--format text|json]
   ai-agent-kit pulse baseline create [--name <name>] [--config <pulse.json>] [--output <baseline.json>]
   ai-agent-kit pulse baseline verify [--baseline <baseline.json>] [--config <pulse.json>]
+  ai-agent-kit pulse baseline inspect [--baseline <baseline.json>]
+  ai-agent-kit pulse baseline migrate [--baseline <v1-baseline.json>] --dry-run
   ai-agent-kit pulse check [--baseline <baseline.json>] [--config <pulse.json>] [--output <comparison.json>]
+  ai-agent-kit pulse diff --base <sha> [--head <sha|working-tree>] [--config <pulse.json>]
+  ai-agent-kit pulse doctor [--config <pulse.json>]
+  ai-agent-kit pulse policy validate [--config <pulse.json>]
+  ai-agent-kit pulse sarif --file <pulse-result-or-comparison.json> [--output <result.sarif>]
+  ai-agent-kit pulse trend record --file <pulse-result-or-comparison.json> [--history <history.jsonl>]
+  ai-agent-kit pulse trend show [--history <history.jsonl>]
   ai-agent-kit pulse explain --file <pulse-result-or-comparison.json>
   ai-agent-kit team plan --id <task-id> [--shape <type>] [--path <scope>]
   ai-agent-kit team start --id <task-id> --adapter <id> [--capabilities-file <json>]
@@ -810,17 +826,27 @@ export function parsePulseArgs(argv) {
   let start = 1;
   if (primary === "baseline") {
     const secondary = argv[1];
-    if (!new Set(["create", "verify"]).has(secondary)) throw new Error("pulse baseline requires create or verify");
+    if (!new Set(["create", "verify", "inspect", "migrate"]).has(secondary)) throw new Error("pulse baseline requires create, verify, inspect, or migrate");
     action = `baseline-${secondary}`;
     start = 2;
+  } else if (primary === "policy") {
+    if (argv[1] !== "validate") throw new Error("pulse policy requires validate");
+    action = "policy-validate";
+    start = 2;
+  } else if (primary === "trend") {
+    const secondary = argv[1];
+    if (!new Set(["record", "show"]).has(secondary)) throw new Error("pulse trend requires record or show");
+    action = `trend-${secondary}`;
+    start = 2;
   }
-  if (!new Set(["scan", "check", "explain", "baseline-create", "baseline-verify"]).has(action)) throw new Error("pulse requires scan, baseline create, baseline verify, check, or explain");
+  if (!new Set(["scan", "check", "diff", "doctor", "sarif", "explain", "policy-validate", "trend-record", "trend-show", "baseline-create", "baseline-verify", "baseline-inspect", "baseline-migrate"]).has(action)) throw new Error("pulse action is invalid");
   const options = { target: process.cwd(), format: "json", current: true };
-  const valueFlags = new Set(["--target", "--config", "--output", "--baseline", "--name", "--format", "--file", "--task-id", "--plan-id", "--approval-reference"]);
+  const valueFlags = new Set(["--target", "--config", "--output", "--baseline", "--name", "--format", "--file", "--history", "--base", "--head", "--task-id", "--plan-id", "--approval-reference"]);
   for (let index = start; index < argv.length; index += 1) {
     const flag = argv[index];
     if (flag === "--json") { options.format = "json"; continue; }
     if (flag === "--no-current") { options.current = false; continue; }
+    if (flag === "--dry-run") { options.dryRun = true; continue; }
     if (!valueFlags.has(flag)) throw new Error(`Unknown pulse option: ${flag}`);
     const value = argv[++index];
     if (!value) throw new Error(`${flag} requires a value`);
@@ -828,6 +854,10 @@ export function parsePulseArgs(argv) {
   }
   if (!new Set(["json", "text"]).has(options.format)) throw new Error("pulse --format must be text or json");
   if (action === "explain" && !options.file) throw new Error("pulse explain requires --file");
+  if (action === "diff" && !options.base) throw new Error("pulse diff requires --base");
+  if (action === "sarif" && !options.file) throw new Error("pulse sarif requires --file");
+  if (action === "trend-record" && !options.file) throw new Error("pulse trend record requires --file");
+  if (action === "baseline-migrate" && !options.dryRun) throw new Error("pulse baseline migrate requires --dry-run");
   return { action, options };
 }
 
@@ -1211,7 +1241,47 @@ export async function main(argv = process.argv.slice(2), io = console, deps = {}
       io.log(renderPulseSummary(readPulseDocument(options)));
       return 0;
     }
+    if (action === "doctor") {
+      const result = architecturePulseDoctor(options);
+      io.log(JSON.stringify(result, null, 2));
+      return result.status === "READY" ? 0 : 3;
+    }
+    if (action === "policy-validate") {
+      io.log(JSON.stringify(validateArchitecturePulsePolicy(options), null, 2));
+      return 0;
+    }
+    if (action === "baseline-inspect") {
+      const result = inspectArchitecturePulseBaseline(options);
+      io.log(JSON.stringify(result, null, 2));
+      return ["VERIFIED", "STALE"].includes(result.status) ? 0 : 3;
+    }
+    if (action === "baseline-migrate") {
+      const result = migrateArchitecturePulseBaseline(options);
+      io.log(JSON.stringify(result, null, 2));
+      return result.status === "REBASELINE_REQUIRED" ? 3 : 0;
+    }
+    if (action === "sarif") {
+      const result = writeArchitecturePulseSarif(readPulseDocument(options), options);
+      io.log(JSON.stringify(result, null, 2));
+      return 0;
+    }
+    if (action === "trend-record") {
+      const result = recordPulseTrend(readPulseDocument(options), { ...options, file: options.history });
+      io.log(JSON.stringify(result, null, 2));
+      return 0;
+    }
+    if (action === "trend-show") {
+      const result = readPulseTrend({ ...options, file: options.history });
+      io.log(JSON.stringify(result, null, 2));
+      return 0;
+    }
     const configObject = readPulseConfig(options);
+    if (action === "diff") {
+      const result = diffArchitecturePulse({ ...options, configObject });
+      const artifact = options.output ? writePulseDocument(result, options, ".ai-agent-kit/pulse/results/diff.json") : null;
+      io.log(options.format === "text" ? `${renderPulseSummary(result)}${artifact ? `\nArtifact: ${artifact}` : ""}` : JSON.stringify(artifact ? { ...result, artifact } : result, null, 2));
+      return result.confidence?.band === "LOW" ? 3 : 0;
+    }
     if (action === "scan") {
       const result = analyzeArchitecturePulse({ ...options, configObject });
       const artifact = options.output || options.taskId ? writePulseResult(result, { ...options, output: options.output ?? `.ai-agent-kit/pulse/tasks/${options.taskId}.json` }) : null;

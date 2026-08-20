@@ -1,0 +1,4 @@
+interface:
+  display_name: "Write Product Content"
+  short_description: "Review UI content with a strict human-interface gate"
+  default_prompt: "Use $write-product-content to draft and review UI content against verified behavior, all eight Human Interface principles, and target-platform fit."

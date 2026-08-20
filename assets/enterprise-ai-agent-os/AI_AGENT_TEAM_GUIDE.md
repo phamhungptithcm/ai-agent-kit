@@ -61,6 +61,7 @@ Common examples:
 - Fix a bug: use `fix-bug`; require first incorrect state, root cause, and a regression test when feasible. Existing-system fixes must stop after the impact plan until approval evidence exists.
 - Review a pull request: use `code-review`; require severity, location, production impact, evidence, and correction.
 - Investigate a production incident: use `production-incident`; require timeline, observed impact, evidence, mitigation, permanent correction, and prevention.
+- Write or change UI content: use `write-product-content` for labels, actions, forms, state messages, accessibility text, and displayed-data semantics. The Product Language Gate is mandatory whenever those surfaces change, even when the task is primarily implementation, design, or data work. It must map all eight Human Interface principles and target-platform fit; Apple HIG governs Apple-platform conventions but must not be copied as trade dress or forced onto another platform.
 
 ## Persona Composition Matrix
 
@@ -75,7 +76,7 @@ Use these persona bundles when the team wants a familiar role rather than a sing
 | QA Lead | `test-strategy` + `code-quality-review` + `delivery-documentation` |
 | Release Manager | `release-readiness` + `delivery-documentation` + `jira-completion-package` |
 | Tech Lead | `change-impact-plan` + `architecture-review` + `repository-health` |
-| Web Growth Engineer | `start-task` + `marketing-growth-website` + `design-taste-website` + `animation-design-engineering` + `seo-geo-website` + `governed-action-gateway` + `implement-feature` + `code-quality-review` + `test-strategy` |
+| Web Growth Engineer | `start-task` + `marketing-growth-website` + `design-taste-website` + `write-product-content` + `animation-design-engineering` + `seo-geo-website` + `governed-action-gateway` + `implement-feature` + `code-quality-review` + `test-strategy` |
 
 ## Risk Gates
 
@@ -121,11 +122,11 @@ Demo-required changes should use `.ai/scripts/generate_delivery_artifacts.py` to
 
 ## Quality Gates
 
-Every completion must report `.ai/core/quality-gates.md` with `PASSED`, `FAILED`, `NOT_APPLICABLE`, or `NOT_RUN`, plus evidence command/result or rationale. The required gates are compilation, unit tests, integration tests where applicable, static analysis, architecture checks, security checks, database migration validation, API compatibility review, observability impact review, and diff self-review.
+Every completion must report `.ai/core/quality-gates.md` with `PASSED`, `FAILED`, `NOT_APPLICABLE`, or `NOT_RUN`, plus evidence command/result or rationale. The required gates are compilation, unit tests, integration tests where applicable, static analysis, architecture checks, security checks, database migration validation, API compatibility review, observability impact review, and diff self-review. User-facing text or displayed-data changes also require a passing `.ai/templates/product-content-review.md` based on current in-context evidence, including all eight Human Interface principles and target-platform fit.
 
 ## Code Quality Intelligence
 
-Agents must detect the project language, version, framework, build tool, test tool, runtime, and application/platform/domain before implementation, bug fix, review, or handoff. They must apply `.ai/quality-profiles/universal.yaml` plus matching language profiles such as Go, Java, Python, TypeScript/JavaScript, frontend HTML/CSS, platform/domain profiles such as web app, mobile app, desktop app, infrastructure, and DevOps, plus cross-cutting profiles for API, database, concurrency, and memory risk.
+Agents must detect the project language, version, framework, build tool, test tool, runtime, and application/platform/domain before implementation, bug fix, review, or handoff. They must apply `.ai/quality-profiles/universal.yaml` plus matching language profiles such as Go, Java, Python, TypeScript/JavaScript, frontend HTML/CSS, platform/domain profiles such as web app, mobile app, desktop app, infrastructure, and DevOps, plus cross-cutting profiles for API, database, concurrency, memory risk, and mandatory product content whenever readable or assistive-technology content changes.
 
 The goal is language and platform-aware review discipline: clean code, best practices for the detected version and delivery surface, API compatibility, performance, app lifecycle, release safety, connection/session lifecycle, transaction safety, thread/goroutine/task leaks, deadlock risk, and heap/resource memory leaks.
 

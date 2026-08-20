@@ -1,0 +1,168 @@
+# Apple Human Interface Principles For Product Content
+
+Use this reference as a source-backed quality bar, not as a visual template.
+It was checked against Apple Human Interface Guidelines on 2026-08-20. Recheck
+the current official guidance before claiming current Apple-platform HIG
+compliance.
+
+## Scope Boundary
+
+- On iOS, iPadOS, macOS, watchOS, tvOS, and visionOS, apply the current Apple
+  platform conventions and component guidance in addition to this reference.
+- On the web, Android, Windows, and other platforms, apply the human-centered
+  principles below while preserving the target platform's established
+  conventions, accessibility standards, product brand, and design system.
+- Never copy Apple assets, product text, protected brand elements, distinctive
+  compositions, or platform-specific controls into an unrelated product merely
+  to make it look Apple-like.
+- Treat an external design reference as evidence about a principle or quality
+  level, never as authority to override the person's task or the product's real
+  behavior.
+
+## Mandatory Principle Mapping
+
+Record a result for every principle. A required `FAILED` or `NOT_RUN` result
+blocks the Product Language Gate.
+
+### Purpose
+
+Identify the person's goal and the screen's single most important job. Keep
+only content that helps people understand the situation, decide, or act. Do not
+let a local conversion or engagement goal displace the person's goal.
+
+### Agency
+
+Keep people informed and in control. Make optional paths skippable, choices
+clear, progress visible, and safe recovery or reversal available when the
+implemented product supports it. Never manufacture consent or trap people in a
+guided flow.
+
+### Responsibility
+
+Act in the person's best interest. State material consequences, privacy and
+data use, cost, permanence, and limitations honestly. Request only necessary
+information or permission, explain the immediate purpose, and never disguise a
+business preference as a requirement.
+
+### Familiarity
+
+Use concepts, terminology, interaction patterns, and feedback people already
+understand. Keep the same term for the same concept. Prefer target-platform
+conventions over novel labels or copied conventions from another platform.
+
+### Flexibility
+
+Support diverse devices, inputs, abilities, languages, regions, text sizes,
+reading conditions, and paths through the task. Do not assume sight, touch,
+color perception, a specific screen size, English word order, or one ideal
+journey.
+
+### Simplicity
+
+Be clear and direct. Put the most important information first, remove
+unnecessary content and interruptions, and reveal secondary detail when it is
+needed. Simplicity never permits hiding a consequence, recovery path, data
+qualification, or accessibility label.
+
+### Craft
+
+Resolve details across the complete experience: terminology, hierarchy,
+control labels, state transitions, errors, recovery, accessibility,
+localization, data formatting, wrapping, and truncation. Validate the rendered
+experience instead of accepting a polished string file.
+
+### Delight
+
+Make the experience feel considerate and human in a way appropriate to the
+task. Delight can be calm confidence, saved effort, or smooth recovery; it is
+not forced jokes, enthusiasm, animation, or cuteness. Clarity, safety,
+accessibility, and trust always take precedence.
+
+## Pattern Requirements
+
+### Writing And Controls
+
+- Start from the purpose of the current screen and order content by importance.
+- Use active, action-oriented language and labels that communicate what a
+  control actually does.
+- Prefer clear, familiar wording over clever or cute labels.
+- Build repeatable language patterns and apply capitalization and terminology
+  consistently within the product and target platform.
+- Keep a multistep flow's next action and completion state predictable.
+
+### Feedback And Interruptions
+
+- Match feedback prominence to consequence. Keep routine status near the item
+  it describes; interrupt only for information that needs immediate attention
+  or a decision.
+- Use alerts sparingly. An alert must contain essential information and useful
+  actions; do not interrupt merely to announce nonactionable information.
+- Avoid confirmation for common reversible actions. For uncommon irreversible
+  actions, name the consequence and exact choice.
+- Provide accessible feedback through more than color, sound, motion, or an
+  icon alone.
+
+### Onboarding And Help
+
+- Prefer an interface people can understand by using it.
+- When onboarding is necessary, keep it brief, focused, optional where
+  possible, and close to the task it explains.
+- Teach through safe interaction or contextual tips instead of front-loading
+  instructions people must memorize.
+- If a control needs a long explanation, first examine whether the interaction
+  itself is too complex.
+
+### Permission, Privacy, And Accounts
+
+- Ask for permission in context, when the related capability is requested, and
+  explain why the product needs it.
+- Do not request data or account creation before the core experience needs it.
+- Identify the actual authentication method and do not describe a capability
+  unavailable in the current device or context.
+- Make account deletion, billing effects, retained data, timing, and recovery
+  accurate and discoverable when applicable.
+
+### Inclusion, Accessibility, And Localization
+
+- Use plain, inclusive language and avoid stereotypes, unnecessary gender,
+  unexplained jargon, idioms, and culture-specific humor.
+- Support assistive technology, keyboard, speech input, text scaling, contrast,
+  reduced motion, multiple inputs, and sufficient processing time where
+  applicable.
+- Localize complete messages and region-sensitive values. Validate expansion,
+  wrapping, truncation, grammatical variation, and right-to-left behavior.
+- Keep the visible label and accessible name aligned so people can recognize or
+  speak the control name.
+
+## Platform-Fit Decision
+
+Use these questions before passing:
+
+1. Is this an Apple-platform implementation, a cross-platform experience, or
+   an Apple-inspired quality request on another platform?
+2. Which current target-platform conventions govern the component, gesture,
+   terminology, and accessibility behavior?
+3. Does the proposed content preserve the product's identity and design system
+   rather than imitate Apple trade dress?
+4. Is every Apple-specific claim backed by current official HIG evidence?
+5. Would a person on the target platform recognize the action and recover from
+   a mistake without learning a foreign convention?
+
+Return `BLOCKED` when platform context is unknown and different platforms would
+materially change the control, interaction, terminology, permission flow, or
+accessibility behavior.
+
+## Official Sources
+
+- Design principles: https://developer.apple.com/design/human-interface-guidelines/design-principles
+- Writing: https://developer.apple.com/design/human-interface-guidelines/writing
+- Accessibility: https://developer.apple.com/design/human-interface-guidelines/accessibility
+- Inclusion: https://developer.apple.com/design/human-interface-guidelines/inclusion
+- Buttons: https://developer.apple.com/design/human-interface-guidelines/buttons
+- Alerts: https://developer.apple.com/design/human-interface-guidelines/alerts
+- Feedback: https://developer.apple.com/design/human-interface-guidelines/feedback
+- Onboarding: https://developer.apple.com/design/human-interface-guidelines/onboarding
+- Offering help: https://developer.apple.com/design/human-interface-guidelines/offering-help
+- Privacy and permission requests: https://developer.apple.com/design/human-interface-guidelines/privacy
+- Managing accounts: https://developer.apple.com/design/human-interface-guidelines/managing-accounts
+- Right to left: https://developer.apple.com/design/human-interface-guidelines/right-to-left
