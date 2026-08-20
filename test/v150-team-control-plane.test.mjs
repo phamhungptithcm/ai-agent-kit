@@ -38,7 +38,15 @@ function repository() {
 }
 
 test("filesystem path identity follows platform case and separator rules", () => {
-  assert.equal(sameFilesystemPath("D:/a/repository/.git", "d:\\a\\repository\\.git", "win32"), true);
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "aak-path-identity-"));
+  try {
+    const first = path.join(root, "first"); const second = path.join(root, "second");
+    fs.mkdirSync(first); fs.mkdirSync(second);
+    const equivalent = process.platform === "win32" ? `${first[0].toLowerCase()}${first.slice(1).replaceAll("\\", "/")}` : path.join(first, ".");
+    assert.equal(sameFilesystemPath(first, equivalent), true);
+    assert.equal(sameFilesystemPath(first, second), false);
+  } finally { fs.rmSync(root, { recursive: true, force: true }); }
+  if (process.platform !== "win32") assert.equal(sameFilesystemPath("D:/a/repository/.git", "d:\\a\\repository\\.git", "win32"), true);
   assert.equal(sameFilesystemPath("/tmp/Repository/.git", "/tmp/repository/.git", "linux"), false);
 });
 

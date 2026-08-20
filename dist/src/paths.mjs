@@ -68,6 +68,19 @@ export function sameFilesystemPath(left, right, platform = process.platform) {
   const normalize = (value) => pathApi.normalize(pathApi.resolve(String(value)));
   const normalizedLeft = normalize(left);
   const normalizedRight = normalize(right);
+  if (platform === process.platform) {
+    try {
+      const canonicalLeft = fs.realpathSync.native(normalizedLeft);
+      const canonicalRight = fs.realpathSync.native(normalizedRight);
+      const leftStat = fs.statSync(canonicalLeft, { bigint: true });
+      const rightStat = fs.statSync(canonicalRight, { bigint: true });
+      if (leftStat.dev !== rightStat.dev || leftStat.ino !== rightStat.ino) return false;
+      if (leftStat.ino !== 0n || rightStat.ino !== 0n) return true;
+      return canonicalLeft === canonicalRight;
+    } catch {
+      return false;
+    }
+  }
   return platform === "win32"
     ? normalizedLeft.toLowerCase() === normalizedRight.toLowerCase()
     : normalizedLeft === normalizedRight;
