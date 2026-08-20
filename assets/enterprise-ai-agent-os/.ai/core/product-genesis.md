@@ -39,4 +39,4 @@ Every transition records the source version, successor version, actor, timestamp
 
 Agents may facilitate, draft, challenge, trace, and recommend. Agents may never impersonate an approver, silently advance a gate, or treat a GitHub issue status as approval.
 
-GitHub planning is preview-only by default. External issue creation requires separate write authority, a current named-human `GITHUB_ISSUE_PLAN` approval, its exact approval hash, and explicit apply intent.
+GitHub planning is preview-only by default. External issue creation requires a current named-human `GITHUB_ISSUE_PLAN` approval, its exact approval hash, explicit apply intent, and a short-lived repository-trusted Ed25519 `MEMBER` action bound to the preview payload. The principal must carry `product.github.write` and an `operator` or `team-lead` role; every attempt consumes a durable one-use nonce.

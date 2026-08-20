@@ -65,13 +65,24 @@ ai-agent-kit product dossier-export --id my-product --output product-dossier.md
 
 The CLI can measure `LOCAL_VERIFIED` and `REPOSITORY_BOUND` receipts. `PROVIDER_VERIFIED` and `SIGNED_ATTESTATION` require an authorized host adapter calling the runtime verifier interface; merely writing those trust strings is rejected. This keeps CI, scanners, cloud environments, deployments, analytics, and support providers pluggable without adding credentials or mandatory network access to the package.
 
-`product github-plan` is a non-mutating preview. `product github-sync --apply` additionally requires separate external-write authority and the exact current issue-plan approval hash. If a remote create result is ambiguous, synchronization stops at `RECONCILIATION_REQUIRED`; after checking GitHub, an operator may explicitly retry an absent item with `--confirm-absent <delivery-item-id>`. `product converge` requires a clean tracked worktree, current full commit, existing code/test files with measured SHA-256 hashes, current baselines, and current receipt IDs.
+`product github-plan` is a non-mutating preview. A `product github-sync` preview returns the exact repository ID, product task ID, operation, and payload hash that must be signed. Before delegating issue apply, a human repository owner must provision the operator's public key through the Team Control Plane trust workflow and keep the private key outside agent-visible context. Remote apply requires the current issue-plan approval hash plus that repository-trusted Ed25519 `MEMBER` identity and a one-use action with the `product.github.write` capability and an `operator` or `team-lead` role:
+
+```bash
+ai-agent-kit product github-sync --id my-product
+ai-agent-kit team action-sign --file inputs/github-sync-action.json --identity-key-env AAK_TEAM_PRIVATE_KEY_PEM
+ai-agent-kit product github-sync --id my-product --apply \
+  --approval-hash <current-approval-hash> \
+  --identity-file inputs/operator-identity.json \
+  --action-file inputs/signed-github-sync-action.json
+```
+
+The action-sign input maps preview fields `repository_id`, `task_id`, `operation`, and `payload_hash` to `repositoryId`, `taskId`, `operation`, and `payloadHash`, then adds the trusted `keyId`, `principalId`, a fresh `nonce`, and a 1–300 second `issuedAt`/`expiresAt` window. Its nonce is durably consumed before GitHub is contacted, so every retry needs a new short-lived signed action. If a remote create result is ambiguous, synchronization stops at `RECONCILIATION_REQUIRED`; after checking GitHub, an operator may explicitly retry an absent item with `--confirm-absent <delivery-item-id>`. `product converge` requires a clean tracked worktree, current full commit, existing code/test files with measured SHA-256 hashes, current baselines, and current receipt IDs.
 
 ## Feasibility and performance boundaries
 
 The deterministic workspace operations are local and do not call a model or remote service. Resume loads the sealed context, answered decisions, current heads, evidence receipts, environments, and cited predecessors instead of a full transcript; discussion exposes no more than three current questions. Artifacts are bounded to 4 MiB, state to 8 MiB, receipts to 1,000, environments to 100, questions to 1,000, and the event ledger to 20,000 records. Integrity verification is intentionally linear in these bounded collections. GitHub synchronization inventories at most 1,000 issues and creates planned items sequentially under a workspace lock with a retry-safe local ledger; network and review time remain external variables.
 
-Run `npm run benchmark:product` to measure this checkout and machine. On the 2026-08-20 local Apple arm64 run (Node v25.9.0, 100 iterations), three sealed read operations averaged 2.810 ms, dossier status averaged 0.887 ms, two mutations averaged 4.621 ms, and the workspace was 121,828 bytes. These are machine-specific diagnostic observations, not a universal SLO, model-quality claim, or measurement of research/reviewer/provider time.
+Run `npm run benchmark:product` to measure this checkout and machine. On the 2026-08-20 local Apple arm64 run (Node v25.9.0, 100 iterations), three sealed read operations averaged 2.944 ms, dossier status averaged 0.921 ms, two mutations averaged 4.924 ms, and the workspace was 121,828 bytes. These are machine-specific diagnostic observations, not a universal SLO, model-quality claim, or measurement of research/reviewer/provider time.
 
 Product Genesis is practically useful for preserving intent, reducing repeated context collection, detecting contradictory/stale artifacts, and making approval scope explicit. It cannot replace customer interviews, business authority, legal/security specialists, provider validation, or production observation. Desk research is not customer validation, approved documents are not working software, and local/synthetic tests are not release evidence.
 

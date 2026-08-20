@@ -266,6 +266,7 @@ Usage:
   ai-agent-kit product github-plan|github-sync|converge [options]
   ai-agent-kit product evidence-put|evidence-verify|environment-put [options]
   ai-agent-kit product release-candidate|dossier-status|dossier-export [options]
+    github-sync --apply requires --approval-hash, --identity-file, and --action-file
     github-sync ambiguous retries require --confirm-absent <delivery-item-id>
   ai-agent-kit team plan --id <task-id> [--shape <type>] [--path <scope>]
   ai-agent-kit team start --id <task-id> --adapter <id> [--capabilities-file <json>]
@@ -404,13 +405,15 @@ export function parseProductArgs(argv) {
     "--answer-status", "--source", "--category", "--context-id", "--statement", "--supersedes", "--type",
     "--file", "--gate", "--decision", "--approver", "--approver-type", "--authority", "--scope",
     "--constraint", "--accepted-risk", "--repository", "--repo", "--approval-hash", "--confirm-absent",
-    "--evidence-id", "--minimum-trust", "--release-class", "--limitation", "--output"
+    "--evidence-id", "--minimum-trust", "--release-class", "--limitation", "--output",
+    "--identity-file", "--action-file"
   ]);
   const keyMap = {
     "created-by": "createdBy", "question-id": "questionId", "decision-id": "decisionId",
     "answer-status": "answerStatus", "context-id": "contextId", "approver-type": "approverType",
     "approval-hash": "approvalHash", "confirm-absent": "confirmAbsent", constraint: "constraints", "accepted-risk": "acceptedRisks",
-    "evidence-id": "evidenceId", "minimum-trust": "minimumTrust", "release-class": "releaseClass", limitation: "limitations"
+    "evidence-id": "evidenceId", "minimum-trust": "minimumTrust", "release-class": "releaseClass", limitation: "limitations",
+    "identity-file": "identityFile", "action-file": "actionFile"
   };
   const options = { target: process.cwd() };
   for (let index = 1; index < argv.length; index += 1) {
@@ -1437,7 +1440,11 @@ export async function main(argv = process.argv.slice(2), io = console, deps = {}
     else if (action === "analyze") result = analyzeProduct(options);
     else if (action === "approve") result = approveProductBaseline(options);
     else if (action === "github-plan") result = planProductGithubIssues(options);
-    else if (action === "github-sync") result = syncProductGithubIssues(options, deps);
+    else if (action === "github-sync") result = syncProductGithubIssues({
+      ...options,
+      identity: options.identityFile ? readSystemDesignJson(options.target, options.identityFile, "product GitHub sync identity") : null,
+      actionEnvelope: options.actionFile ? readSystemDesignJson(options.target, options.actionFile, "product GitHub sync action") : null
+    }, deps);
     else if (action === "converge") result = convergeProduct(options);
     else if (action === "evidence-put") result = recordProductEvidence(options, deps);
     else if (action === "evidence-verify") result = verifyProductEvidence(options);

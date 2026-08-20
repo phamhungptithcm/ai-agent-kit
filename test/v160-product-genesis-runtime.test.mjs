@@ -6,6 +6,9 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
 
+import { createEd25519TeamIdentity, createSignedTeamAction, generateTeamSigningKeyPair } from "../src/team-control-contract.mjs";
+import { registerTeamTrustedKey } from "../src/team-trust.mjs";
+
 import {
   addProductQuestion,
   analyzeProduct,
@@ -74,6 +77,61 @@ function writeJson(root, name, value) {
 function clock() {
   let minute = 0; const base = Date.parse("2026-08-20T12:00:00.000Z");
   return () => new Date(base + minute++ * 60_000).toISOString();
+}
+
+function installProductGithubSigner(root, now = "2026-08-20T12:00:00.000Z") {
+  const keys = generateTeamSigningKeyPair({ keyId: `product-operator-${crypto.randomUUID()}` });
+  const principalId = `product-owner-${crypto.randomUUID()}`;
+  registerTeamTrustedKey({
+    target: root,
+    bootstrap: true,
+    approvedBy: "release-owner",
+    approvalHash: "a".repeat(64),
+    now,
+    key: {
+      key_id: keys.key_id,
+      issuer: "product-test",
+      principal_id: principalId,
+      public_key_pem: keys.public_key_pem,
+      roles: ["operator"],
+      capabilities: ["product.github.write"],
+      max_ttl_seconds: 600,
+      status: "ACTIVE",
+      valid_from: now,
+      valid_until: "2027-08-20T12:00:00.000Z"
+    }
+  });
+  return { ...keys, principalId };
+}
+
+function signedGithubSyncOptions({ root, id, approvalHash, timestamp, signer, principalType = "MEMBER", nonce = crypto.randomUUID(), ...extra }) {
+  const authorization = syncProductGithubIssues({ target: root, id, timestamp }).authorization;
+  const expiresAt = new Date(Date.parse(timestamp) + 300_000).toISOString();
+  const identity = createEd25519TeamIdentity({
+    principal_id: signer.principalId,
+    type: principalType,
+    issuer: "product-test",
+    subject: signer.principalId,
+    roles: ["operator"],
+    capabilities: ["product.github.write"],
+    issued_at: timestamp,
+    expires_at: expiresAt,
+    evidence_digest: "b".repeat(64),
+    authentication: { key_id: signer.key_id, nonce: `identity-${nonce}` }
+  }, signer.private_key_pem, { now: timestamp });
+  const actionEnvelope = createSignedTeamAction({
+    repositoryId: authorization.repository_id,
+    taskId: authorization.task_id,
+    operation: authorization.operation,
+    payloadHash: authorization.payload_hash,
+    keyId: signer.key_id,
+    principalId: signer.principalId,
+    nonce,
+    issuedAt: timestamp,
+    expiresAt,
+    privateKeyPem: signer.private_key_pem
+  });
+  return { target: root, id, apply: true, approvalHash, timestamp, identity, actionEnvelope, ...extra };
 }
 
 test("Product Genesis governs idea through approved delivery, GitHub preview, and convergence", () => {
@@ -236,22 +294,31 @@ test("Product Genesis governs idea through approved delivery, GitHub preview, an
   assert.equal(calls, 0);
   const githubApproval = approveProductBaseline({ target: root, id, type: "GITHUB_ISSUE_PLAN", approver: "Alex Nguyen", authority: "Repository product owner", scope: ["Create STORY-001 issue only"], timestamp: now() });
   assert.throws(() => syncProductGithubIssues({ target: root, id, apply: true, approvalHash: "0".repeat(64), timestamp: now() }, { runGh }), /exact human approval hash/);
+  assert.throws(() => syncProductGithubIssues({ target: root, id, apply: true, approvalHash: githubApproval.approval.approval_hash, timestamp: now() }, { runGh }), /team identity/);
   const wrongRepositoryGh = (args) => args[1] === "list"
     ? { status: 0, stdout: "[]", stderr: "" }
     : { status: 0, stdout: "https://github.com/attacker/other/issues/9\n", stderr: "" };
   const ambiguousRoot = path.join(repository("github-ambiguous"), "repo");
   fs.cpSync(root, ambiguousRoot, { recursive: true });
-  const partial = syncProductGithubIssues({ target: ambiguousRoot, id, apply: true, approvalHash: githubApproval.approval.approval_hash, timestamp: now() }, { runGh: wrongRepositoryGh });
+  const ambiguousSigner = installProductGithubSigner(ambiguousRoot);
+  const partialTimestamp = now();
+  const partial = syncProductGithubIssues(signedGithubSyncOptions({ root: ambiguousRoot, id, approvalHash: githubApproval.approval.approval_hash, timestamp: partialTimestamp, signer: ambiguousSigner }), { runGh: wrongRepositoryGh });
   assert.equal(partial.status, "PARTIAL");
   assert.equal(partial.retry_safe, false);
+  assert.match(partial.authorization_hash, /^[a-f0-9]{64}$/);
   assert.match(partial.error, /did not return an issue URL/);
   const reconciliationGh = (args) => args[1] === "list"
     ? { status: 0, stdout: "[]", stderr: "" }
     : { status: 0, stdout: "https://github.com/hunpeolabs/salon-pilot/issues/102\n", stderr: "" };
-  const reconciliationRequired = syncProductGithubIssues({ target: ambiguousRoot, id, apply: true, approvalHash: githubApproval.approval.approval_hash, timestamp: now() }, { runGh: reconciliationGh });
+  const reconciliationTimestamp = now();
+  const reconciliationRequired = syncProductGithubIssues(signedGithubSyncOptions({ root: ambiguousRoot, id, approvalHash: githubApproval.approval.approval_hash, timestamp: reconciliationTimestamp, signer: ambiguousSigner }), { runGh: reconciliationGh });
   assert.equal(reconciliationRequired.status, "RECONCILIATION_REQUIRED");
-  const reconciled = syncProductGithubIssues({ target: ambiguousRoot, id, apply: true, approvalHash: githubApproval.approval.approval_hash, confirmAbsent: ["STORY-001"], timestamp: now() }, { runGh: reconciliationGh });
+  const reconciledTimestamp = now();
+  const reconciled = syncProductGithubIssues(signedGithubSyncOptions({ root: ambiguousRoot, id, approvalHash: githubApproval.approval.approval_hash, timestamp: reconciledTimestamp, signer: ambiguousSigner, confirmAbsent: ["STORY-001"] }), { runGh: reconciliationGh });
   assert.equal(reconciled.status, "APPLIED");
+  const rootSigner = installProductGithubSigner(root);
+  const agentTimestamp = now();
+  assert.throws(() => syncProductGithubIssues(signedGithubSyncOptions({ root, id, approvalHash: githubApproval.approval.approval_hash, timestamp: agentTimestamp, signer: rootSigner, principalType: "AGENT" }), { runGh }), /repository-trusted MEMBER identity/);
   let concurrentMutationChecked = false;
   const guardedRunGh = (args, input) => {
     if (args[1] === "list" && !concurrentMutationChecked) {
@@ -260,12 +327,16 @@ test("Product Genesis governs idea through approved delivery, GitHub preview, an
     }
     return runGh(args, input);
   };
-  const applied = syncProductGithubIssues({ target: root, id, apply: true, approvalHash: githubApproval.approval.approval_hash, timestamp: now() }, { runGh: guardedRunGh });
+  const appliedTimestamp = now();
+  const appliedOptions = signedGithubSyncOptions({ root, id, approvalHash: githubApproval.approval.approval_hash, timestamp: appliedTimestamp, signer: rootSigner });
+  const applied = syncProductGithubIssues(appliedOptions, { runGh: guardedRunGh });
   assert.equal(applied.status, "APPLIED");
   assert.equal(applied.created.length, 1);
   assert.equal(concurrentMutationChecked, true);
   assert.equal(calls, 2);
-  const replayed = syncProductGithubIssues({ target: root, id, apply: true, approvalHash: githubApproval.approval.approval_hash, timestamp: now() }, { runGh });
+  assert.throws(() => syncProductGithubIssues(appliedOptions, { runGh }), /nonce was replayed/);
+  const replayedTimestamp = now();
+  const replayed = syncProductGithubIssues(signedGithubSyncOptions({ root, id, approvalHash: githubApproval.approval.approval_hash, timestamp: replayedTimestamp, signer: rootSigner }), { runGh });
   assert.equal(replayed.created.length, 0);
   assert.equal(replayed.skipped.length, 1);
   assert.equal(calls, 3);
@@ -464,6 +535,16 @@ test("Product evidence binding rejects drift, forged trust, expiry, and unsafe f
   assert.equal(recordProductEvidence({ target: root, id, file: validFile, timestamp: now() }).status, "VERIFIED");
   assert.equal(verifyProductEvidence({ target: root, id, evidenceId: "EVID-VALID", timestamp: now() }).status, "VERIFIED");
   assert.throws(() => recordProductEvidence({ target: root, id, file: validFile, timestamp: now() }), /already exists and is immutable/);
+
+  const scpRemote = evidenceInput(root, now, { id: "EVID-SCP-REMOTE", file: "reports/evidence.txt" });
+  scpRemote.repository.remote = "git@github.com:hunpeolabs/evidence.git";
+  const scpRemoteFile = writeJson(root, "scp-remote.json", scpRemote);
+  assert.equal(recordProductEvidence({ target: root, id, file: scpRemoteFile, timestamp: now() }).status, "VERIFIED");
+
+  const crossForge = evidenceInput(root, now, { id: "EVID-CROSS-FORGE", file: "reports/evidence.txt" });
+  crossForge.repository.remote = "https://gitlab.com/hunpeolabs/evidence.git";
+  const crossForgeFile = writeJson(root, "cross-forge.json", crossForge);
+  assert.throws(() => recordProductEvidence({ target: root, id, file: crossForgeFile, timestamp: now() }), /remote does not match/);
 
   fs.writeFileSync(path.join(root, "reports/evidence.txt"), "drifted evidence\n");
   const drifted = verifyProductEvidence({ target: root, id, evidenceId: "EVID-VALID", timestamp: now() });

@@ -11,8 +11,10 @@ test("product CLI parses governed repeated approval flags", () => {
   assert.deepEqual(parsed.options.scope, ["BR-001", "BR-002"]);
   assert.deepEqual(parsed.options.constraints, ["pilot-only"]);
   assert.deepEqual(parsed.options.acceptedRisks, ["small sample"]);
-  const reconciliation = parseProductArgs(["github-sync", "--id", "pilot", "--apply", "--approval-hash", "a".repeat(64), "--confirm-absent", "STORY-001", "--confirm-absent", "STORY-002"]);
+  const reconciliation = parseProductArgs(["github-sync", "--id", "pilot", "--apply", "--approval-hash", "a".repeat(64), "--identity-file", "operator.json", "--action-file", "github-sync-action.json", "--confirm-absent", "STORY-001", "--confirm-absent", "STORY-002"]);
   assert.deepEqual(reconciliation.options.confirmAbsent, ["STORY-001", "STORY-002"]);
+  assert.equal(reconciliation.options.identityFile, "operator.json");
+  assert.equal(reconciliation.options.actionFile, "github-sync-action.json");
   const release = parseProductArgs(["release-candidate", "--id", "pilot", "--release-class", "PRODUCTION", "--limitation", "market review pending"]);
   assert.equal(release.options.releaseClass, "PRODUCTION");
   assert.deepEqual(release.options.limitations, ["market review pending"]);

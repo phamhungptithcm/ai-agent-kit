@@ -5,6 +5,8 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 
 import { hasSymlinkComponent } from "./paths.mjs";
+import { requireTeamCapability, teamControlDigest, verifySignedTeamAction, verifyTeamIdentityAuthentication } from "./team-control-contract.mjs";
+import { resolveTeamControlStoreLocation, withTeamControlStore } from "./team-control-store.mjs";
 
 const MAX_JSON_BYTES = 4 * 1024 * 1024;
 const MAX_STATE_BYTES = 8 * 1024 * 1024;
@@ -14,6 +16,8 @@ const DEFAULT_LOCK_STALE_MS = 30_000;
 const PRODUCT_ID = /^[a-z0-9][a-z0-9._-]{1,63}$/;
 const SHA256 = /^[a-f0-9]{64}$/;
 const REPOSITORY = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
+const PRODUCT_GITHUB_SYNC_OPERATION = "product.github.sync";
+const PRODUCT_GITHUB_SYNC_CAPABILITY = "product.github.write";
 
 export const PRODUCT_PROFILES = Object.freeze(["LEAN", "STANDARD", "HIGH_ASSURANCE"]);
 export const PRODUCT_STAGES = Object.freeze([
@@ -207,15 +211,26 @@ function gitValue(root, args, label) {
 
 function normalizedRemote(value) {
   if (!value) return null;
-  const raw = String(value).trim().replace(/\.git$/i, "");
-  const scp = raw.match(/^[^@\s]+@[^:\s]+:([^\s]+)$/);
-  if (scp) return scp[1];
+  const raw = String(value).trim();
+  const normalizePath = (candidate) => {
+    const clean = candidate.replace(/^\/+/, "").replace(/\.git$/i, "");
+    const segments = clean.split("/");
+    if (segments.length < 2 || segments.some((segment) => !segment || segment === "." || segment === ".." || /[?#\\\s]/.test(segment))) return null;
+    return segments.join("/");
+  };
+  const scp = raw.includes("://") ? null : raw.match(/^(?:[^@\s]+@)?([A-Za-z0-9.-]+):([^\s]+)$/);
+  if (scp) {
+    const repositoryPath = normalizePath(scp[2]);
+    return repositoryPath ? `${scp[1].toLowerCase()}/${repositoryPath}` : null;
+  }
   try {
     const parsed = new URL(raw);
-    const candidate = parsed.pathname.replace(/^\/+/, "");
-    return candidate || null;
+    if (!parsed.hostname || parsed.password || parsed.search || parsed.hash) return null;
+    const repositoryPath = normalizePath(parsed.pathname);
+    const host = `${parsed.hostname.toLowerCase()}${parsed.port ? `:${parsed.port}` : ""}`;
+    return repositoryPath ? `${host}/${repositoryPath}` : null;
   } catch {
-    return REPOSITORY.test(raw) ? raw : null;
+    return null;
   }
 }
 
@@ -1494,6 +1509,54 @@ function readGitHubPlan(loc, state) {
   return plan;
 }
 
+function githubSyncAuthorization(loc, plan) {
+  const repositoryId = resolveTeamControlStoreLocation({ target: loc.root }).repository_id;
+  const payload = {
+    protocol: "aak-product-github-sync-v1",
+    product_id: loc.id,
+    plan_hash: plan.plan_hash,
+    repository: plan.repository,
+    operation: PRODUCT_GITHUB_SYNC_OPERATION
+  };
+  return {
+    repository_id: repositoryId,
+    task_id: loc.id,
+    operation: PRODUCT_GITHUB_SYNC_OPERATION,
+    payload_hash: teamControlDigest(payload),
+    required_capability: PRODUCT_GITHUB_SYNC_CAPABILITY,
+    allowed_principal_types: ["MEMBER"],
+    allowed_roles: ["operator", "team-lead"]
+  };
+}
+
+function authorizeGithubSync(loc, plan, options, now) {
+  const requirement = githubSyncAuthorization(loc, plan);
+  return withTeamControlStore({ target: loc.root }, (store) => {
+    const identity = verifyTeamIdentityAuthentication(options.identity, { now, resolveIdentityKey: (keyId) => store.getTrustedKey(keyId) });
+    if (identity.authentication.method !== "ED25519") throw new Error("GitHub synchronization requires repository-trusted Ed25519 authentication");
+    if (identity.type !== "MEMBER") throw new Error("GitHub synchronization requires a repository-trusted MEMBER identity");
+    if (!identity.roles.some((role) => requirement.allowed_roles.includes(role))) throw new Error("GitHub synchronization requires operator or team-lead role");
+    requireTeamCapability(identity, requirement.required_capability);
+    const action = verifySignedTeamAction(options.actionEnvelope, {
+      now,
+      resolveIdentityKey: (keyId) => store.getTrustedKey(keyId),
+      repositoryId: requirement.repository_id,
+      taskId: requirement.task_id,
+      operation: requirement.operation,
+      payloadHash: requirement.payload_hash
+    });
+    if (action.principal_id !== identity.principal_id || action.key_id !== identity.authentication.key_id) throw new Error("signed GitHub action principal or key does not match the authenticated member");
+    store.consumeNonce({ keyId: action.key_id, nonce: action.nonce, operation: action.operation, taskId: action.task_id, expiresAt: action.expires_at, now });
+    return {
+      ...requirement,
+      principal_id: identity.principal_id,
+      key_id: action.key_id,
+      nonce: action.nonce,
+      authorization_hash: teamControlDigest({ ...requirement, principal_id: identity.principal_id, key_id: action.key_id, nonce: action.nonce, expires_at: action.expires_at })
+    };
+  });
+}
+
 function sealGitHubLedger(ledger) {
   const copy = structuredClone(ledger); delete copy.sync_hash;
   return { ...copy, sync_hash: productDigest(copy) };
@@ -1516,7 +1579,7 @@ export function syncProductGithubIssues(options = {}, deps = {}) {
   const loc = location(options), now = timestamp(options.timestamp);
   if (!options.apply) {
     const state = readState(loc), plan = readGitHubPlan(loc, state);
-    return { schema_version: 1, status: "PREVIEW", product_id: loc.id, plan_hash: plan.plan_hash, repository: plan.repository, item_count: plan.items.length, mutates_external_state: false, required: ["explicit --apply", "current human GITHUB_ISSUE_PLAN approval", "exact approval hash"] };
+    return { schema_version: 1, status: "PREVIEW", product_id: loc.id, plan_hash: plan.plan_hash, repository: plan.repository, item_count: plan.items.length, mutates_external_state: false, authorization: githubSyncAuthorization(loc, plan), required: ["explicit --apply", "current human GITHUB_ISSUE_PLAN approval", "exact approval hash", "repository-trusted signed MEMBER action"] };
   }
   return withLock(loc, options, () => {
     const state = readState(loc), plan = readGitHubPlan(loc, state), approval = state.approvals.GITHUB_ISSUE_PLAN;
@@ -1525,6 +1588,7 @@ export function syncProductGithubIssues(options = {}, deps = {}) {
     const planIds = new Set(plan.items.map((item) => item.id));
     for (const itemId of confirmedAbsent) if (!planIds.has(itemId)) throw new Error(`confirmed-absent item ${itemId} is not in the approved GitHub plan`);
     if (readEvents(loc).length + confirmedAbsent.size + 1 > MAX_EVENTS) throw new Error("product event ledger has insufficient capacity for this GitHub synchronization");
+    const authorization = authorizeGithubSync(loc, plan, options, now);
     const runGh = deps.runGh ?? ((args, input) => runGhDefault(args, input, loc.root));
     const issueUrl = (value) => {
       if (typeof value !== "string") return null;
@@ -1546,6 +1610,7 @@ export function syncProductGithubIssues(options = {}, deps = {}) {
     let ledger = { schema_version: 1, product_id: loc.id, plan_hash: plan.plan_hash, repository: plan.repository, items: {}, updated_at: now };
     if (fs.existsSync(ledgerFile)) ledger = readGitHubLedger(loc, path.relative(loc.root, ledgerFile));
     if (ledger.product_id !== loc.id || ledger.plan_hash !== plan.plan_hash || ledger.repository !== plan.repository || !ledger.items || typeof ledger.items !== "object" || Array.isArray(ledger.items)) throw new Error("GitHub sync ledger contract is invalid");
+    ledger.last_authorization_hash = authorization.authorization_hash;
     const created = [], skipped = [];
     for (const item of plan.items) {
       const ledgerEntry = ledger.items[item.id], remoteEntry = remoteByMarker.get(item.marker);
@@ -1554,10 +1619,10 @@ export function syncProductGithubIssues(options = {}, deps = {}) {
       if (ledgerEntry && ["CREATING", "UNKNOWN_EXTERNAL_RESULT"].includes(ledgerEntry.status)) {
         if (!confirmedAbsent.has(item.id)) {
           ledger.updated_at = now; ledger.last_error = `Remote outcome for ${item.id} is ambiguous; verify GitHub and retry with --confirm-absent ${item.id} only when no matching issue exists`; ledger = writeGitHubLedger(ledgerFile, ledger);
-          return { schema_version: 1, status: "RECONCILIATION_REQUIRED", product_id: loc.id, plan_hash: plan.plan_hash, repository: plan.repository, created, skipped, failed_item: item.id, error: ledger.last_error, retry_safe: false, requires_remote_confirmation: true };
+          return { schema_version: 1, status: "RECONCILIATION_REQUIRED", product_id: loc.id, plan_hash: plan.plan_hash, repository: plan.repository, created, skipped, failed_item: item.id, error: ledger.last_error, retry_safe: false, requires_remote_confirmation: true, authorization_hash: authorization.authorization_hash };
         }
         delete ledger.items[item.id]; ledger.updated_at = now; ledger = writeGitHubLedger(ledgerFile, ledger);
-        appendEvent(loc, "GITHUB_SYNC_RECONCILED_ABSENT", { plan_hash: plan.plan_hash, repository: plan.repository, item_id: item.id, approval_hash: approval.approval_hash }, now);
+        appendEvent(loc, "GITHUB_SYNC_RECONCILED_ABSENT", { plan_hash: plan.plan_hash, repository: plan.repository, item_id: item.id, approval_hash: approval.approval_hash, authorization_hash: authorization.authorization_hash }, now);
       } else if (ledgerEntry) throw new Error(`GitHub sync ledger contains an invalid entry for ${item.id}`);
       ledger.items[item.id] = { number: null, url: null, marker: item.marker, status: "CREATING", attempted_at: now };
       ledger.updated_at = now; ledger = writeGitHubLedger(ledgerFile, ledger);
@@ -1570,13 +1635,13 @@ export function syncProductGithubIssues(options = {}, deps = {}) {
       } catch (error) {
         ledger.items[item.id] = { ...ledger.items[item.id], status: "UNKNOWN_EXTERNAL_RESULT" };
         ledger.updated_at = now; ledger.last_error = String(error instanceof Error ? error.message : error).slice(0, 512); ledger = writeGitHubLedger(ledgerFile, ledger);
-        appendEvent(loc, "GITHUB_SYNC_PARTIAL", { plan_hash: plan.plan_hash, repository: plan.repository, created: created.length, skipped: skipped.length, failed_item: item.id, approval_hash: approval.approval_hash }, now);
-        return { schema_version: 1, status: "PARTIAL", product_id: loc.id, plan_hash: plan.plan_hash, repository: plan.repository, created, skipped, failed_item: item.id, error: ledger.last_error, retry_safe: false, requires_remote_confirmation: true };
+        appendEvent(loc, "GITHUB_SYNC_PARTIAL", { plan_hash: plan.plan_hash, repository: plan.repository, created: created.length, skipped: skipped.length, failed_item: item.id, approval_hash: approval.approval_hash, authorization_hash: authorization.authorization_hash }, now);
+        return { schema_version: 1, status: "PARTIAL", product_id: loc.id, plan_hash: plan.plan_hash, repository: plan.repository, created, skipped, failed_item: item.id, error: ledger.last_error, retry_safe: false, requires_remote_confirmation: true, authorization_hash: authorization.authorization_hash };
       }
     }
     ledger.updated_at = now; delete ledger.last_error; ledger = writeGitHubLedger(ledgerFile, ledger);
-    appendEvent(loc, "GITHUB_SYNC_APPLIED", { plan_hash: plan.plan_hash, repository: plan.repository, created: created.length, skipped: skipped.length, approval_hash: approval.approval_hash }, now);
-    return { schema_version: 1, status: "APPLIED", product_id: loc.id, plan_hash: plan.plan_hash, repository: plan.repository, created, skipped, duplicate_protection: "LOCAL_LEDGER_AND_REMOTE_MARKER", ledger: path.relative(loc.root, ledgerFile).split(path.sep).join("/") };
+    appendEvent(loc, "GITHUB_SYNC_APPLIED", { plan_hash: plan.plan_hash, repository: plan.repository, created: created.length, skipped: skipped.length, approval_hash: approval.approval_hash, authorization_hash: authorization.authorization_hash }, now);
+    return { schema_version: 1, status: "APPLIED", product_id: loc.id, plan_hash: plan.plan_hash, repository: plan.repository, created, skipped, authorization_hash: authorization.authorization_hash, duplicate_protection: "LOCAL_LEDGER_AND_REMOTE_MARKER", ledger: path.relative(loc.root, ledgerFile).split(path.sep).join("/") };
   });
 }
 

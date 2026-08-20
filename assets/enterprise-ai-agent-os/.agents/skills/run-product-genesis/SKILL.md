@@ -18,7 +18,7 @@ Use `.ai/core/product-genesis.md` and `.ai/workflows/product-genesis.md`. The re
 7. Use the risk profile to control design depth. `LEAN` reduces ceremony, never traceability or approval integrity.
 8. Before a large BRD, require approved Alpha and investment baselines covering experiments, business viability, accessibility, privacy/legal, threat/security, and data lifecycle.
 9. Before coding, require current BRD, solution, and delivery approvals. Run capacity-bounded iterations and preserve `BR-* -> FR/NFR-* -> AC-* -> backlog -> code -> test -> evidence receipt` links.
-10. Generate GitHub issues in preview mode. Apply only after separate external-write authorization and an exact current `GITHUB_ISSUE_PLAN` approval hash. If a create result is ambiguous, stop for remote reconciliation; use `--confirm-absent <item-id>` only after an operator verifies that no matching issue exists.
+10. Generate GitHub issues in preview mode. Apply only after an exact current `GITHUB_ISSUE_PLAN` approval hash and a short-lived repository-trusted Ed25519 `MEMBER` action bound to the preview payload, with `product.github.write` and an `operator` or `team-lead` role. Treat the nonce as one attempt. If a create result is ambiguous, stop for remote reconciliation; use `--confirm-absent <item-id>` only after an operator verifies that no matching issue exists.
 11. Run `product converge`, production readiness, immutable release-candidate, and human release gates. Provider or production claims require current provider-verified receipts and an environment attestation.
 12. Operate with live outcome/support evidence and govern retirement/data deletion separately.
 

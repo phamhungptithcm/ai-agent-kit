@@ -16,12 +16,13 @@ All notable changes to this project will be documented in this file.
   approval, traceability, backlog, GitHub-plan, convergence, and change schemas
   with named-human exact-hash approval gates.
 - Added `LEAN`, `STANDARD`, and `HIGH_ASSURANCE` design depth, preview-first
-  duplicate-protected GitHub issue synchronization with reconciliation-gated retries, and requirement-to-code/test/evidence
+  duplicate-protected GitHub issue synchronization with repository-trusted
+  Ed25519 member authorization, one-use nonces, reconciliation-gated retries, and requirement-to-code/test/evidence
   convergence checks before release review.
 - Added Product Genesis rules and quality profiles for evidence, privacy,
   business analysis, requirements engineering, delivery, and release truth.
 - Added immutable evidence receipts bound to repository identity, full Git commit,
-  regular-file SHA-256, authorized provider verification, expiry, trust level,
+  forge hostname and path, regular-file SHA-256, authorized provider verification, expiry, trust level,
   environment attestation, and fail-closed drift detection.
 - Added Alpha and investment gates; business case, unit economics, pricing/GTM,
   accessibility, market privacy/legal, threat/security, migrations and retained

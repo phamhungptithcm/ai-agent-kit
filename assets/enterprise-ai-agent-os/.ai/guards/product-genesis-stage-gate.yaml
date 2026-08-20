@@ -18,5 +18,5 @@ required_gates:
   RETIRED: [retirement_plan, customer_communication, dependency_shutdown, data_deletion_evidence, named_human_approver]
 agent_self_authorization_allowed: false
 material_change_requires_reapproval: true
-github_sync_requires: [separate_external_write_authority, current_issue_plan_hash, named_human_approval_hash, explicit_apply]
+github_sync_requires: [repository_trusted_ed25519_member, product_github_write_capability, operator_or_team_lead_role, repository_product_operation_payload_binding, fresh_one_use_nonce, current_issue_plan_hash, named_human_approval_hash, explicit_apply]
 production_claim_requires: [production_release_class, production_environment_attestation, provider_verified_or_signed_evidence, current_full_commit, clean_tracked_worktree]
