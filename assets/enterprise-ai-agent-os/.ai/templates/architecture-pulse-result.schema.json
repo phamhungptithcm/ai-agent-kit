@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hunpeolabs.com/ai-agent-kit/architecture-pulse-result-v1.schema.json",
+  "type": "object",
+  "required": ["schema_version", "protocol", "tool_version", "metric_version", "extractor_version", "analysis_status", "reason_codes", "repository", "governance", "inventory", "graph", "findings", "metrics", "coverage", "confidence", "diagnostic_notice", "result_digest"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "protocol": { "const": "aak-architecture-pulse-v1" },
+    "tool_version": { "type": "string", "minLength": 1 },
+    "metric_version": { "type": "string", "minLength": 1 },
+    "extractor_version": { "type": "string", "minLength": 1 },
+    "analysis_status": { "enum": ["COMPLETE", "DEGRADED"] },
+    "reason_codes": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "enum": ["COMPLETE", "PARTIAL_COVERAGE", "RESOURCE_LIMIT", "UNSUPPORTED_LANGUAGE", "PARSE_FAILURE", "LOW_CONFIDENCE"] } },
+    "repository": { "type": "object", "required": ["available", "identity_hash", "dirty", "worktree_digest"], "properties": { "available": { "type": "boolean" }, "identity_hash": { "$ref": "#/$defs/digest" }, "commit": { "type": ["string", "null"] }, "branch": { "type": ["string", "null"] }, "dirty": { "type": "boolean" }, "worktree_digest": { "$ref": "#/$defs/digest" } } },
+    "governance": { "type": "object", "required": ["task_id", "plan_id", "approval_reference"], "properties": { "task_id": { "type": ["string", "null"] }, "plan_id": { "type": ["string", "null"] }, "approval_reference": { "type": ["string", "null"] } }, "additionalProperties": false },
+    "inventory": { "type": "object", "required": ["entries", "exclusions", "counts", "bytes_analyzed", "file_coverage", "source_digest", "config_digest", "limits", "status"], "properties": { "entries": { "type": "array" }, "exclusions": { "type": "array" }, "counts": { "type": "object" }, "bytes_analyzed": { "type": "integer", "minimum": 0 }, "file_coverage": { "$ref": "#/$defs/ratio" }, "source_digest": { "$ref": "#/$defs/digest" }, "config_digest": { "$ref": "#/$defs/digest" }, "limits": { "type": "object" }, "status": { "enum": ["COMPLETE", "DEGRADED"] } } },
+    "graph": { "type": "object", "required": ["nodes", "edges", "unresolved", "extraction_failures"], "properties": { "nodes": { "type": "array" }, "edges": { "type": "array" }, "unresolved": { "type": "array" }, "extraction_failures": { "type": "array" } } },
+    "findings": { "type": "object" },
+    "metrics": { "type": "object", "required": ["node_count", "edge_count", "cycle_count", "cyclic_node_count", "condensation_depth", "condensation_root_count", "average_module_cohesion", "boundary_violation_count", "hotspot_concentration", "maximum_blast_radius", "average_blast_radius", "blast_radius_sample_size", "blast_radius_complete", "pulse_index"], "properties": { "node_count": { "$ref": "#/$defs/count" }, "edge_count": { "$ref": "#/$defs/count" }, "cycle_count": { "$ref": "#/$defs/count" }, "cyclic_node_count": { "$ref": "#/$defs/count" }, "condensation_depth": { "$ref": "#/$defs/count" }, "condensation_root_count": { "$ref": "#/$defs/count" }, "average_module_cohesion": { "$ref": "#/$defs/ratio" }, "boundary_violation_count": { "$ref": "#/$defs/count" }, "hotspot_concentration": { "$ref": "#/$defs/ratio" }, "maximum_blast_radius": { "$ref": "#/$defs/count" }, "average_blast_radius": { "type": "number", "minimum": 0 }, "blast_radius_sample_size": { "$ref": "#/$defs/count" }, "blast_radius_complete": { "type": "boolean" }, "pulse_index": { "type": "number", "minimum": 0, "maximum": 100 } }, "additionalProperties": false },
+    "coverage": { "type": "object", "required": ["files", "imports", "parse", "analyzed_files", "discovered_files", "unresolved_imports", "unsupported_files"], "properties": { "files": { "$ref": "#/$defs/ratio" }, "imports": { "$ref": "#/$defs/ratio" }, "parse": { "$ref": "#/$defs/ratio" }, "analyzed_files": { "$ref": "#/$defs/count" }, "discovered_files": { "$ref": "#/$defs/count" }, "unresolved_imports": { "$ref": "#/$defs/count" }, "unsupported_files": { "$ref": "#/$defs/count" } }, "additionalProperties": false },
+    "confidence": { "type": "object", "required": ["score", "band", "inputs"], "properties": { "score": { "$ref": "#/$defs/ratio" }, "band": { "enum": ["LOW", "MEDIUM", "HIGH"] }, "inputs": { "type": "object" } }, "additionalProperties": false },
+    "diagnostic_notice": { "type": "string", "minLength": 1 },
+    "result_digest": { "$ref": "#/$defs/digest" }
+  },
+  "$defs": {
+    "count": { "type": "integer", "minimum": 0 },
+    "ratio": { "type": "number", "minimum": 0, "maximum": 1 },
+    "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+  },
+  "additionalProperties": false
+}

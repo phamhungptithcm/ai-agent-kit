@@ -125,6 +125,18 @@ import { resolveRepositoryIdentity, validateMemoryEntry } from "./memory-contrac
 import { withMemoryStore } from "./memory-store.mjs";
 import { evaluateMemoryFixture } from "./memory-eval.mjs";
 import { hasSymlinkComponent } from "./paths.mjs";
+import {
+  analyzeArchitecturePulse,
+  checkArchitecturePulse,
+  createArchitecturePulseBaseline,
+  readPulseConfig,
+  readPulseDocument,
+  renderPulseSummary,
+  verifyArchitecturePulseBaseline,
+  writePulseDocument,
+  writePulseResult
+} from "./pulse.mjs";
+import { pulseExitCode } from "./pulse-policy.mjs";
 
 const FORBIDDEN_BOOTSTRAP_OPTIONS = new Set(["--commit", "--push", "--create-mr", "--git-mode"]);
 const SUPPORTED_PRESETS = new Set(["governed", "full"]);
@@ -197,6 +209,11 @@ Usage:
   ai-agent-kit architecture verify --file <architecture.json>
   ai-agent-kit architecture diff --before <architecture.json> --after <architecture.json>
   ai-agent-kit architecture eval --fixture <fixture.json>
+  ai-agent-kit pulse scan [--config <pulse.json>] [--output <result.json>] [--format text|json]
+  ai-agent-kit pulse baseline create [--name <name>] [--config <pulse.json>] [--output <baseline.json>]
+  ai-agent-kit pulse baseline verify [--baseline <baseline.json>] [--config <pulse.json>]
+  ai-agent-kit pulse check [--baseline <baseline.json>] [--config <pulse.json>] [--output <comparison.json>]
+  ai-agent-kit pulse explain --file <pulse-result-or-comparison.json>
   ai-agent-kit team plan --id <task-id> [--shape <type>] [--path <scope>]
   ai-agent-kit team start --id <task-id> --adapter <id> [--capabilities-file <json>]
   ai-agent-kit team next --id <task-id>
@@ -724,7 +741,7 @@ export function parsePassportArgs(argv) {
   for (let index = 1; index < argv.length; index += 1) {
     const flag = argv[index];
     if (flag === "--apply") { options.apply = true; continue; }
-    if (!new Set(["--target", "--id", "--key-id", "--private-key", "--failure-report", "--output", "--file"]).has(flag)) throw new Error(`Unknown passport option: ${flag}`);
+    if (!new Set(["--target", "--id", "--key-id", "--private-key", "--failure-report", "--pulse-result", "--output", "--file"]).has(flag)) throw new Error(`Unknown passport option: ${flag}`);
     const value = argv[++index];
     if (!value) throw new Error(`${flag} requires a value`);
     options[flag.slice(2).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase())] = value;
@@ -784,6 +801,33 @@ export function parseArchitectureArgs(argv) {
   for (const key of required) if (!options[key]) throw new Error(`architecture ${action} requires --${key}`);
   for (const key of ["pricingItem", "monthlyQuantity", "timeoutMs", "ttlHours", "testedSafeRps", "headroomFactor", "zoneReserveFactor", "retentionDays", "averageRps", "peakRps", "concurrentUsers", "openConnections", "serviceTimeMs", "latencyMs", "availability", "budget"]) if (options[key] != null) { const value = Number(options[key]); if (!Number.isFinite(value) || value < 0) throw new Error(`--${key.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`)} must be a finite non-negative number`); options[key] = value; }
   if (options.apiKeyEnv && !/^[A-Z_][A-Z0-9_]{0,127}$/.test(options.apiKeyEnv)) throw new Error("--api-key-env must name a safe uppercase environment variable");
+  return { action, options };
+}
+
+export function parsePulseArgs(argv) {
+  const primary = argv[0];
+  let action = primary;
+  let start = 1;
+  if (primary === "baseline") {
+    const secondary = argv[1];
+    if (!new Set(["create", "verify"]).has(secondary)) throw new Error("pulse baseline requires create or verify");
+    action = `baseline-${secondary}`;
+    start = 2;
+  }
+  if (!new Set(["scan", "check", "explain", "baseline-create", "baseline-verify"]).has(action)) throw new Error("pulse requires scan, baseline create, baseline verify, check, or explain");
+  const options = { target: process.cwd(), format: "json", current: true };
+  const valueFlags = new Set(["--target", "--config", "--output", "--baseline", "--name", "--format", "--file", "--task-id", "--plan-id", "--approval-reference"]);
+  for (let index = start; index < argv.length; index += 1) {
+    const flag = argv[index];
+    if (flag === "--json") { options.format = "json"; continue; }
+    if (flag === "--no-current") { options.current = false; continue; }
+    if (!valueFlags.has(flag)) throw new Error(`Unknown pulse option: ${flag}`);
+    const value = argv[++index];
+    if (!value) throw new Error(`${flag} requires a value`);
+    options[flag.slice(2).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase())] = value;
+  }
+  if (!new Set(["json", "text"]).has(options.format)) throw new Error("pulse --format must be text or json");
+  if (action === "explain" && !options.file) throw new Error("pulse explain requires --file");
   return { action, options };
 }
 
@@ -1160,6 +1204,40 @@ export async function main(argv = process.argv.slice(2), io = console, deps = {}
     const result = await runArchitecture(action, options, deps);
     io.log(JSON.stringify(result, null, 2));
     return ["FAILED", "REJECTED", "STALE", "CONSTRAINTS_CONFLICT"].includes(result.status) ? 1 : 0;
+  }
+  if (command === "pulse") {
+    const { action, options } = parsePulseArgs(argv.slice(1));
+    if (action === "explain") {
+      io.log(renderPulseSummary(readPulseDocument(options)));
+      return 0;
+    }
+    const configObject = readPulseConfig(options);
+    if (action === "scan") {
+      const result = analyzeArchitecturePulse({ ...options, configObject });
+      const artifact = options.output || options.taskId ? writePulseResult(result, { ...options, output: options.output ?? `.ai-agent-kit/pulse/tasks/${options.taskId}.json` }) : null;
+      io.log(options.format === "text" ? `${renderPulseSummary(result)}${artifact ? `\nArtifact: ${artifact}` : ""}` : JSON.stringify(artifact ? { ...result, artifact } : result, null, 2));
+      return result.analysis_status === "DEGRADED" ? 3 : 0;
+    }
+    if (action === "baseline-create") {
+      const created = createArchitecturePulseBaseline({ ...options, configObject });
+      if (!created.artifact) {
+        const result = { status: "DEGRADED", reason_codes: created.result.reason_codes, current_result_digest: created.result.result_digest, confidence: created.result.confidence };
+        io.log(options.format === "text" ? `${renderPulseSummary(created.result)}\nBaseline was not created from degraded evidence.` : JSON.stringify(result, null, 2));
+        return 3;
+      }
+      const result = { status: created.artifact.status, baseline: created.artifact.baseline, integrity: created.artifact.integrity, current_result_digest: created.result.result_digest, source_digest: created.result.inventory.source_digest, confidence: created.result.confidence };
+      io.log(options.format === "text" ? `Architecture Pulse baseline created: ${result.baseline}\nEvidence: ${result.integrity.digest}` : JSON.stringify(result, null, 2));
+      return created.result.analysis_status === "DEGRADED" ? 3 : 0;
+    }
+    if (action === "baseline-verify") {
+      const result = verifyArchitecturePulseBaseline({ ...options, configObject });
+      io.log(options.format === "text" ? `Architecture Pulse baseline: ${result.status}\n${result.reason}\nBaseline: ${result.baseline}` : JSON.stringify(result, null, 2));
+      return result.status === "VERIFIED" ? 0 : 3;
+    }
+    const result = checkArchitecturePulse({ ...options, configObject });
+    const artifact = options.output || options.taskId ? writePulseDocument(result, { ...options, output: options.output ?? `.ai-agent-kit/pulse/tasks/${options.taskId}.json` }, ".ai-agent-kit/pulse/results/comparison.json") : null;
+    io.log(options.format === "text" ? `${renderPulseSummary(result)}${artifact ? `\nArtifact: ${artifact}` : ""}` : JSON.stringify(artifact ? { ...result, artifact } : result, null, 2));
+    return pulseExitCode(result);
   }
   if (command === "team") {
     const { action, options } = parseTeamArgs(argv.slice(1));

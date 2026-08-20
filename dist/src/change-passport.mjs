@@ -5,6 +5,7 @@ import { spawnSync } from "node:child_process";
 import { hasSymlinkComponent } from "./paths.mjs";
 import { buildProofReplay } from "./proof-replay.mjs";
 import { getPackageVersion } from "./version.mjs";
+import { readPulseDocument, verifyPulseFreshness } from "./pulse.mjs";
 
 function stable(value) {
   if (Array.isArray(value)) return value.map(stable);
@@ -103,14 +104,28 @@ export function issueChangePassport(options, deps = {}) {
     const copy = structuredClone(failure); delete copy.report_hash;
     if (failure.status !== "PASSED" || failure.report_hash !== digest(copy)) throw new Error("passport requires an untampered PASSED failure report");
   }
-  const body = { schema_version: 1, type: "https://hunpeolabs.com/ai-agent-kit/change-passport/v1", issued_at: new Date().toISOString(), kit_version: getPackageVersion(), subject: { task_id: proof.task.id, proof_hash: proof.proof_hash }, repository: gitState(root, deps), assurance: { readiness: proof.readiness.status, evidence_integrity: proof.evidence.status, review: proof.quality.review.status, failure_lab: failure ? { status: failure.status, report_hash: failure.report_hash, cases: failure.summary.total } : { status: "NOT_RUN", report_hash: null, cases: 0 } }, signer: { key_id: keyId, public_key: publicPem } };
+  let architecturePulse = { status: "NOT_RUN", outcome: null, evidence_digest: null };
+  if (options.pulseResult) {
+    const document = readPulseDocument({ target: root, file: options.pulseResult });
+    if (document.governance?.task_id !== proof.task.id) throw new Error("passport Architecture Pulse evidence is not bound to the proof task");
+    const freshness = verifyPulseFreshness(document, { target: root });
+    if (freshness.status !== "VERIFIED") throw new Error(`passport rejects ${freshness.status.toLowerCase()} Architecture Pulse evidence: ${freshness.reason}`);
+    if (document.protocol === "aak-architecture-pulse-v1") {
+      if (document.analysis_status !== "COMPLETE" || document.confidence.band === "LOW") throw new Error("passport requires complete, sufficiently confident Architecture Pulse evidence");
+      architecturePulse = { status: "VERIFIED", outcome: document.analysis_status, evidence_digest: document.result_digest, coverage: document.coverage.files, confidence: document.confidence.band };
+    } else {
+      if (["STALE", "UNTRUSTED", "DEGRADED"].includes(document.status) || document.blocking) throw new Error(`passport rejects Architecture Pulse outcome ${document.status}${document.blocking ? " with blocking regressions" : ""}`);
+      architecturePulse = { status: "VERIFIED", outcome: document.status, evidence_digest: document.evidence_digest, coverage: document.current?.coverage?.files ?? null, confidence: document.current?.confidence?.band ?? null };
+    }
+  }
+  const body = { schema_version: 1, type: "https://hunpeolabs.com/ai-agent-kit/change-passport/v1", issued_at: new Date().toISOString(), kit_version: getPackageVersion(), subject: { task_id: proof.task.id, proof_hash: proof.proof_hash }, repository: gitState(root, deps), assurance: { readiness: proof.readiness.status, evidence_integrity: proof.evidence.status, review: proof.quality.review.status, architecture_pulse: architecturePulse, failure_lab: failure ? { status: failure.status, report_hash: failure.report_hash, cases: failure.summary.total } : { status: "NOT_RUN", report_hash: null, cases: 0 } }, signer: { key_id: keyId, public_key: publicPem } };
   const signature = crypto.sign(null, Buffer.from(canonical(body)), privateKey).toString("base64");
   const passport = { ...body, signature, passport_hash: digest({ ...body, signature }) };
   protect(root);
   const output = inside(root, options.output ?? `.ai-agent-kit/passport/${proof.task.id}.json`);
   fs.mkdirSync(path.dirname(output), { recursive: true });
   fs.writeFileSync(output, `${JSON.stringify(passport, null, 2)}\n`, { mode: 0o600 });
-  return { status: "ISSUED", file: path.relative(root, output), passport_hash: passport.passport_hash, failure_lab: passport.assurance.failure_lab.status };
+  return { status: "ISSUED", file: path.relative(root, output), passport_hash: passport.passport_hash, failure_lab: passport.assurance.failure_lab.status, architecture_pulse: passport.assurance.architecture_pulse.status };
 }
 
 export function verifyChangePassport(options, deps = {}) {
@@ -126,5 +141,5 @@ export function verifyChangePassport(options, deps = {}) {
   const trusted = trustStore(root).keys.some((item) => item.key_id === body.signer.key_id && item.public_key === body.signer.public_key && item.revoked !== true);
   const repositoryMatch = canonical(gitState(root, deps)) === canonical(body.repository);
   const status = !trusted ? "VALID_UNTRUSTED" : repositoryMatch ? "VERIFIED" : "STALE";
-  return { status, trusted, repository_match: repositoryMatch, task_id: body.subject?.task_id, passport_hash: claimedHash, readiness: body.assurance?.readiness };
+  return { status, trusted, repository_match: repositoryMatch, task_id: body.subject?.task_id, passport_hash: claimedHash, readiness: body.assurance?.readiness, architecture_pulse: body.assurance?.architecture_pulse ?? { status: "NOT_RUN" } };
 }

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hunpeolabs.com/ai-agent-kit/architecture-pulse-baseline-v1.schema.json",
+  "type": "object",
+  "required": ["schema_version", "protocol", "name", "created_at", "repository", "source_digest", "config_digest", "metric_version", "extractor_version", "tool_version", "result_digest", "snapshot", "provenance", "integrity"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "protocol": { "const": "aak-architecture-pulse-baseline-v1" },
+    "name": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "repository": { "type": "object", "required": ["identity_hash"], "properties": { "identity_hash": { "$ref": "#/$defs/digest" } } },
+    "source_digest": { "$ref": "#/$defs/digest" },
+    "config_digest": { "$ref": "#/$defs/digest" },
+    "metric_version": { "type": "string", "minLength": 1 },
+    "extractor_version": { "type": "string", "minLength": 1 },
+    "tool_version": { "type": "string", "minLength": 1 },
+    "result_digest": { "$ref": "#/$defs/digest" },
+    "snapshot": { "type": "object", "required": ["metrics", "coverage", "confidence", "findings"], "properties": { "metrics": { "type": "object" }, "coverage": { "type": "object" }, "confidence": { "type": "object" }, "findings": { "type": "object" } }, "additionalProperties": false },
+    "provenance": { "type": "object", "required": ["task_id", "plan_id", "approval_reference"], "properties": { "task_id": { "type": ["string", "null"] }, "plan_id": { "type": ["string", "null"] }, "approval_reference": { "type": ["string", "null"] } }, "additionalProperties": false },
+    "integrity": { "type": "object", "required": ["algorithm", "digest"], "properties": { "algorithm": { "const": "SHA-256" }, "digest": { "$ref": "#/$defs/digest" } }, "additionalProperties": false }
+  },
+  "$defs": { "digest": { "type": "string", "pattern": "^[a-f0-9]{64}$" } },
+  "additionalProperties": false
+}
