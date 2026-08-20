@@ -43,7 +43,6 @@ function ciEnvironment() {
 export function createPulseBaseline(result, options = {}) {
   validatePulseResult(result);
   if (result.protocol !== "aak-architecture-pulse-v2") throw new Error("v1 Pulse evidence requires an explicit migration or a fresh v2 scan");
-  if (ciEnvironment()) throw new Error("Architecture Pulse baselines cannot be created in CI");
   const name = safePulseId(options.name ?? "default", "baseline name");
   const createdAt = options.createdAt ?? new Date().toISOString();
   if (typeof createdAt !== "string" || !Number.isFinite(Date.parse(createdAt))) throw new Error("baseline created_at must be an ISO-compatible timestamp");
@@ -86,6 +85,7 @@ export function createPulseBaseline(result, options = {}) {
 }
 
 export function writePulseBaseline(baseline, options = {}) {
+  if (ciEnvironment()) throw new Error("Architecture Pulse baselines cannot be created in CI");
   const root = fs.realpathSync(path.resolve(options.target ?? process.cwd()));
   const requested = options.output ?? `.ai-agent-kit/pulse/baselines/${baseline.name}.json`;
   const file = inside(root, requested, "baseline output");

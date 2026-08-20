@@ -385,8 +385,10 @@ test("baseline writes are refused in CI", () => {
   try {
     write(root, "src/a.js", "export const a = true;\n"); commit(root);
     const result = analyzeArchitecturePulse({ target: root });
+    const baseline = createPulseBaseline(result);
     process.env.CI = "true";
-    assert.throws(() => createPulseBaseline(result), /cannot be created in CI/);
+    assert.throws(() => writePulseBaseline(baseline, { target: root }), /cannot be created in CI/);
+    assert.equal(fs.existsSync(path.join(root, ".ai-agent-kit/pulse/baselines/default.json")), false);
   } finally {
     if (previous == null) delete process.env.CI; else process.env.CI = previous;
     cleanup(root);
@@ -399,9 +401,9 @@ test("trusted baseline history cannot be overwritten silently", () => {
     write(root, "src/a.js", "export const a = true;\n"); commit(root);
     const result = analyzeArchitecturePulse({ target: root });
     const baseline = asLocalDeveloper(() => createPulseBaseline(result, { name: "reviewed", createdAt: "2026-08-20T00:00:00.000Z" }));
-    const first = writePulseBaseline(baseline, { target: root });
+    const first = asLocalDeveloper(() => writePulseBaseline(baseline, { target: root }));
     const original = fs.readFileSync(path.join(root, first.baseline), "utf8");
-    assert.throws(() => writePulseBaseline(baseline, { target: root }), /already exists/);
+    assert.throws(() => asLocalDeveloper(() => writePulseBaseline(baseline, { target: root })), /already exists/);
     assert.equal(fs.readFileSync(path.join(root, first.baseline), "utf8"), original);
   } finally { cleanup(root); }
 });

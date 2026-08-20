@@ -183,7 +183,7 @@ test("CLI creates, verifies, checks, explains, and rejects escaped outputs", () 
     write(root, "src/a.js", "import './b.js';\n"); write(root, "src/b.js", "export const b = true;\n");
     write(root, "pulse.json", JSON.stringify({ schema_version: 1, rules: [{ id: "cycles", type: "new-cycles", threshold: 0, severity: "block" }] }));
     commit(root);
-    const created = spawnSync(process.execPath, [cli, "pulse", "baseline", "create", "--target", root, "--config", "pulse.json"], { encoding: "utf8" });
+    const created = asLocalDeveloper(() => spawnSync(process.execPath, [cli, "pulse", "baseline", "create", "--target", root, "--config", "pulse.json"], { encoding: "utf8" }));
     assert.equal(created.status, 0, created.stderr);
     const verified = spawnSync(process.execPath, [cli, "pulse", "baseline", "verify", "--target", root, "--config", "pulse.json"], { encoding: "utf8" });
     assert.equal(verified.status, 0, verified.stderr);
