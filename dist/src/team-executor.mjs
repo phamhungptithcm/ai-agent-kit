@@ -1,13 +1,14 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
 
 import { briefHash, cancelTeamClaim, claimTeamWork, inspectTeamContext, publishTeamHandoff, recordTeamApproval, renewTeamClaim } from "./team-context.mjs";
 import { readTeamContract, recordTeamResult, writeTeamContract } from "./team-orchestrator.mjs";
 import { hasSymlinkComponent } from "./paths.mjs";
 import { findTeamEvent, readTeamEvents, recordTeamEvent, verifyTeamJournal } from "./team-events.mjs";
 import { recordTaskApproval } from "./governed-runtime.mjs";
-import { acquireRepositoryClaim, consumeHostAttestation, heartbeatRepositoryClaim, releaseRepositoryClaim, validateRepositoryFence } from "./team-registry.mjs";
+import { acquireRepositoryClaim, consumeHostAttestation, heartbeatRepositoryClaim, markRepositoryResultReady, releaseRepositoryClaim, validateRepositoryFence } from "./team-registry.mjs";
 import { evaluateParentSnapshot, inspectTeamWorkspace } from "./team-workspace.mjs";
 import { verifyHostAttestation } from "./team-host-bridge.mjs";
 
@@ -29,6 +30,16 @@ function digest(value) { return crypto.createHash("sha256").update(JSON.stringif
 function now(options) { const value = options.now ?? new Date().toISOString(); if (!Number.isFinite(Date.parse(value))) throw new Error("execution timestamp is invalid"); return new Date(value).toISOString(); }
 function safe(value, label) { if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(value ?? "")) throw new Error(`${label} must be a safe identifier`); return value; }
 function integer(value, label) { if (!Number.isInteger(value) || value < 0) throw new Error(`${label} must be a non-negative integer`); return value; }
+
+function worktreeResultEvidence(workspace, parentCommit) {
+  const status = spawnSync("git", ["status", "--porcelain=v1", "--untracked-files=all"], { cwd: workspace, encoding: "utf8", timeout: 30_000, maxBuffer: 4 * 1024 * 1024 });
+  if (status.status !== 0) throw new Error(status.stderr.trim() || "failed to inspect assignment worktree status");
+  if (status.stdout.split(/\r?\n/).some((line) => line.startsWith("?? "))) throw new Error("untracked assignment output must be staged before its completion receipt can be frozen");
+  const result = spawnSync("git", ["diff", "--binary", "--full-index", parentCommit], { cwd: workspace, encoding: "utf8", timeout: 30_000, maxBuffer: 16 * 1024 * 1024 });
+  if (result.status !== 0) throw new Error(result.stderr.trim() || "failed to bind the assignment result to its actual worktree diff");
+  const inspected = inspectTeamWorkspace({ target: workspace });
+  return { outputCommit: inspected.commit, diffHash: digest(result.stdout) };
+}
 
 function transactionPath(root, taskId, key) {
   const relative = `.ai-agent-kit/runtime/team-transactions/${safe(taskId, "task id")}-${safe(key, "transaction id")}.json`;
@@ -355,9 +366,16 @@ export function ingestTeamResult(options, deps = {}) {
   try { analyticsStatus = appendRoleEvent(root, updated, updated.assignments.find((item) => item.id === assignment.id), result, timestamp, idempotencyKey); } catch { analyticsStatus = "UNAVAILABLE"; }
   const journalResult = journal({ target: root, id: updated.task_id, type: "RESULT_INGESTED", now: timestamp, data: { team_hash: updated.team_hash, context_hash: updated.context_hash, run_id: updated.run?.run_id ?? null, assignment_id: assignment.id, spawn_id: assignment.execution?.spawn_id ?? null, status: updated.state, result_status: result.status, idempotency_key: idempotencyKey, handoff_hash: handoffHash, evidence_hash: evidenceHash, usage: result.usage, duplicate: false } });
   writeTransaction(root, { ...transaction, state: "COMMITTED", analytics_status: analyticsStatus, journal_status: journalResult.status, committed_at: timestamp });
-  let repositoryRelease = null;
-  if (team.control_plane?.enabled) repositoryRelease = releaseRepositoryClaim({ target: root, claimId: assignment.execution.repository_claim_id, fencingToken: assignment.execution.fencing_token, identity: options.identity, identitySecret: options.identitySecret, resolveIdentityKey: options.resolveIdentityKey, status: result.status === "COMPLETED" ? "RELEASED" : "CANCELLED", now: timestamp });
-  return { team: updated, handoff_hash: handoffHash, evidence_hash: evidenceHash, analytics_status: analyticsStatus, journal_status: journalResult.status, repository_release: repositoryRelease, duplicate: false, idempotency_key: idempotencyKey };
+  let repositoryTransition = null;
+  if (team.control_plane?.enabled) {
+    if (result.status === "COMPLETED") {
+      const worktreeEvidence = worktreeResultEvidence(assignment.execution.workspace.root, team.control_plane.parent_commit);
+      repositoryTransition = markRepositoryResultReady({ target: root, claimId: assignment.execution.repository_claim_id, fencingToken: assignment.execution.fencing_token, identity: options.identity, identitySecret: options.identitySecret, resolveIdentityKey: options.resolveIdentityKey, outputCommit: worktreeEvidence.outputCommit, diffHash: worktreeEvidence.diffHash, evidenceHashes: [evidenceHash ?? resultHash, handoffHash ?? resultHash], now: timestamp });
+    } else {
+      repositoryTransition = releaseRepositoryClaim({ target: root, claimId: assignment.execution.repository_claim_id, fencingToken: assignment.execution.fencing_token, identity: options.identity, identitySecret: options.identitySecret, resolveIdentityKey: options.resolveIdentityKey, status: "CANCELLED", now: timestamp });
+    }
+  }
+  return { team: updated, handoff_hash: handoffHash, evidence_hash: evidenceHash, analytics_status: analyticsStatus, journal_status: journalResult.status, repository_transition: repositoryTransition, repository_release: result.status === "COMPLETED" ? null : repositoryTransition, duplicate: false, idempotency_key: idempotencyKey };
 }
 
 export function cancelTeamRun(options, deps = {}) {
