@@ -5,9 +5,9 @@ Review date: 2026-08-20
 Approved scope: local integration, commit, push, two draft pull requests, and
 non-publishing CI dispatch; concurrent Product Content WIP excluded.
 
-Reviewed base: `88eb8c62e71a71f9330cbce7f43a3058d716babf`
+Reviewed base: `c9f2cb984fa6a648a76c9f36de243ca07e9dd9f7`
 
-Reviewed implementation commit: `eb2b956396e07121b1047b4fd0d570b24eecdde4`
+Reviewed implementation commit: `822e1aa0e27a26f9691f33af868279113931f5ff`
 
 ## Result
 
@@ -20,7 +20,8 @@ Publishing and production status: `BLOCKED`
 No unresolved security or final-implementation-review finding remains in the
 reviewed implementation. This decision authorizes no merge, tag, GitHub
 Release, npm publication, deployment, or production activation. Supported CI
-and the non-publishing release workflow must still pass on the pushed branches.
+and the non-publishing release workflow must still pass on the updated pushed
+branches.
 
 ## Reviewed dimensions
 
@@ -47,13 +48,16 @@ and the non-publishing release workflow must still pass on the pushed branches.
 | --- | --- | --- | --- |
 | PGSEC-001 | Medium | Caller-entered approval identity could reach external GitHub issue creation without authenticated human/operator write authority. | Apply now requires the exact current plan approval plus a repository-trusted Ed25519 `MEMBER`, `operator` or `team-lead` role, `product.github.write`, exact repository/product/operation/target/plan binding, and a durable one-use nonce before any remote call. Missing authority, non-member identity, and replay tests pass. |
 | PGSEC-002 | Low | Repository remote normalization discarded forge hostname, allowing GitHub and GitLab repositories with the same owner/path to collide. | Canonical binding now preserves hostname, optional port, and repository path. HTTPS and SCP forms for the same GitHub repository match; GitHub versus GitLab is rejected by an adversarial test. |
+| PGSEC-003 | Low | Lexical Windows path equality initially fixed separator and drive-letter variance but could conflate distinct objects inside a case-sensitive Windows directory. | Existing repository, Git-common-directory, and worktree paths now bind through native realpath plus filesystem device/inode identity and fail closed when identity cannot be resolved. Equivalent and distinct directory tests pass. |
 
 ## Verification evidence
 
 - `npm run check`: passed, including lint across 126 files, typecheck across 119
-  files, `261/261` tests, Product/Pulse/system-design/team/routing/memory evals,
+  files, `262/262` tests, Product/Pulse/system-design/team/routing/memory evals,
   adapter conformance, canonical evidence verification, supply-chain checks,
   build, and packed-install smoke.
+- v1.5.0 `npm run check`: passed with `253/253` tests after the shared
+  filesystem-identity hardening.
 - Canonical Product Genesis capability coverage: 58 skills, 32 routed skills,
   56 required artifacts, and two provenance-locked external sources.
 - Routing fixture: `50/50` passed with accuracy and coverage 1.0 and false
@@ -67,17 +71,29 @@ and the non-publishing release workflow must still pass on the pushed branches.
 - Codex Security diff scan
   `877a4f59-d53e-4567-879b-536d9acb586f`: 102/102 authoritative review rows
   closed, complete coverage, zero findings on `88eb8c6..eb2b956`.
-- Governed final-review ledger: all seven required dimensions passed; both
+- Codex Security incremental diff scan
+  `1714224e-7678-4e89-a6dc-34fd948f4d89`: 4/4 executable source rows closed,
+  complete coverage, zero findings on `903c257..822e1aa` after the Windows
+  filesystem-object identity hardening.
+- Governed final-review ledger: all seven required dimensions passed; all three
   findings are recorded as fixed; no unresolved finding remains.
 - Product Content review: all eight mandatory Human Interface principles and
   every applicable CLI/Markdown state passed source-and-runtime review.
 
+## Current draft-release state
+
+- Draft PR #107 targets `main` from `hunpeolabs/release-v1.5.0`.
+- Draft PR #108 is stacked on `hunpeolabs/release-v1.5.0` from
+  `hunpeolabs/release-v1.6.0`.
+- Earlier non-publishing runs passed Node 20, Node 24, and macOS but exposed a
+  Windows canonical-path failure. The updated fix is locally verified; fresh
+  CI evidence on the exact pushed commits remains required.
+
 ## Remaining release gates
 
-- Push the v1.5.0 and stacked v1.6.0 release branches and open both draft pull
-  requests without merging them.
-- Pass supported Node/OS CI and the explicitly non-publishing release workflow
-  on the exact pushed commits.
+- Push the updated v1.6.0 candidate and keep both pull requests in draft.
+- Pass supported Node/OS CI and fresh explicitly non-publishing workflows on
+  the exact final pushed commits; `publish=false` must continue to skip npm.
 - Release owner reviews limitations, package contents, CI evidence, and stacked
   merge order.
 - After separate authorization only: merge, tag the exact merge SHA, create the
