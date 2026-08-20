@@ -5,7 +5,7 @@ import { spawnSync } from "node:child_process";
 
 import { briefHash, cancelTeamClaim, claimTeamWork, inspectTeamContext, publishTeamHandoff, recordTeamApproval, renewTeamClaim } from "./team-context.mjs";
 import { readTeamContract, recordTeamResult, writeTeamContract } from "./team-orchestrator.mjs";
-import { hasSymlinkComponent } from "./paths.mjs";
+import { hasSymlinkComponent, sameFilesystemPath } from "./paths.mjs";
 import { findTeamEvent, readTeamEvents, recordTeamEvent, verifyTeamJournal } from "./team-events.mjs";
 import { recordTaskApproval } from "./governed-runtime.mjs";
 import { acquireRepositoryClaim, consumeHostAttestation, heartbeatRepositoryClaim, markRepositoryResultReady, releaseRepositoryClaim, validateRepositoryFence } from "./team-registry.mjs";
@@ -197,7 +197,7 @@ export function dispatchTeamAssignment(options, deps = {}) {
       if (assignment.write_access && workspaceTarget === root) throw new Error("write assignment requires an isolated worktree path");
       const workspace = inspectTeamWorkspace({ target: workspaceTarget, now: timestamp });
       const coordinator = inspectTeamWorkspace({ target: root, now: timestamp });
-      if (workspace.common_git_dir !== coordinator.common_git_dir) throw new Error("assignment worktree does not share the repository Git common directory");
+      if (!sameFilesystemPath(workspace.common_git_dir, coordinator.common_git_dir)) throw new Error("assignment worktree does not share the repository Git common directory");
       const parent = evaluateParentSnapshot({ target: workspaceTarget, parentCommit: team.control_plane.parent_commit, allowDirty: false });
       if (parent.status !== "ADMITTED") throw new Error(`assignment workspace failed parent gate: ${parent.blockers.join(", ")}`);
       workspaceBinding = { root: workspace.root, branch: workspace.branch, commit: workspace.commit, snapshot_hash: parent.snapshot_hash };
