@@ -6,18 +6,28 @@ All notable changes to this project will be documented in this file.
 
 - Added authenticated member, agent, host, and service identities with bounded
   roles, capabilities, expiry, issuer/subject binding, and evidence digests.
-- Added a sealed Git-common-dir repository registry with cross-task claims,
-  optimistic revisions, leases, heartbeats, monotonic fencing tokens, stale
-  writer rejection, and linked-worktree coordination.
+- Replaced split registry/queue JSON writes with one Git-common-dir SQLite
+  authority using WAL, full synchronous durability, foreign keys, immediate
+  transactions, strict schema checks, bounded migration backups, and recovery
+  health evidence.
+- Added repository-trusted Ed25519 delegation, revocation, short-lived signed
+  action envelopes, and durable nonce replay rejection. Legacy HMAC identities
+  remain explicitly degraded and cannot satisfy release-grade CLI admission.
+- Added cross-task claims, optimistic revisions, heartbeats, monotonic fencing
+  tokens, result freezing, and evidence-gated takeover. Expiry alone no longer
+  permits a conflicting writer to take ownership.
 - Added exact-parent and isolated-worktree admission for writers plus plan-first
   provisioning and owned cleanup controls.
-- Added immutable change packages, Integration Owner admission, dependency
-  ordering, rollback references, independent review, required-owner escalation,
-  and path/symbol/API/schema/migration/dependency/generated conflict analysis.
-- Added authenticated replay-protected host attestations, privacy-safe team
-  metrics/SLOs, and a four-mode benchmark with a 30-task release-evidence gate.
+- Added immutable change packages verified against real Git commits, ancestry,
+  paths, and binary diff digests; exact-input independent review, authenticated
+  CODEOWNERS approvals, protected-surface evidence, atomic Integration Owner
+  admission, dependency ordering, and rollback references.
+- Added authenticated replay-protected host attestations, ledger-derived
+  privacy-safe metrics/SLOs, and a four-mode benchmark requiring unique signed
+  runtime receipts across at least 30 comparable task cases.
 - Added v1.5 CLI surfaces, canonical schemas, guard/workflow/operator guidance,
-  migration documentation, adversarial tests, and generated package artifacts.
+  migration documentation, and adversarial tests. Distribution regeneration is
+  a remaining release gate while concurrent worktree changes are present.
 - The local registry does not claim cross-host distributed consensus; synthetic
   tests do not prove real-world productivity or world-class quality.
 - This section records local implementation only. Commit, push, PR, merge, tag,

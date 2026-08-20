@@ -7,7 +7,8 @@ export const PRINCIPAL_ROLES = new Set(["team-lead", "implementer", "reviewer", 
 export const TEAM_CAPABILITIES = new Set([
   "task.register", "claim.read", "claim.write", "claim.renew", "claim.release",
   "workspace.plan", "workspace.provision", "workspace.cleanup", "result.publish",
-  "review.submit", "integration.enqueue", "integration.admit", "metrics.read"
+  "review.submit", "integration.enqueue", "integration.admit", "integration.reject",
+  "claim.takeover", "registry.migrate", "registry.recover", "trust.admin", "metrics.read"
 ]);
 export const SURFACE_KINDS = new Set(["PATH", "SYMBOL", "API", "SCHEMA", "MIGRATION", "DEPENDENCY", "GENERATED"]);
 export const CLAIM_MODES = new Set(["READ", "WRITE"]);
@@ -81,7 +82,11 @@ export function normalizeTeamIdentity(input, options = {}) {
       signature: String(input.authentication.signature ?? "")
     } : null
   };
-  if (identity.authentication && (identity.authentication.method !== "HMAC_SHA256" || !/^[a-f0-9]{64}$/.test(identity.authentication.signature))) throw new Error("identity authentication is invalid");
+  if (identity.authentication) {
+    const validHmac = identity.authentication.method === "HMAC_SHA256" && /^[a-f0-9]{64}$/.test(identity.authentication.signature);
+    const validEd25519 = identity.authentication.method === "ED25519" && /^[A-Za-z0-9+/]{80,100}={0,2}$/.test(identity.authentication.signature);
+    if (!validHmac && !validEd25519) throw new Error("identity authentication is invalid");
+  }
   if (Date.parse(identity.issued_at) > now + 300_000) throw new Error("identity issue time is in the future");
   return identity;
 }
@@ -104,16 +109,116 @@ export function createSignedTeamIdentity(input, secret, options = {}) {
   return normalizeTeamIdentity(normalized, options);
 }
 
+export function generateTeamSigningKeyPair(options = {}) {
+  const keyId = safeTeamId(options.keyId ?? `team-key-${crypto.randomUUID()}`, "team signing key id");
+  const { publicKey, privateKey } = crypto.generateKeyPairSync("ed25519", {
+    publicKeyEncoding: { type: "spki", format: "pem" },
+    privateKeyEncoding: { type: "pkcs8", format: "pem" }
+  });
+  return { key_id: keyId, algorithm: "ED25519", public_key_pem: publicKey, private_key_pem: privateKey };
+}
+
+export function signTeamIdentityEd25519(identity, privateKeyPem) {
+  if (typeof privateKeyPem !== "string" || !privateKeyPem.includes("PRIVATE KEY")) throw new Error("Ed25519 identity signing requires a PEM private key");
+  if (!identity?.authentication?.key_id || !identity?.authentication?.nonce) throw new Error("identity signing requires authentication key_id and nonce");
+  const copy = structuredClone(identity);
+  copy.authentication = { ...copy.authentication, method: "ED25519", signature: "A".repeat(86) + "==" };
+  const normalized = normalizeTeamIdentity(copy, { now: identity.issued_at });
+  return crypto.sign(null, Buffer.from(JSON.stringify(identityAuthenticationPayload(normalized))), privateKeyPem).toString("base64");
+}
+
+export function createEd25519TeamIdentity(input, privateKeyPem, options = {}) {
+  const candidate = structuredClone(input);
+  candidate.authentication = {
+    method: "ED25519",
+    key_id: safeTeamId(input.authentication?.key_id, "identity authentication key id"),
+    nonce: safeTeamId(input.authentication?.nonce, "identity authentication nonce"),
+    signature: "A".repeat(86) + "=="
+  };
+  const normalized = normalizeTeamIdentity(candidate, options);
+  normalized.authentication.signature = signTeamIdentityEd25519(normalized, privateKeyPem);
+  return normalizeTeamIdentity(normalized, options);
+}
+
+function enforceTrustedIdentityPolicy(identity, trust) {
+  if (!trust || typeof trust !== "object") throw new Error("team identity trusted key policy is unavailable");
+  if (trust.status !== "ACTIVE") throw new Error("team identity trusted key is revoked or inactive");
+  if (trust.issuer && trust.issuer !== identity.issuer) throw new Error("team identity issuer is not trusted by this key");
+  if (trust.principal_id && trust.principal_id !== identity.principal_id) throw new Error("team identity principal is not trusted by this key");
+  const allowedRoles = new Set(trust.roles ?? []);
+  const allowedCapabilities = new Set(trust.capabilities ?? []);
+  if (identity.roles.some((role) => !allowedRoles.has(role))) throw new Error("team identity contains a role not delegated by its trusted key");
+  if (identity.capabilities.some((capability) => !allowedCapabilities.has(capability))) throw new Error("team identity contains a capability not delegated by its trusted key");
+  const ttlSeconds = (Date.parse(identity.expires_at) - Date.parse(identity.issued_at)) / 1000;
+  if (!Number.isInteger(trust.max_ttl_seconds) || ttlSeconds > trust.max_ttl_seconds) throw new Error("team identity lifetime exceeds its trusted delegation");
+  if (trust.valid_from && Date.parse(identity.issued_at) < Date.parse(trust.valid_from)) throw new Error("team identity predates trusted key validity");
+  if (trust.valid_until && Date.parse(identity.expires_at) > Date.parse(trust.valid_until)) throw new Error("team identity outlives trusted key validity");
+}
+
 export function verifyTeamIdentityAuthentication(input, options = {}) {
   const identity = normalizeTeamIdentity(input, options); const authentication = identity.authentication;
   if (!authentication) throw new Error("team identity requires cryptographic authentication");
-  const secret = options.identitySecret ?? options.resolveIdentityKey?.(authentication.key_id);
-  if (typeof secret !== "string") throw new Error("team identity verification key is unavailable");
-  const expected = signTeamIdentity(identity, secret); const supplied = authentication.signature;
-  if (!crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(supplied))) throw new Error("team identity signature is invalid");
+  const resolved = options.identitySecret ?? options.resolveIdentityKey?.(authentication.key_id);
+  if (authentication.method === "HMAC_SHA256") {
+    const secret = typeof resolved === "string" ? resolved : resolved?.secret;
+    if (typeof secret !== "string") throw new Error("team identity verification key is unavailable");
+    const expected = signTeamIdentity(identity, secret); const supplied = authentication.signature;
+    if (!crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(supplied))) throw new Error("team identity signature is invalid");
+  } else {
+    const publicKeyPem = typeof resolved === "string" ? resolved : resolved?.public_key_pem;
+    if (typeof publicKeyPem !== "string" || !publicKeyPem.includes("PUBLIC KEY")) throw new Error("team identity trusted public key is unavailable");
+    if (!crypto.verify(null, Buffer.from(JSON.stringify(identityAuthenticationPayload(identity))), publicKeyPem, Buffer.from(authentication.signature, "base64"))) throw new Error("team identity signature is invalid");
+    enforceTrustedIdentityPolicy(identity, typeof resolved === "object" ? resolved : null);
+  }
   const replayKey = `${authentication.key_id}:${authentication.nonce}`;
   if (options.seenIdentityNonces?.has(replayKey)) throw new Error("team identity authentication nonce was replayed");
   options.seenIdentityNonces?.add(replayKey); return identity;
+}
+
+export function teamIdentityTrustLevel(identity) {
+  return identity?.authentication?.method === "ED25519" ? "REPOSITORY_TRUSTED" : "LEGACY_DEGRADED_HMAC";
+}
+
+export function createSignedTeamAction(options = {}) {
+  const issuedAt = teamTimestamp(options.issuedAt ?? new Date().toISOString(), "action issue time");
+  const expiresAt = teamTimestamp(options.expiresAt ?? new Date(Date.parse(issuedAt) + 300_000).toISOString(), "action expiry");
+  if (Date.parse(expiresAt) <= Date.parse(issuedAt) || Date.parse(expiresAt) - Date.parse(issuedAt) > 300_000) throw new Error("signed team action lifetime must be 1-300 seconds");
+  if (typeof options.privateKeyPem !== "string" || !options.privateKeyPem.includes("PRIVATE KEY")) throw new Error("signed team action requires a PEM private key");
+  const envelope = {
+    schema_version: 1,
+    repository_id: safeTeamId(options.repositoryId, "action repository id"),
+    task_id: options.taskId ? safeTeamId(options.taskId, "action task id") : null,
+    operation: safeTeamId(options.operation, "action operation"),
+    expected_revision: options.expectedRevision ?? null,
+    payload_hash: String(options.payloadHash ?? ""),
+    key_id: safeTeamId(options.keyId, "action key id"),
+    principal_id: safeTeamId(options.principalId, "action principal id"),
+    nonce: safeTeamId(options.nonce ?? crypto.randomUUID(), "action nonce"),
+    issued_at: issuedAt,
+    expires_at: expiresAt
+  };
+  if (envelope.expected_revision != null && (!Number.isInteger(envelope.expected_revision) || envelope.expected_revision < 0)) throw new Error("action expected revision is invalid");
+  if (!/^[a-f0-9]{64}$/.test(envelope.payload_hash)) throw new Error("action payload hash must be SHA-256");
+  return { ...envelope, signature: crypto.sign(null, Buffer.from(JSON.stringify(stableTeamValue(envelope))), options.privateKeyPem).toString("base64") };
+}
+
+export function verifySignedTeamAction(envelope, options = {}) {
+  rejectRestrictedTeamData(envelope, "signed action");
+  if (!envelope || typeof envelope !== "object" || Array.isArray(envelope)) throw new Error("signed team action must be an object");
+  const now = Date.parse(options.now ?? new Date().toISOString());
+  if (envelope.schema_version !== 1 || !Number.isFinite(now)) throw new Error("signed team action contract is invalid");
+  const copy = structuredClone(envelope); const signature = copy.signature; delete copy.signature;
+  safeTeamId(copy.repository_id, "action repository id"); safeTeamId(copy.operation, "action operation"); safeTeamId(copy.key_id, "action key id"); safeTeamId(copy.principal_id, "action principal id"); safeTeamId(copy.nonce, "action nonce");
+  if (!/^[a-f0-9]{64}$/.test(copy.payload_hash ?? "")) throw new Error("action payload hash must be SHA-256");
+  if (Date.parse(copy.issued_at) > now + 300_000 || Date.parse(copy.expires_at) <= now || Date.parse(copy.expires_at) - Date.parse(copy.issued_at) > 300_000) throw new Error("signed team action is expired or outside its time bound");
+  const trust = options.resolveIdentityKey?.(copy.key_id);
+  if (!trust || typeof trust !== "object" || trust.status !== "ACTIVE" || trust.principal_id !== copy.principal_id) throw new Error("signed team action key is not trusted for this principal");
+  if (!crypto.verify(null, Buffer.from(JSON.stringify(stableTeamValue(copy))), trust.public_key_pem, Buffer.from(signature ?? "", "base64"))) throw new Error("signed team action signature is invalid");
+  if (options.repositoryId && copy.repository_id !== options.repositoryId) throw new Error("signed team action repository binding mismatch");
+  if (options.taskId && copy.task_id !== options.taskId) throw new Error("signed team action task binding mismatch");
+  if (options.operation && copy.operation !== options.operation) throw new Error("signed team action operation binding mismatch");
+  if (options.payloadHash && copy.payload_hash !== options.payloadHash) throw new Error("signed team action payload binding mismatch");
+  return copy;
 }
 
 export function requireTeamCapability(identity, capability) {

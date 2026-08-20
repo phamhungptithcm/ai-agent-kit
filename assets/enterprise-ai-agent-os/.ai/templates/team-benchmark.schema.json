@@ -1,21 +1,16 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "team-benchmark-v2",
-  "title": "Comparable four-mode repository control-plane benchmark",
+  "$id": "team-benchmark-v3",
+  "title": "Signed four-mode repository control-plane benchmark",
   "type": "object",
-  "required": ["schema_version", "profile", "synthetic", "methodology", "cases"],
+  "required": ["schema_version", "profile", "methodology", "cases"],
   "properties": {
-    "schema_version": { "const": 2 },
+    "schema_version": { "const": 3 },
     "profile": { "const": "V1_5_RELEASE" },
-    "synthetic": { "type": "boolean" },
     "methodology": {
       "type": "object",
-      "required": ["same_task", "same_repository_commit", "same_host", "same_model", "repetitions_per_mode", "minimum_task_cases"],
+      "required": ["repetitions_per_mode", "minimum_task_cases"],
       "properties": {
-        "same_task": { "const": true },
-        "same_repository_commit": { "const": true },
-        "same_host": { "const": true },
-        "same_model": { "const": true },
         "repetitions_per_mode": { "type": "integer", "minimum": 3, "maximum": 100 },
         "minimum_task_cases": { "type": "integer", "minimum": 30, "maximum": 1000 }
       },
@@ -29,14 +24,15 @@
         "required": ["id", "repository_commit", "host", "model", "runs"],
         "properties": {
           "id": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$" },
-          "repository_commit": { "type": "string", "minLength": 40 },
-          "host": { "type": "string", "minLength": 1 },
-          "model": { "type": "string", "minLength": 1 },
+          "repository_commit": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
+          "host": { "type": "string", "minLength": 1, "maxLength": 256 },
+          "model": { "type": "string", "minLength": 1, "maxLength": 256 },
           "runs": {
             "type": "array",
+            "minItems": 12,
             "items": {
               "type": "object",
-              "required": ["mode", "status", "escaped_defects", "scope_violations", "duplicate_scans", "tokens", "duration_seconds", "review_cycles", "evidence_items", "required_evidence_items"],
+              "required": ["mode", "status", "escaped_defects", "scope_violations", "duplicate_scans", "tokens", "duration_seconds", "review_cycles", "evidence_items", "required_evidence_items", "receipt"],
               "properties": {
                 "mode": { "enum": ["SINGLE_AGENT", "UNGOVERNED_MULTI_AGENT", "TASK_LOCAL_GOVERNED", "REPOSITORY_CONTROL_PLANE"] },
                 "status": { "enum": ["COMPLETED", "FAILED", "BLOCKED"] },
@@ -47,7 +43,26 @@
                 "duration_seconds": { "type": "number", "minimum": 0 },
                 "review_cycles": { "type": "number", "minimum": 0 },
                 "evidence_items": { "type": "number", "minimum": 0 },
-                "required_evidence_items": { "type": "number", "minimum": 0 }
+                "required_evidence_items": { "type": "number", "minimum": 0 },
+                "receipt": {
+                  "type": "object",
+                  "required": ["schema_version", "run_id", "case_id", "mode", "repository_commit", "host", "model", "environment", "run_hash", "key_id", "recorded_at", "signature"],
+                  "properties": {
+                    "schema_version": { "const": 1 },
+                    "run_id": { "type": "string" },
+                    "case_id": { "type": "string" },
+                    "mode": { "type": "string" },
+                    "repository_commit": { "type": "string", "pattern": "^[a-f0-9]{40,64}$" },
+                    "host": { "type": "string" },
+                    "model": { "type": "string" },
+                    "environment": { "enum": ["RUNTIME", "SYNTHETIC"] },
+                    "run_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+                    "key_id": { "type": "string" },
+                    "recorded_at": { "type": "string", "format": "date-time" },
+                    "signature": { "type": "string", "minLength": 80, "maxLength": 100 }
+                  },
+                  "additionalProperties": false
+                }
               },
               "additionalProperties": false
             }

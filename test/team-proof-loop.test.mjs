@@ -62,11 +62,11 @@ test("live conformance binds a local run and remains replayable after recording 
   assert.equal(first.status, "PASSED"); assert.equal(first.journal_status, "RECORDED"); assert.equal(second.status, "PASSED"); assert.equal(second.journal_status, "ALREADY_RECORDED");
 });
 
-test("three-mode benchmark reports measured results only with comparable complete evidence", () => {
+test("legacy three-mode benchmark remains unverified without signed runtime receipts", () => {
   assert.equal(evaluateTeamBenchmark(buildTeamBenchmarkTemplate()).status, "INSUFFICIENT_EVIDENCE");
   const run = (mode, offset) => ({ mode, status: "COMPLETED", escaped_defects: offset, scope_violations: offset, duplicate_scans: offset, tokens: 100 + offset, duration_seconds: 10 + offset, review_cycles: 1 + offset, evidence_items: 2, required_evidence_items: 2 });
   const insufficient = evaluateTeamBenchmark({ schema_version: 1, synthetic: false, methodology: { same_task: true, same_repository_commit: true, same_host: true, same_model: true, repetitions_per_mode: 3 }, cases: [{ id: "CASE-0", repository_commit: "a".repeat(40), host: "codex", model: "fixed-model", runs: [run("SINGLE_AGENT", 2), run("UNGOVERNED_MULTI_AGENT", 1), run("AGENT_DEPARTMENT", 0)] }] });
-  assert.equal(insufficient.status, "INSUFFICIENT_EVIDENCE");
+  assert.equal(insufficient.status, "UNVERIFIED");
   const measured = evaluateTeamBenchmark({ schema_version: 1, synthetic: false, methodology: { same_task: true, same_repository_commit: true, same_host: true, same_model: true, repetitions_per_mode: 3 }, cases: [{ id: "CASE-1", repository_commit: "a".repeat(40), host: "codex", model: "fixed-model", runs: [0, 1, 2].flatMap((repeat) => [run("SINGLE_AGENT", 2 + repeat), run("UNGOVERNED_MULTI_AGENT", 1 + repeat), run("AGENT_DEPARTMENT", repeat)]) }] });
-  assert.equal(measured.status, "MEASURED"); assert.equal(measured.conclusion_allowed, true); assert.equal(measured.results.length, 3);
+  assert.equal(measured.status, "UNVERIFIED"); assert.equal(measured.conclusion_allowed, false); assert.equal(measured.results.length, 0);
 });

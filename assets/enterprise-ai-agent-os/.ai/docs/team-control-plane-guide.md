@@ -8,50 +8,70 @@ backward compatibility but cannot prevent conflicts created by another task.
 
 - The Team Lead owns task registration and scope decomposition.
 - Each writer receives a unique branch and linked worktree.
-- The repository registry owns cross-task surface leases and fencing tokens.
-- Agents return structured results and change packages; they do not integrate.
+- The Git-common-dir SQLite authority owns cross-task leases, fencing tokens,
+  receipts, packages, reviews, decisions, trust, nonces, and event history.
+- Agents return structured results and frozen diff receipts; they do not
+  integrate or release their own completed claims.
 - An independent reviewer cannot share the author's principal or subject.
 - Required owners approve protected surfaces.
 - The Integration Owner alone records package admission.
 
-Identity files are HMAC-authenticated and expiring. Prepare the bounded identity
-payload with an authentication `key_id` and `nonce`, keep the signing key in the
-approved secret store, and sign through an environment-variable name rather
-than writing key material into a command or file:
+Release-grade identity files are Ed25519-authenticated, expiring, and constrained
+by a repository public-key trust policy. Keep private keys in the approved
+secret store. HMAC identities remain migration-only degraded evidence.
+
+Bootstrap a public-key policy only with explicit approval, then inspect it:
 
 ```bash
-ai-agent-kit team identity-sign --file identity-input.json --identity-key-env AAK_IDENTITY_KEY > identity.json
-ai-agent-kit team identity-verify --file identity.json --identity-key-env AAK_IDENTITY_KEY
+ai-agent-kit team trust-register --file operator-public-key-policy.json \
+  --approved-by <approver> --approval-hash <sha256> --apply
+ai-agent-kit team trust-status
 ```
 
-Use a distinct operator-managed key per trust domain. Possession and role scope
-of signing keys remain an operator responsibility; rotate a compromised key and
-reject identities issued by it.
+After bootstrap, every additional or replacement key requires an authenticated
+operator identity and a signed `trust.register` action; bootstrap approval flags
+cannot bypass the existing trust authority:
 
-The file registry under the Git common directory is suitable for local
-processes and linked worktrees. For agents on separate machines, install a
-compatible shared backend and authenticated host bridge. Without both, report
-cross-host enforcement as unverified.
+```bash
+ai-agent-kit team trust-register --file next-public-key-policy.json \
+  --identity-file operator.json --action-file signed-trust-action.json --apply
+```
+
+Use a distinct operator-managed key per trust domain. Sign each mutating action
+with repository, task, operation, revision, payload hash, nonce, and a maximum
+five-minute lifetime. Revoke a compromised key immediately; durable nonce
+consumption rejects replay across processes.
+
+The SQLite authority under the Git common directory is suitable for local
+processes and linked worktrees. It uses WAL, `synchronous=FULL`, foreign keys,
+strict schema validation, and immediate write transactions. For agents on
+separate machines, install a compatible shared transactional backend and
+authenticated host bridge. Without both, report cross-host enforcement as
+unverified.
 
 ## Failure recovery
 
-- Registry lock exists: wait for a live transaction; recover only after the
-  bounded stale interval and record recovery.
-- Lease expired: never renew the old writer; acquire a new token after reviewing
-  workspace state.
+- Database busy: retry within the bounded busy budget; do not delete a lock or
+  database file. If health is not `READY`, stop admissions and preserve WAL.
+- Lease expired: never renew or silently replace the old writer. Keep
+  `EXPIRED_PENDING_RECOVERY` blocking until an operator reviews workspace state,
+  records recovery evidence, and creates a higher fenced takeover claim.
 - Parent drifted: rebase or rebuild the package outside the child-agent runtime,
   rerun evidence, and request review again.
 - Writer vanished: mark the task-local writer orphaned, inspect the isolated
   worktree, revoke/expire its repository claim, and decide whether to salvage.
 - Partial worktree creation: use `git worktree list --porcelain`, verify the
   kit-owned marker in the Git common directory, then retry or explicitly clean.
-- Queue blocked: inspect dependencies, fence, parent, review, owners, conflict
-  analysis, and rollback evidence in that order.
+- Queue blocked: inspect actual Git evidence, completion receipt, dependencies,
+  fence, parent, exact-input review, authenticated owners, Pulse/protected
+  surfaces, conflict analysis, and rollback evidence in that order.
 
 ## Migration from v1.4
 
-Existing task-local plans keep working with control mode disabled. To opt in,
-create an authenticated identity, enable `--control-plane` during planning,
-provide the identity again at start/dispatch/heartbeat/ingest, and dispatch each
-writer against an isolated worktree. Do not copy old live claims into the new
-registry; allow them to finish or cancel them before migration.
+Existing task-local plans keep working with control mode disabled. Before opt-in,
+finish or cancel live v1.4 writers. Run `team registry-migrate` as a preview,
+apply only after reviewing its source hashes and backup path, then require
+`team registry-health` to be `READY`. Keep the retained JSON and SQLite database
+for rollback evidence; do not dual-write both formats. Enable `--control-plane`,
+provide authenticated identities at lifecycle calls, and dispatch each writer
+against an isolated worktree.
