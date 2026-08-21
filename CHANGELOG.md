@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## v1.6.1 — 2026-08-21 — Product Genesis Auto Entry
+
+- Added a Conversation Entry Gate before Repository Intelligence so users can
+  describe a raw product idea naturally without naming Product Genesis, v1.6,
+  or a stage skill.
+- Added local deterministic `intent detect` and `intent eval` CLI surfaces with
+  Vietnamese/English semantic signal groups, explainable reason codes,
+  explicit ambiguity, and privacy-minimized routing output that neither repeats
+  the raw request nor adds it to routing evidence. Existing task and Product
+  Workspace records keep their separately governed goal or idea fields.
+- Added bounded `product discover` workspace inspection. A single active
+  product can resume through `product resume` and `product next`; multiple,
+  conflicting, missing, or corrupt workspaces fail closed instead of being
+  selected silently.
+- Integrated Product Genesis auto-entry into governed task creation while
+  preserving existing-system routing, named-human exact-hash approvals, and
+  separate authority for code, GitHub writes, commits, deployment, and release.
+- Added 50 multilingual product-intent cases, expanded canonical skill routing
+  to 53 cases, adapter instruction conformance, workspace-integrity tests, and a
+  local warm in-process routing benchmark.
+- Auto-entry is deterministic only where the kit owns the runtime or a supported
+  host entry hook. Instruction-only hosts remain advisory and are described as
+  such rather than being presented as enforced.
+
 ## Unreleased — v1.6.0 Product Genesis
 
 - Added a governed idea-to-production Product Genesis workflow for users who

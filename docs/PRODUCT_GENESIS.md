@@ -28,20 +28,26 @@ Small low-risk products can use `LEAN`. Commercial products default to `STANDARD
 
 ## Using it
 
-Ask naturally:
+Ask naturally. No skill or version prefix is required:
 
 ```text
-I only have an idea and no codebase. Help me start a product.
-Thảo luận ý tưởng sản phẩm với mình.
-Nghiên cứu cơ hội và tính khả thi của ý tưởng này.
-Viết BRD từ discovery đã chốt.
-Viết product spec từ BRD đã được duyệt.
-Lập backlog Scrum từ spec đã duyệt.
+Mình muốn làm một ứng dụng giúp các salon giảm khách bỏ hẹn.
+I am thinking about a platform for children to practice English.
 ```
 
-Routing is explainable and fail-closed. Weak or ambiguous input returns `ABSTAIN`; users can invoke a skill explicitly.
+The Conversation Entry Gate runs before Repository Intelligence. High-confidence
+raw ideas enter `run-product-genesis`; one active workspace resumes; multiple
+products, conflicting signals, and invalid workspace state require confirmation
+or repair. Weak input returns `ABSTAIN` and normal task routing continues.
 
-For multi-stage work, invoke `run-product-genesis`. Product Workspace is authoritative:
+Inspect the same decision directly without persisting the raw request:
+
+```bash
+printf '%s' 'Mình muốn làm một ứng dụng giúp salon giảm khách bỏ hẹn' | ai-agent-kit intent detect --stdin
+ai-agent-kit product discover
+```
+
+The agent invokes `run-product-genesis` automatically. Product Workspace remains authoritative:
 
 ```bash
 ai-agent-kit product start --id my-product --idea "<original idea>" --profile standard
@@ -97,7 +103,9 @@ Run:
 ```bash
 npm run validate:capabilities
 npm run eval:routing
+npm run eval:intent
 npm run eval:product
+npm run benchmark:intent
 ```
 
 These checks ensure all canonical skills have an explicit dispatch mode, every routed skill has one real route, Product Genesis artifacts exist and are registered, and external provenance satisfies policy.

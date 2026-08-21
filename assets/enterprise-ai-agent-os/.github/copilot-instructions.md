@@ -4,7 +4,7 @@
 
 Use `.ai/` as the durable source of truth for repository policy, workflows, guards, prompts, quality profiles, and evidence.
 
-Before analysis or implementation, follow `.ai/core/required-workflow.md` and the Repository Intelligence Gate. Existing-system changes must stop after a concrete impact plan until the approval evidence required by `.ai/guards/implementation-approval-gate.yaml` exists.
+Before Repository Intelligence, follow `.ai/core/conversation-entry-gate.md`. Raw ideas and active Product Workspaces automatically enter `run-product-genesis` without requiring a skill or version prefix. Ask one short confirmation for ambiguous intent or multiple active products. Existing-system work then follows `.ai/core/required-workflow.md` and the Repository Intelligence Gate, and must stop after a concrete impact plan until the approval evidence required by `.ai/guards/implementation-approval-gate.yaml` exists.
 
 Use `.ai/PROMPTS.md` for daily entry points and `.github/skills/` for task-specific procedures. Use `.github/agents/` only for bounded specialist work and keep one write owner per scope. Apply `.ai/core/quality-gates.md` and the mandatory `final-implementation-review` before completion. Do not produce a successful handoff until the current review passes. Render `.ai/core/task-completion-report.md` with reviewed areas, findings and fixes, remaining risk, production readiness, token usage, cost status, and validation evidence. Copilot review is useful evidence, not a replacement for independent or required human review. Do not commit, push, open a pull request, update a ticket, deploy, access production, or perform destructive work unless the user explicitly authorizes that action.
 

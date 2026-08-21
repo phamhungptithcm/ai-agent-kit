@@ -220,9 +220,16 @@ function promptNextSteps() {
 - Or list prompts: npx --yes @hunpeolabs/ai-agent-kit@latest prompts
 - Or print one prompt: npx --yes @hunpeolabs/ai-agent-kit@latest prompt start-task
 
-Recommended first prompt:
+No skill or version prefix is required. Describe the request naturally. The
+Conversation Entry Gate routes a raw product idea to Product Genesis, resumes a
+single active Product Workspace, or starts the existing-system workflow.
 
-Use start-task for this request:
+Example raw idea:
+
+Mình muốn làm một ứng dụng giúp các salon giảm khách bỏ hẹn.
+
+Example existing-system task:
+
 [paste your ticket or requirement]`;
 }
 
