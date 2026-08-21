@@ -8,7 +8,8 @@ export const TEAM_CAPABILITIES = new Set([
   "task.register", "claim.read", "claim.write", "claim.renew", "claim.release",
   "workspace.plan", "workspace.provision", "workspace.cleanup", "result.publish",
   "review.submit", "integration.enqueue", "integration.admit", "integration.reject",
-  "claim.takeover", "registry.migrate", "registry.recover", "trust.admin", "metrics.read"
+  "claim.takeover", "registry.migrate", "registry.recover", "trust.admin", "metrics.read",
+  "product.github.write"
 ]);
 export const SURFACE_KINDS = new Set(["PATH", "SYMBOL", "API", "SCHEMA", "MIGRATION", "DEPENDENCY", "GENERATED"]);
 export const CLAIM_MODES = new Set(["READ", "WRITE"]);

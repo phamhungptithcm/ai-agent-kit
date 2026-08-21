@@ -1,0 +1,60 @@
+version: 1
+id: product-genesis
+name: Product Genesis End-to-End Profile
+description: Govern a new product from unstructured idea through discovery, approved requirements, specification, delivery, release, and measured operation.
+applies_when:
+  - "the user has a product idea but no codebase, BRD, specification, or architecture"
+  - "work spans more than one Product Genesis stage"
+required_profiles:
+  - ".ai/quality-profiles/product-discovery.yaml"
+  - ".ai/quality-profiles/business-analysis.yaml"
+  - ".ai/quality-profiles/requirements-engineering.yaml"
+  - ".ai/quality-profiles/product-delivery.yaml"
+required_controls:
+  - durable_product_workspace
+  - maximum_three_current_questions
+  - risk_adaptive_design_depth
+  - cross_artifact_analysis
+  - append_only_versions
+  - evidence_classification
+  - named_human_approval
+  - requirement_traceability
+  - material_change_reapproval
+  - environment_specific_release_evidence
+  - repository_commit_and_file_hash_binding
+  - evidence_trust_and_expiry
+  - alpha_experiment_and_usability_gate
+  - business_viability_and_market_decision
+  - accessibility_privacy_legal_and_threat_assurance
+  - iteration_goal_capacity_review_and_retrospective
+  - production_operations_and_live_outcome_loop
+  - support_retirement_and_data_deletion
+  - preview_first_external_sync
+  - intent_to_implementation_convergence
+profiles:
+  LEAN:
+    use_when: "low-consequence, reversible, narrow product with limited sensitive data and integrations"
+    required_design_tracks: [ux, architecture, test]
+    discovery_depth: [hypothesis, experiment, evidence_bound_decision]
+    production_minimum: [ci_cd, observability, incident_readiness, backup_restore, rollback, analytics, support]
+  STANDARD:
+    use_when: "default commercial product"
+    required_design_tracks: [ux, domain, data, architecture, security, operations, test, rollout]
+    discovery_depth: [hypothesis, experiment, prototype, usability_test, customer_evidence]
+    viability_depth: [business_case, unit_economics, pricing, go_to_market]
+    production_minimum: [ci_cd, infrastructure, observability, slo, incident_readiness, migration, capacity, backup_restore, rollback, analytics, support]
+  HIGH_ASSURANCE:
+    use_when: "regulated, safety-critical, high-value, highly sensitive, or operationally severe consequence"
+    required_design_tracks: [ux, domain, data, architecture, security, privacy, compliance, capacity, operations, test, rollout, disaster_recovery]
+    discovery_depth: [pre_registered_hypotheses, representative_experiments, prototype, usability_test, customer_evidence, independent_review]
+    assurance_depth: [market_specific_legal_review, accessibility_evidence, threat_model, tool_bound_security_findings, retained_data_validation]
+    production_minimum: [signed_or_provider_evidence, ci_cd, infrastructure, observability, slo, incident_rehearsal, migration, load_capacity, restore_drill, rollback_drill, live_analytics, support_on_call]
+required_artifacts:
+  discovery: [idea, research, discovery_validation]
+  investment: [business_viability, trust_compliance, data_lifecycle]
+  definition: [business_requirements, business_rules, product_specification, design_bundle]
+  execution: [delivery_backlog, iteration_plan, iteration_review, convergence]
+  production: [verification, production_readiness, product_analytics, support_readiness, release_candidate]
+  lifecycle: [outcome_review, retirement_and_data_deletion]
+allowed_statuses: [READY_FOR_NEXT_GATE, NEEDS_DECISION, CHANGES_REQUESTED, PAUSED, REJECTED]
+forbidden_claims: [AGENT_SELF_APPROVED, DOCUMENTS_PROVE_PRODUCTION_READY, RESEARCH_EQUALS_VALIDATION, SELF_DECLARED_EVIDENCE_PROVES_PROVIDER_RESULT, SYNTHETIC_RUN_PROVES_PRODUCTION, CONFIGURATION_PROVES_DEPLOYMENT]

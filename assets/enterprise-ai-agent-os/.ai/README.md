@@ -10,6 +10,8 @@ Team-ready completion also requires `.ai/core/quality-gates.md`, `.ai/core/code-
 
 Daily copy-ready prompts live in `.ai/PROMPTS.md`. Broader agent support is documented in `.ai/docs/agent-adapter-strategy.md`.
 
+When a user begins with only a product idea, route through `run-product-genesis`, `.ai/core/product-genesis.md`, and `.ai/workflows/product-genesis.md` before repository implementation workflows. Product Genesis uses a durable Product Workspace to version idea, questions, research, experiments, business viability, trust/data assurance, BRD, rules, specification, design, delivery, iterations, evidence receipts, environments, release candidates, outcomes, and retirement. A named human must approve exact discovery, Alpha, investment, business-requirements, solution, delivery, production-readiness, release, and retirement hashes; agents cannot self-approve or infer approval. GitHub synchronization is preview-first and separately authorized. Production claims require provider-verified receipts and an exact environment attestation.
+
 ## Layout
 
 - `core/`: mission, precedence, workflow, risk, quality gates, memory policy, definition of done, and output contract.
@@ -33,6 +35,7 @@ Daily copy-ready prompts live in `.ai/PROMPTS.md`. Broader agent support is docu
 python .ai/scripts/sync_agent_assets.py
 python .ai/scripts/sync_agent_assets.py --check
 python .ai/scripts/validate_agent_config.py
+python .ai/scripts/validate_capability_coverage.py
 python .ai/scripts/test_agent_policies.py
 python .ai/scripts/generate_delivery_artifacts.py --jira-key DEMO-000 --title "Example change" --output-dir .ai/generated/demo
 ```

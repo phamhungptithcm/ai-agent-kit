@@ -1,4 +1,4 @@
-# AI Agent Kit — Recoverable decisions. Traceable runs.
+# AI Agent Kit — From product idea to governed, traceable delivery.
 
 [![npm version](https://img.shields.io/npm/v/@hunpeolabs/ai-agent-kit?color=cb3837)](https://www.npmjs.com/package/@hunpeolabs/ai-agent-kit)
 [![npm downloads](https://img.shields.io/npm/dm/@hunpeolabs/ai-agent-kit?label=downloads%2Fmonth&color=2563eb)](https://www.npmjs.com/package/@hunpeolabs/ai-agent-kit)
@@ -7,7 +7,10 @@
 [![MIT license](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Node.js 20+](https://img.shields.io/badge/node-%3E%3D20-43853d)](package.json)
 
-Your coding agent can write code. AI Agent Kit preserves why that code exists,
+Your agent can now begin before code exists. Product Genesis discusses and
+improves a rough idea, researches its practical opportunity, writes versioned
+business requirements and product specifications, waits for named human
+approval, and only then plans professional delivery. AI Agent Kit preserves why that code exists,
 which run produced it, what failed, what was fixed, and what evidence actually
 passed. It combines repository context, governed plugins, specialist workcells,
 security boundaries, review loops, memory, recovery, and proof in one local
@@ -21,7 +24,7 @@ complete integration today; every other adapter publishes its limitations
 instead of implying feature parity.
 
 ```text
-Understand → Decide → Approve → Build → Review ↻ Fix → Verify → Recover → Prove
+Idea → Discuss → Research → Approve → BRD + Rules → Approve → Spec + Design → Approve → Delivery → Build → Converge → Operate
 ```
 
 > **Every decision should be recoverable. Every run should be traceable.**
@@ -89,6 +92,20 @@ and safety do not depend on one long conversation.
 The kit does not replace human judgment or decide what a team should approve.
 It makes the workflow reproducible and the evidence reviewable.
 
+### Product Genesis: durable idea-to-product execution
+
+Product Genesis stores current artifact heads, immutable predecessors, open decisions, evidence receipts, environment attestations, iterations, release candidates, and exact human approvals under `.ai/products/<product-id>/`. This lets an agent resume from evidence instead of asking the user to repeat the conversation.
+
+```bash
+ai-agent-kit product start --id salon-pilot --idea "Reduce salon no-shows" --profile standard
+ai-agent-kit product resume --id salon-pilot
+ai-agent-kit product next --id salon-pilot
+ai-agent-kit product analyze --id salon-pilot --gate ALPHA_DECISION --write
+ai-agent-kit product dossier-status --id salon-pilot
+```
+
+Discussion is limited to the three highest-impact current questions. `LEAN`, `STANDARD`, and `HIGH_ASSURANCE` profiles vary discovery and assurance depth without removing traceability or approval gates. Hypothesis experiments and business/trust/data decisions precede the BRD. Capacity-bounded iterations prevent stage gates from becoming document-only waterfall. GitHub issue creation remains preview-first; apply requires an exact plan approval plus a repository-trusted, one-use Ed25519 `MEMBER` action with `product.github.write`. `product converge` binds the approved chain to a clean full Git commit, existing code/test file hashes, and evidence receipts. Production readiness requires provider-verified CI/CD, security, accessibility, privacy/legal, deployment/operations, migration, capacity, restore/rollback, analytics, support, and environment evidence.
+
 ## Keep the context focused
 
 Rules, skills, workcells, hooks, memory, and evidence solve different problems.
@@ -114,11 +131,11 @@ blocks implementation; missing optional indexes produce an explicit
 
 | Capability | Included |
 | --- | --- |
-| Canonical skills | **41** skill sources, installed only where the selected adapter supports skill surfaces |
-| Engineering workflows | **26** workflows for research, planning, implementation, review, incidents, architecture, delivery, policy, memory, traceability, recovery, and proof |
-| Quality intelligence | **26** stack/risk profiles plus **23** durable engineering rules |
-| Enforcement | **18** guards for approval, trace completeness, safe resume, plugin activation, capability, repository intelligence, memory, data, dependencies, orchestration, and protected actions |
-| Reusable artifacts | **69** templates and schemas for plans, decisions, runs, plugins, benchmarks, reviews, evidence, system design, teams, memory, product content, marketing, SEO/GEO, and release assurance |
+| Canonical skills | **58** skill sources, including the Product Genesis orchestrator and sixteen stage skills, installed only where the selected adapter supports skill surfaces |
+| Engineering workflows | **36** workflows for product discovery, experiments, requirements, iterations, production, implementation, review, incidents, architecture, policy, memory, recovery, and proof |
+| Quality intelligence | **31** stack/risk/product profiles plus **29** durable engineering rules |
+| Enforcement | **22** guards for product approval/evidence, trace completeness, safe resume, plugin activation, capability, repository intelligence, memory, data, dependencies, orchestration, and protected actions |
+| Reusable artifacts | **113** templates and schemas for ideas, experiments, viability, trust/data, requirements, design, iterations, evidence, environments, production, support, retirement, decisions, runs, plugins, teams, memory, and release assurance |
 | Agent ecosystem | **12** versioned adapters with machine-readable `native`, `generated`, `bridged`, `advisory`, `preview`, or `unsupported` capability states |
 | Coordination | Four workcell modes, dependency-ready waves, leases, heartbeats, cancellation, bounded retries, recovery, and independent review |
 | Verification | Behavioral evals, adapter/standards conformance, tests, Failure Lab, Agent Proof Replay, Change Passports, and fail-closed readiness |
@@ -717,11 +734,14 @@ See [Agent Adapter Strategy](docs/AGENT_ADAPTER_STRATEGY.md) for details.
 | `1.4.0` | Native Architecture Pulse with bounded polyglot scanning, dependency graphs, explainable structural metrics, trusted baselines, explicit regression policy, CLI workflows, and governed evidence binding. |
 | `1.4.1` | Change-aware Pulse with stable finding identity, truthful coverage, tiered precision, base/head impact, governed waivers, SARIF, trends, bounded evidence packs, and a polyglot effectiveness benchmark. |
 | `1.5.0` | Repository Team Control Plane with authenticated identities, cross-task claims, isolated worktrees, fencing tokens, integration packages, independent review, privacy-safe SLOs, and four-mode release benchmarks. |
+| `1.6.0` | Product Genesis from a rough idea through discovery, research, human-approved BRD/spec baselines, Agile delivery planning, change control, and outcome review. |
 
 ## Documentation
 
 - [Adoption Guide](docs/ADOPTION_GUIDE.md)
 - [High-Level Design](docs/HIGH_LEVEL_DESIGN.md)
+- [Product Genesis: Idea to Production](docs/PRODUCT_GENESIS.md)
+- [v1.6.0 Product Genesis release notes (draft)](docs/releases/v1.6.0-product-genesis-draft.md)
 - [Agent Department Proof Loop](docs/AGENT_DEPARTMENT_PROOF_LOOP.md)
 - [Traceable Plugin Runtime](docs/TRACEABLE_PLUGIN_RUNTIME.md)
 - [Agent Reliability Benchmark](docs/AGENT_RELIABILITY_BENCHMARK.md)

@@ -7,6 +7,23 @@
     "minimum_margin": 1
   },
   "priority": [
+    "run-product-genesis",
+    "prepare-production-readiness",
+    "retire-product",
+    "operate-product",
+    "run-product-iteration",
+    "assure-product-trust",
+    "assess-product-viability",
+    "validate-product-discovery",
+    "approve-product-baseline",
+    "control-product-change",
+    "review-product-outcome",
+    "plan-product-delivery",
+    "write-product-specification",
+    "write-business-requirements",
+    "research-product-opportunity",
+    "discuss-product-idea",
+    "start-product",
     "investigate-agent-runtime",
     "audit-plugin-trust",
     "resume-and-recover-run",
@@ -24,6 +41,113 @@
     "start-task"
   ],
   "routes": {
+    "run-product-genesis": {
+      "label": "Orchestrate a product from idea to production evidence",
+      "skill": "run-product-genesis/SKILL.md",
+      "rules": [
+        { "any": ["end-to-end product genesis", "from rough idea to production", "idea to production with requirements", "no codebase no requirements no spec", "resume product genesis", "avoid repeated prompting", "từ ý tưởng đến sản phẩm thật", "từ ý tưởng đến production", "chưa có codebase chưa có requirement chưa có spec", "không prompt đi prompt lại", "ý tưởng biz requirement spec design triển khai"], "weight": 5 },
+        { "all": ["business logic", "ux", "system design"], "weight": 5 },
+        { "all": ["biz logic", "spec", "design"], "weight": 5 }
+      ]
+    },
+    "validate-product-discovery": {
+      "label": "Validate product hypotheses and Alpha evidence",
+      "skill": "validate-product-discovery/SKILL.md",
+      "rules": [{"any": ["product hypothesis experiment", "prototype usability test", "alpha product validation", "customer discovery evidence", "kiểm chứng giả thuyết sản phẩm", "test prototype với người dùng", "quyết định continue pivot stop"], "weight": 3}]
+    },
+    "assess-product-viability": {
+      "label": "Assess product business viability",
+      "skill": "assess-product-viability/SKILL.md",
+      "rules": [{"any": ["product business case", "product unit economics", "product pricing strategy", "go to market product", "đánh giá tính khả thi kinh doanh", "unit economics pricing", "chiến lược go to market"], "weight": 3}]
+    },
+    "assure-product-trust": {
+      "label": "Assure product trust compliance and data lifecycle",
+      "skill": "assure-product-trust/SKILL.md",
+      "rules": [{"any": ["product accessibility privacy legal", "product threat model security findings", "product data retention deletion", "đánh giá accessibility privacy legal cho sản phẩm", "threat model và security finding", "data migration retention deletion"], "weight": 4}]
+    },
+    "run-product-iteration": {
+      "label": "Run a capacity-bounded product iteration",
+      "skill": "run-product-iteration/SKILL.md",
+      "rules": [{"any": ["run product sprint", "product iteration goal capacity", "sprint review retrospective acceptance", "chạy sprint sản phẩm", "iteration goal capacity", "review retrospective acceptance"], "weight": 3}]
+    },
+    "prepare-production-readiness": {
+      "label": "Prepare evidence-backed product production readiness",
+      "skill": "prepare-production-readiness/SKILL.md",
+      "rules": [{"any": ["product production readiness dossier", "bind ci deployment rollback evidence", "backup restore rollback drill product", "release candidate environment attestation", "chuẩn bị production readiness sản phẩm", "bằng chứng ci cd deployment rollback", "runbook alert on call incident product"], "weight": 4}]
+    },
+    "operate-product": {
+      "label": "Operate a released product with live outcomes",
+      "skill": "operate-product/SKILL.md",
+      "rules": [{"any": ["operate released product", "live product outcome metrics", "product support customer success", "vận hành sản phẩm production", "live metrics và customer support", "đánh giá outcome sản phẩm live"], "weight": 3}]
+    },
+    "retire-product": {
+      "label": "Retire a product and verify data deletion",
+      "skill": "retire-product/SKILL.md",
+      "rules": [{"any": ["retire product data deletion", "sunset product", "product end of life", "ngừng sản phẩm và xóa dữ liệu", "retirement data deletion plan", "sunset sản phẩm"], "weight": 4}]
+    },
+    "approve-product-baseline": {
+      "label": "Approve a product baseline",
+      "skill": "approve-product-baseline/SKILL.md",
+      "rules": [
+        { "any": ["approve product baseline", "approve brd", "approve product spec", "business requirement approval", "chốt biz requirement", "duyệt brd", "duyệt spec"], "weight": 3 }
+      ]
+    },
+    "control-product-change": {
+      "label": "Control a change to an approved product baseline",
+      "skill": "control-product-change/SKILL.md",
+      "rules": [
+        { "any": ["change approved requirement", "change approved spec", "product change control", "baseline change request", "đổi requirement đã duyệt", "thay đổi spec đã chốt"], "weight": 3 }
+      ]
+    },
+    "review-product-outcome": {
+      "label": "Review a delivered product outcome",
+      "skill": "review-product-outcome/SKILL.md",
+      "rules": [
+        { "any": ["review product outcome", "release decision against requirements", "validate delivered product", "đánh giá kết quả sản phẩm", "đánh giá sản phẩm sau triển khai"], "weight": 3 }
+      ]
+    },
+    "plan-product-delivery": {
+      "label": "Plan Agile product delivery",
+      "skill": "plan-product-delivery/SKILL.md",
+      "rules": [
+        { "any": ["agile delivery plan", "scrum product backlog", "github issues from approved spec", "plan mvp delivery", "lập backlog scrum", "chia epic story từ spec"], "weight": 3 }
+      ]
+    },
+    "write-product-specification": {
+      "label": "Write a product specification",
+      "skill": "write-product-specification/SKILL.md",
+      "rules": [
+        { "any": ["write product specification", "draft product spec", "technical product specification", "viết product spec", "viết đặc tả sản phẩm", "soạn spec sản phẩm"], "exclude": ["approve", "duyệt"], "weight": 3 }
+      ]
+    },
+    "write-business-requirements": {
+      "label": "Write business requirements",
+      "skill": "write-business-requirements/SKILL.md",
+      "rules": [
+        { "any": ["write business requirements", "draft brd", "business requirements document", "viết biz requirement", "viết business requirement", "soạn brd"], "exclude": ["approve", "duyệt", "chốt"], "weight": 3 }
+      ]
+    },
+    "research-product-opportunity": {
+      "label": "Research a product opportunity",
+      "skill": "research-product-opportunity/SKILL.md",
+      "rules": [
+        { "any": ["research product opportunity", "research product idea", "market research for product", "validate product opportunity", "nghiên cứu ý tưởng sản phẩm", "khảo sát sản phẩm", "khảo sát thị trường cho sản phẩm"], "weight": 3 }
+      ]
+    },
+    "discuss-product-idea": {
+      "label": "Discuss and improve a product idea",
+      "skill": "discuss-product-idea/SKILL.md",
+      "rules": [
+        { "any": ["discuss product idea", "improve product idea", "product discovery interview", "thảo luận ý tưởng sản phẩm", "hoàn thiện ý tưởng", "trao đổi ý tưởng sản phẩm"], "weight": 3 }
+      ]
+    },
+    "start-product": {
+      "label": "Start a product from an idea",
+      "skill": "start-product/SKILL.md",
+      "rules": [
+        { "any": ["start product from idea", "start a product from an idea", "product idea no codebase", "chỉ có ý tưởng chưa có code", "làm sản phẩm từ ý tưởng", "bắt đầu sản phẩm từ ý tưởng", "tôi có ý tưởng app", "mình có ý tưởng app", "i have an app idea"], "weight": 3 }
+      ]
+    },
     "investigate-agent-runtime": {
       "label": "Investigate an agent runtime failure",
       "skill": "investigate-agent-runtime/SKILL.md",

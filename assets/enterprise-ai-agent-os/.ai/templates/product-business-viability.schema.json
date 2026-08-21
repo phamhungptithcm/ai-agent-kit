@@ -1,0 +1,5 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "https://hunpeolabs.com/schemas/product-business-viability-v1.json", "title": "Product Business Viability", "type": "object",
+  "required": ["schema_version", "id", "version", "status", "source_versions", "assumptions", "unit_economics", "pricing_options", "go_to_market", "risks", "decision"],
+  "properties": {"schema_version": {"const": 1}, "id": {"type": "string"}, "version": {"type": "integer", "minimum": 1}, "status": {"type": "string"}, "source_versions": {"type": "array", "items": {"type": "string"}}, "assumptions": {"type": "array", "minItems": 1}, "unit_economics": {"type": "object"}, "pricing_options": {"type": "array", "minItems": 1}, "go_to_market": {"type": "array", "minItems": 1}, "risks": {"type": "array"}, "decision": {"type": "object", "required": ["recommendation", "rationale"], "properties": {"recommendation": {"enum": ["INVEST", "REVISE", "HOLD", "STOP"]}, "rationale": {"type": "string"}}}}
+}

@@ -1,0 +1,6 @@
+interface:
+  display_name: "Assure product trust"
+  short_description: "Close security privacy and data risks"
+  default_prompt: "Use $assure-product-trust to complete accessibility, privacy/legal, threat, security, and data-lifecycle assurance."
+policy:
+  allow_implicit_invocation: true

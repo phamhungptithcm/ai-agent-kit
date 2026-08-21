@@ -1,0 +1,17 @@
+---
+name: assess-product-viability
+description: Build an evidence-bounded business case with unit economics, pricing options, go-to-market, risks, and an invest/revise/hold/stop recommendation. Use after Alpha validation, before BRD approval, or when a product lacks a viable commercial and operating model.
+---
+
+# Assess Product Viability
+
+Use `product-business-viability.schema.json` and the current approved Alpha baseline.
+
+1. Separate observed facts from financial, demand, pricing, channel, and cost assumptions.
+2. Define the economic unit, currency, acquisition/service cost ranges, gross contribution range, break-even drivers, confidence, and evidence receipts. Use ranges when live data is unavailable.
+3. Compare pricing and packaging options against user value and delivery/support cost. Never invent willingness-to-pay evidence.
+4. Define the first reachable segment, positioning, channel tests, sales/support ownership, and leading indicators.
+5. Record risks and propose `INVEST`, `REVISE`, `HOLD`, or `STOP` with explicit limitations.
+6. Coordinate `assure-product-trust` before requesting `INVESTMENT_DECISION` approval.
+
+Do not claim a business case is validated when it is modeled only.

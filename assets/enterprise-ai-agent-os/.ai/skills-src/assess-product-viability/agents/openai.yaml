@@ -1,0 +1,6 @@
+interface:
+  display_name: "Assess product viability"
+  short_description: "Model business viability with evidence"
+  default_prompt: "Use $assess-product-viability to build an evidence-bounded business case, pricing, unit economics, and go-to-market decision."
+policy:
+  allow_implicit_invocation: true

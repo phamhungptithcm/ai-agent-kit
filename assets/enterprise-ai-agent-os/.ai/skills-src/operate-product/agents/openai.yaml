@@ -1,0 +1,6 @@
+interface:
+  display_name: "Operate product"
+  short_description: "Run the live product feedback loop"
+  default_prompt: "Use $operate-product to review live evidence, operations, support, and product outcomes safely."
+policy:
+  allow_implicit_invocation: true
