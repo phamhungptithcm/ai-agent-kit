@@ -32,6 +32,15 @@ function rootOf(value) {
 }
 
 function readBoundedJson(file, label, maximum = MAX_CONFIG_BYTES, aggregateBudget = null) {
+  let before;
+  try {
+    before = fs.lstatSync(file);
+  } catch {
+    throw new Error(`${label} must be a bounded non-linked regular JSON file`);
+  }
+  if (!before.isFile() || before.isSymbolicLink() || before.nlink > 1 || before.size > maximum) {
+    throw new Error(`${label} must be a bounded non-linked regular JSON file`);
+  }
   let descriptor;
   try {
     descriptor = fs.openSync(file, fs.constants.O_RDONLY | (fs.constants.O_NOFOLLOW ?? 0));
@@ -41,7 +50,7 @@ function readBoundedJson(file, label, maximum = MAX_CONFIG_BYTES, aggregateBudge
   let content;
   try {
     const stat = fs.fstatSync(descriptor);
-    if (!stat.isFile() || stat.nlink > 1 || stat.size > maximum) {
+    if (!stat.isFile() || stat.nlink > 1 || stat.size > maximum || stat.dev !== before.dev || stat.ino !== before.ino) {
       throw new Error(`${label} must be a bounded non-linked regular JSON file`);
     }
     if (aggregateBudget && stat.size > aggregateBudget.remaining_bytes) {
