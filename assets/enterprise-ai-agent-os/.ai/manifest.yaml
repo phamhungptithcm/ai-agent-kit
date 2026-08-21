@@ -16,6 +16,7 @@ prompt_catalog:
   - ".ai/PROMPTS.md"
 config:
   - ".ai/config/skill-routing.json"
+  - ".ai/config/product-intent.json"
   - ".ai/config/capability-coverage.json"
   - ".ai/config/external-skill-sources.lock.json"
 prompts:
@@ -30,6 +31,7 @@ prompts:
   - ".ai/prompts/task-contract.md"
 core:
   - ".ai/core/product-genesis.md"
+  - ".ai/core/conversation-entry-gate.md"
   - ".ai/core/mission.md"
   - ".ai/core/instruction-precedence.md"
   - ".ai/core/engineering-principles.md"
@@ -316,6 +318,7 @@ evals:
   - ".ai/evals/e2e/team-orchestration-cases.json"
   - ".ai/evals/e2e/adapter-conformance-cases.json"
   - ".ai/evals/e2e/skill-routing-cases.json"
+  - ".ai/evals/e2e/product-intent-cases.json"
 skills:
   - ".ai/skills-src/run-product-genesis/SKILL.md"
   - ".ai/skills-src/run-product-genesis/agents/openai.yaml"

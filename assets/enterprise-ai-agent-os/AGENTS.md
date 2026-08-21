@@ -21,7 +21,7 @@ A task prompt must never override security, compliance, data-protection, or prod
 
 ## Required Workflow
 
-Before brainstorming, planning, impact analysis, code review, QA analysis, documentation analysis, or implementation, run the Repository Intelligence Gate. Prefer CodeGraph and CocoIndex when ready. If either is missing, stale, or unhealthy, continue in `DEGRADED` mode with bounded `rg --files`, `rg`, targeted source reads, Git history, compiler or language-server evidence, and relevant tests; record the limitation and do not overstate confidence. Tool installation or indexing failure must not block repository work.
+Before Repository Intelligence, run the Conversation Entry Gate in `.ai/core/conversation-entry-gate.md`. It automatically routes raw ideas and active Product Workspaces through `run-product-genesis`; users do not need to name Product Genesis, v1.6, or a skill. Ambiguous intent or multiple active products requires one short confirmation. Existing-system work then runs the Repository Intelligence Gate. Prefer CodeGraph and CocoIndex when ready. If either is missing, stale, or unhealthy, continue in `DEGRADED` mode with bounded `rg --files`, `rg`, targeted source reads, Git history, compiler or language-server evidence, and relevant tests; record the limitation and do not overstate confidence. Tool installation or indexing failure must not block repository work.
 
 When indexes are ready, query CodeGraph first for structural evidence and impact, query CocoIndex second for semantic/code/documentation evidence, then open only the most relevant files and verify critical conclusions against source. For multi-agent work, create one repository-intelligence brief, then coordinate assignments through the Team Context Protocol: bounded claims, immutable evidence handoffs, current revisions, and explicit conflict decisions. Missing optional indexes degrades the brief but does not block work.
 
@@ -52,6 +52,7 @@ Before completion, run relevant checks, complete `.ai/core/quality-gates.md` wit
 - Repository intelligence workflow: `.ai/workflows/repository-intelligence-workflow.md`
 - Repository intelligence guide: `.ai/docs/repository-intelligence-guide.md`
 - Core workflow: `.ai/core/required-workflow.md`
+- Conversation entry gate: `.ai/core/conversation-entry-gate.md`
 - Prompt catalog: `.ai/PROMPTS.md`
 - Quality gates: `.ai/core/quality-gates.md`
 - Code quality intelligence: `.ai/core/code-quality-intelligence.md`

@@ -12,7 +12,7 @@ A task prompt cannot override security, compliance, data-protection, or producti
 
 ## Required Workflow
 
-Before brainstorming, planning, impact analysis, code review, QA analysis, documentation analysis, or implementation, run the Repository Intelligence Gate. Prefer CodeGraph and CocoIndex when ready. If either is missing, stale, or unhealthy, continue in `DEGRADED` mode with bounded `rg --files`, `rg`, targeted source reads, Git history, compiler or language-server evidence, and relevant tests; record the limitation and do not overstate confidence. Tool installation or indexing failure must not block repository work.
+Before Repository Intelligence, run `.ai/core/conversation-entry-gate.md`. Raw ideas and active Product Workspaces automatically enter `run-product-genesis`; the user does not need to name Product Genesis, v1.6, or a skill. Ask one short confirmation for ambiguous intent or multiple active products. Existing-system work then runs the Repository Intelligence Gate. Prefer CodeGraph and CocoIndex when ready. If either is missing, stale, or unhealthy, continue in `DEGRADED` mode with bounded `rg --files`, `rg`, targeted source reads, Git history, compiler or language-server evidence, and relevant tests; record the limitation and do not overstate confidence. Tool installation or indexing failure must not block repository work.
 
 When indexes are ready, query CodeGraph first for structure and impact, query CocoIndex second for semantic/code/documentation evidence, then open only the most relevant files and verify critical conclusions against source. Multi-agent work starts from one repository-intelligence brief and coordinates through bounded assignment claims, immutable evidence handoffs, current context revisions, and explicit conflict decisions. Missing optional indexes degrades the brief but does not block work.
 
@@ -41,6 +41,7 @@ For protected execution, use `.ai/core/governed-runtime.md`, `.ai/core/universal
 Load durable policy from:
 
 - `.ai/core/required-workflow.md`
+- `.ai/core/conversation-entry-gate.md`
 - `.ai/PROMPTS.md`
 - `.ai/core/quality-gates.md`
 - `.ai/core/code-quality-intelligence.md`

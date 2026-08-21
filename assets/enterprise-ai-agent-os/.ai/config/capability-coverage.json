@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "id": "ai-agent-kit-capability-coverage-v1.6",
-  "target_version": "1.6.0",
+  "id": "ai-agent-kit-capability-coverage-v1.6.1",
+  "target_version": "1.6.1",
   "external_source_lock": "config/external-skill-sources.lock.json",
   "routing_config": "config/skill-routing.json",
   "skill_catalog": {
@@ -70,7 +70,7 @@
       "stage": "idea-to-production",
       "skills": ["run-product-genesis", "start-product", "discuss-product-idea", "research-product-opportunity", "validate-product-discovery", "assess-product-viability", "assure-product-trust", "write-business-requirements", "write-product-specification", "approve-product-baseline", "plan-product-delivery", "run-product-iteration", "control-product-change", "prepare-production-readiness", "operate-product", "review-product-outcome", "retire-product"],
       "required_artifacts": [
-        "core/product-genesis.md",
+        "core/product-genesis.md", "core/conversation-entry-gate.md", "config/product-intent.json",
         "rules/product-evidence-integrity.md", "rules/product-production-evidence-integrity.md", "rules/requirements-integrity.md", "rules/product-approval-integrity.md", "rules/product-research-privacy.md", "rules/product-delivery-integrity.md",
         "quality-profiles/product-genesis.yaml", "quality-profiles/product-discovery.yaml", "quality-profiles/business-analysis.yaml", "quality-profiles/requirements-engineering.yaml", "quality-profiles/product-delivery.yaml",
         "guards/product-genesis-stage-gate.yaml", "guards/product-baseline-approval-gate.yaml", "guards/product-evidence-binding-gate.yaml",

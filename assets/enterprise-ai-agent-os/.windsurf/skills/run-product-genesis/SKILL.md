@@ -2,7 +2,7 @@
 
 ---
 name: run-product-genesis
-description: Orchestrate a new product from a rough idea through experiments, business viability, trust/data assurance, approved requirements and design, iterative delivery, commit-bound verification, production readiness, release, live operation, and retirement. Use when the user has no codebase or asks for a professional end-to-end idea-to-production flow with fewer repeated prompts and durable evidence.
+description: Automatically enter and orchestrate Product Genesis when a user naturally describes a new app, SaaS, platform, service, or other rough product idea, even when they do not name this skill or version. Continue through experiments, business viability, trust/data assurance, approved requirements and design, iterative delivery, commit-bound verification, production readiness, release, live operation, and retirement with durable evidence.
 ---
 
 # Run Product Genesis
@@ -23,5 +23,10 @@ Use `.ai/core/product-genesis.md` and `.ai/workflows/product-genesis.md`. The re
 12. Operate with live outcome/support evidence and govern retirement/data deletion separately.
 
 Stop and request a decision for material ambiguity, conflicting authority, stale approval, unresolved high-impact risk, or scope change. Never hide uncertainty, invent customer validation, overwrite history, or infer commit, push, issue creation, deployment, or release authority.
+
+The Conversation Entry Gate may invoke this skill automatically. State why it
+was selected and whether the action is `START_PRODUCT_GENESIS` or
+`RESUME_PRODUCT_GENESIS`; never require the user to repeat the request with a
+skill name or version prefix.
 
 Return the current stage, confirmed/assumed/unknown/changed summary, current baseline hashes, blockers, no more than three questions, and one exact next action.

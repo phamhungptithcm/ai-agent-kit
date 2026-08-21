@@ -5,6 +5,9 @@ description: Start a new software product when the user only has an idea and no 
 
 # Start Product
 
+This is an internal Product Genesis stage skill. `run-product-genesis` and the
+Conversation Entry Gate should select it; the user does not need to call it.
+
 Use `.ai/workflows/product-genesis.md` as the stage controller.
 
 1. Capture the user's words without silently rewriting their intent.

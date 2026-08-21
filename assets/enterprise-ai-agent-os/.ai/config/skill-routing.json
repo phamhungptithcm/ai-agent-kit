@@ -46,6 +46,7 @@
       "skill": "run-product-genesis/SKILL.md",
       "rules": [
         { "any": ["end-to-end product genesis", "from rough idea to production", "idea to production with requirements", "no codebase no requirements no spec", "resume product genesis", "avoid repeated prompting", "từ ý tưởng đến sản phẩm thật", "từ ý tưởng đến production", "chưa có codebase chưa có requirement chưa có spec", "không prompt đi prompt lại", "ý tưởng biz requirement spec design triển khai"], "weight": 5 },
+        { "any": ["mình có ý tưởng app", "tôi có ý tưởng app", "mình muốn làm một ứng dụng", "tôi muốn làm một ứng dụng", "i want to build an app", "i am thinking about a platform", "help me build a saas", "giúp tôi xây saas"], "weight": 5 },
         { "all": ["business logic", "ux", "system design"], "weight": 5 },
         { "all": ["biz logic", "spec", "design"], "weight": 5 }
       ]

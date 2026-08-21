@@ -1,5 +1,15 @@
 # Required Workflow
 
+## Phase 0 - Detect Conversation Mode
+
+Run `.ai/core/conversation-entry-gate.md` before Repository Intelligence. A raw
+product idea or an active Product Workspace enters `run-product-genesis`
+automatically; the user does not need to name v1.6, Product Genesis, or a skill.
+Run Repository Intelligence first only for work on an existing repository, or
+when an approved Product Genesis delivery reaches implementation. Ambiguous
+intent or multiple active products requires one short confirmation instead of
+silent routing.
+
 ## Phase 1 - Analyze The Existing System; Do Not Edit Code
 
 0. Run the Repository Intelligence Gate. If CodeGraph or CocoIndex is unavailable, continue in `DEGRADED` mode using bounded native repository evidence and record the limitation.

@@ -16,6 +16,7 @@ import { loadRepositoryPolicyOverlays } from "./policy-overlays.mjs";
 import { getPackageVersion } from "./version.mjs";
 import { planTeam } from "./team-orchestrator.mjs";
 import { loadSkillRoutingConfig, routeSkill, validateSkillRoutingConfig } from "./skill-routing.mjs";
+import { detectProductEntry } from "./product-intent.mjs";
 import { buildFinalTaskReport } from "./task-report.mjs";
 
 const STATES = ["DISCOVER", "ANALYZE", "PLAN_READY", "APPROVED", "IMPLEMENTING", "VERIFYING", "REVIEW_READY", "RELEASED"];
@@ -139,9 +140,52 @@ export function createTask(options) {
   const defaultRoutingFile = path.join(root, ".ai", "config", "skill-routing.json");
   const routingConfig = options.routingConfig ?? (fs.existsSync(defaultRoutingFile) ? loadSkillRoutingConfig(defaultRoutingFile) : null);
   const skillsRoot = options.skillsRoot ?? path.join(root, ".ai", "skills-src");
-  if (routingConfig) {
-    validateSkillRoutingConfig(routingConfig, { skillsRoot });
-    const routed = routeSkill({ config: routingConfig, hint: options.goal ?? `Task ${id}` });
+  if (routingConfig) validateSkillRoutingConfig(routingConfig, { skillsRoot });
+  const routingHint = options.goal ?? `Task ${id}`;
+  const productEntry = detectProductEntry({ target: root, hint: routingHint });
+  const entryAbstain = (reason) => ({
+      status: "ABSTAIN",
+      reason,
+      config_id: productEntry.detector_id,
+      config_hash: productEntry.detector_hash,
+      route_id: null,
+      skill: null,
+      suggested_route: productEntry.mode === "PRODUCT_GENESIS" ? "run-product-genesis" : null,
+      confidence: productEntry.confidence,
+      score: 0,
+      margin: 0,
+      entry_action: productEntry.action,
+      product_id: productEntry.product_id,
+      reason_codes: productEntry.reason_codes
+    });
+  const blockingAmbiguity = productEntry.status === "AMBIGUOUS" && (
+    ["SELECT_PRODUCT", "SELECT_OR_START_PRODUCT"].includes(productEntry.action) ||
+    productEntry.reason_codes.includes("CONFLICT_PRODUCT_AND_EXISTING_SYSTEM")
+  );
+  if (productEntry.status === "BLOCKED") {
+    skillRouting = entryAbstain("PRODUCT_WORKSPACE_BLOCKED");
+  } else if (blockingAmbiguity) {
+    skillRouting = entryAbstain("PRODUCT_INTENT_AMBIGUOUS");
+  } else if (productEntry.status === "DETECTED" && productEntry.mode === "PRODUCT_GENESIS") {
+    const skill = routingConfig?.routes?.["run-product-genesis"]?.skill ?? "run-product-genesis/SKILL.md";
+    const available = fs.existsSync(path.join(skillsRoot, skill));
+    skillRouting = {
+      status: available ? "ROUTED" : "ABSTAIN",
+      reason: available ? null : "PRODUCT_GENESIS_SKILL_UNAVAILABLE",
+      config_id: productEntry.detector_id,
+      config_hash: productEntry.detector_hash,
+      route_id: available ? "run-product-genesis" : null,
+      skill: available ? skill : null,
+      suggested_route: available ? null : "run-product-genesis",
+      confidence: productEntry.confidence,
+      score: available ? 1 : 0,
+      margin: available ? 1 : 0,
+      entry_action: productEntry.action,
+      product_id: productEntry.product_id,
+      reason_codes: productEntry.reason_codes
+    };
+  } else if (routingConfig) {
+    const routed = routeSkill({ config: routingConfig, hint: routingHint });
     skillRouting = {
       status: routed.status,
       reason: routed.reason,
@@ -152,8 +196,13 @@ export function createTask(options) {
       suggested_route: routed.suggested_route,
       confidence: routed.confidence,
       score: routed.score,
-      margin: routed.margin
+      margin: routed.margin,
+      entry_action: productEntry.status === "AMBIGUOUS" ? productEntry.action : null,
+      product_id: productEntry.product_id,
+      reason_codes: productEntry.status === "AMBIGUOUS" ? productEntry.reason_codes : []
     };
+  } else if (productEntry.status === "AMBIGUOUS") {
+    skillRouting = entryAbstain("PRODUCT_INTENT_AMBIGUOUS");
   }
   const now = new Date();
   const capability = {

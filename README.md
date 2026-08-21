@@ -7,7 +7,9 @@
 [![MIT license](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Node.js 20+](https://img.shields.io/badge/node-%3E%3D20-43853d)](package.json)
 
-Your agent can now begin before code exists. Product Genesis discusses and
+Your agent can now begin before code exists, without a special prompt prefix.
+The Conversation Entry Gate recognizes a natural raw idea, enters Product
+Genesis, and resumes the durable workspace in later sessions. Product Genesis discusses and
 improves a rough idea, researches its practical opportunity, writes versioned
 business requirements and product specifications, waits for named human
 approval, and only then plans professional delivery. AI Agent Kit preserves why that code exists,
@@ -96,7 +98,14 @@ It makes the workflow reproducible and the evidence reviewable.
 
 Product Genesis stores current artifact heads, immutable predecessors, open decisions, evidence receipts, environment attestations, iterations, release candidates, and exact human approvals under `.ai/products/<product-id>/`. This lets an agent resume from evidence instead of asking the user to repeat the conversation.
 
+Describe the idea naturally—`Mình muốn làm một ứng dụng giúp các salon giảm
+khách bỏ hẹn` is enough. The agent runs the Conversation Entry Gate and selects
+`run-product-genesis`; users do not need to mention v1.6 or a skill. Ambiguous
+intent and multiple active products require one short confirmation.
+
 ```bash
+printf '%s' 'Mình muốn làm một ứng dụng giúp salon giảm khách bỏ hẹn' | ai-agent-kit intent detect --stdin
+ai-agent-kit product discover
 ai-agent-kit product start --id salon-pilot --idea "Reduce salon no-shows" --profile standard
 ai-agent-kit product resume --id salon-pilot
 ai-agent-kit product next --id salon-pilot
@@ -735,12 +744,14 @@ See [Agent Adapter Strategy](docs/AGENT_ADAPTER_STRATEGY.md) for details.
 | `1.4.1` | Change-aware Pulse with stable finding identity, truthful coverage, tiered precision, base/head impact, governed waivers, SARIF, trends, bounded evidence packs, and a polyglot effectiveness benchmark. |
 | `1.5.0` | Repository Team Control Plane with authenticated identities, cross-task claims, isolated worktrees, fencing tokens, integration packages, independent review, privacy-safe SLOs, and four-mode release benchmarks. |
 | `1.6.0` | Product Genesis from a rough idea through discovery, research, human-approved BRD/spec baselines, Agile delivery planning, change control, and outcome review. |
+| `1.6.1` | Product Genesis Auto Entry with natural-language intent detection, safe workspace discovery/resume, cross-adapter entry instructions, and no required skill/version prefix. |
 
 ## Documentation
 
 - [Adoption Guide](docs/ADOPTION_GUIDE.md)
 - [High-Level Design](docs/HIGH_LEVEL_DESIGN.md)
 - [Product Genesis: Idea to Production](docs/PRODUCT_GENESIS.md)
+- [v1.6.1 Product Genesis Auto Entry release notes](docs/releases/v1.6.1-product-genesis-auto-entry-draft.md)
 - [v1.6.0 Product Genesis release notes (draft)](docs/releases/v1.6.0-product-genesis-draft.md)
 - [Agent Department Proof Loop](docs/AGENT_DEPARTMENT_PROOF_LOOP.md)
 - [Traceable Plugin Runtime](docs/TRACEABLE_PLUGIN_RUNTIME.md)

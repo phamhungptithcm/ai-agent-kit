@@ -18,6 +18,7 @@ import {
 } from "./inspection.mjs";
 import { renderNamedPrompt, renderPromptCatalog, renderPromptList } from "./prompt-catalog.mjs";
 import { evaluateSkillRouting, loadSkillRoutingConfig, loadSkillRoutingFixture, routeSkill, verifySkillRouting } from "./skill-routing.mjs";
+import { detectProductEntry, discoverProductWorkspaces, evaluateProductIntent, loadProductIntentConfig, loadProductIntentFixture } from "./product-intent.mjs";
 import { applyToolPlan, inspectToolPlan, renderToolInstall, renderToolPlan } from "./tool-lifecycle.mjs";
 import { getPackageVersion } from "./version.mjs";
 import { applyUpdate, planUpdate, renderUpdatePlan } from "./update.mjs";
@@ -214,6 +215,8 @@ Usage:
   ai-agent-kit adapter inspect --adapter <id>
   ai-agent-kit adapter conformance --adapter <id> [--target <path>]
   ai-agent-kit standards verify [--target <path>]
+  ai-agent-kit intent detect (--hint <request> | --stdin) [--target <path>] [--config <file>]
+  ai-agent-kit intent eval --fixture <file> [--config <file>]
   ai-agent-kit skills route --config <file> --hint <task>
   ai-agent-kit skills verify --config <file> --skills-root <directory> [--fixture <file>]
   ai-agent-kit skills eval --config <file> --skills-root <directory> --fixture <file>
@@ -260,7 +263,7 @@ Usage:
   ai-agent-kit pulse trend record --file <pulse-result-or-comparison.json> [--history <history.jsonl>]
   ai-agent-kit pulse trend show [--history <history.jsonl>]
   ai-agent-kit pulse explain --file <pulse-result-or-comparison.json>
-  ai-agent-kit product start|status|resume|next [options]
+  ai-agent-kit product discover|start|status|resume|next [options]
   ai-agent-kit product question-add|answer|context-add [options]
   ai-agent-kit product artifact-put|artifact-validate|analyze|approve [options]
   ai-agent-kit product github-plan|github-sync|converge [options]
@@ -396,7 +399,7 @@ export function parseRunArgs(argv) {
 }
 
 export function parseProductArgs(argv) {
-  const actions = ["start", "status", "resume", "next", "question-add", "answer", "context-add", "artifact-put", "artifact-validate", "analyze", "approve", "github-plan", "github-sync", "converge", "evidence-put", "evidence-verify", "environment-put", "release-candidate", "dossier-status", "dossier-export"];
+  const actions = ["discover", "start", "status", "resume", "next", "question-add", "answer", "context-add", "artifact-put", "artifact-validate", "analyze", "approve", "github-plan", "github-sync", "converge", "evidence-put", "evidence-verify", "environment-put", "release-candidate", "dossier-status", "dossier-export"];
   const action = argv[0];
   if (!actions.includes(action)) throw new Error(`product requires one of: ${actions.join(", ")}`);
   const valueFlags = new Set([
@@ -502,6 +505,23 @@ export function parseSkillRoutingArgs(argv) {
   if (action === "route" && !options.hint) throw new Error("route requires --hint");
   if (["verify", "eval"].includes(action) && !options.skillsRoot) throw new Error(`${action} requires --skills-root`);
   if (action === "eval" && !options.fixture) throw new Error("eval requires --fixture");
+  return { action, options };
+}
+
+export function parseIntentArgs(argv) {
+  const action = argv[0];
+  if (!["detect", "eval"].includes(action)) throw new Error("intent requires detect or eval");
+  const options = { target: process.cwd(), stdin: false };
+  for (let index = 1; index < argv.length; index += 1) {
+    const flag = argv[index];
+    if (flag === "--stdin") { options.stdin = true; continue; }
+    if (!["--target", "--hint", "--config", "--fixture"].includes(flag)) throw new Error(`Unknown intent option: ${flag}`);
+    const value = argv[++index];
+    if (!value) throw new Error(`${flag} requires a value`);
+    options[flag.slice(2)] = value;
+  }
+  if (action === "detect" && Boolean(options.hint) === options.stdin) throw new Error("intent detect requires exactly one of --hint or --stdin");
+  if (action === "eval" && (!options.fixture || options.hint || options.stdin)) throw new Error("intent eval requires --fixture and does not accept a hint");
   return { action, options };
 }
 
@@ -1187,6 +1207,17 @@ export async function main(argv = process.argv.slice(2), io = console, deps = {}
     io.log(JSON.stringify(result, null, 2));
     return result.status === "FAILED" ? 1 : 0;
   }
+  if (command === "intent") {
+    const { action, options } = parseIntentArgs(argv.slice(1));
+    const hint = options.stdin ? String(deps.readStdin ? await deps.readStdin() : fs.readFileSync(0, "utf8")) : options.hint;
+    const localIntentConfig = path.join(path.resolve(options.target), ".ai", "config", "product-intent.json");
+    const intentConfig = options.config ? loadProductIntentConfig(options.config) : fs.existsSync(localIntentConfig) ? loadProductIntentConfig(localIntentConfig) : loadProductIntentConfig();
+    const result = action === "detect"
+      ? detectProductEntry({ ...options, hint })
+      : evaluateProductIntent({ config: intentConfig, fixture: loadProductIntentFixture(options.fixture) });
+    io.log(JSON.stringify(result, null, 2));
+    return result.status === "DETECTED" || result.status === "PASSED" ? 0 : result.status === "BLOCKED" ? 2 : 1;
+  }
   if (command === "skills") {
     const { action, options } = parseSkillRoutingArgs(argv.slice(1));
     const config = loadSkillRoutingConfig(options.config);
@@ -1428,7 +1459,8 @@ export async function main(argv = process.argv.slice(2), io = console, deps = {}
   if (command === "product") {
     const { action, options } = parseProductArgs(argv.slice(1));
     let result;
-    if (action === "start") result = createProductWorkspace(options);
+    if (action === "discover") result = discoverProductWorkspaces(options);
+    else if (action === "start") result = createProductWorkspace(options);
     else if (action === "status") result = inspectProduct(options);
     else if (action === "resume") result = resumeProduct(options);
     else if (action === "next") result = nextProductAction(options);
