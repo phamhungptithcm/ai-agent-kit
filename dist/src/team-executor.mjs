@@ -1,12 +1,16 @@
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { spawnSync } from "node:child_process";
 
 import { briefHash, cancelTeamClaim, claimTeamWork, inspectTeamContext, publishTeamHandoff, recordTeamApproval, renewTeamClaim } from "./team-context.mjs";
 import { readTeamContract, recordTeamResult, writeTeamContract } from "./team-orchestrator.mjs";
-import { hasSymlinkComponent } from "./paths.mjs";
+import { hasSymlinkComponent, sameFilesystemPath } from "./paths.mjs";
 import { findTeamEvent, readTeamEvents, recordTeamEvent, verifyTeamJournal } from "./team-events.mjs";
 import { recordTaskApproval } from "./governed-runtime.mjs";
+import { acquireRepositoryClaim, consumeHostAttestation, heartbeatRepositoryClaim, markRepositoryResultReady, releaseRepositoryClaim, validateRepositoryFence } from "./team-registry.mjs";
+import { evaluateParentSnapshot, inspectTeamWorkspace } from "./team-workspace.mjs";
+import { verifyHostAttestation } from "./team-host-bridge.mjs";
 
 const INGEST_STATUSES = new Set(["COMPLETED", "BLOCKED", "REJECTED", "TIMED_OUT", "CANCELLED", "ORPHANED"]);
 const FORBIDDEN_RESULT_KEYS = new Set(["prompt", "raw_prompt", "conversation", "chat_history", "chain_of_thought", "credentials", "secrets"]);
@@ -26,6 +30,16 @@ function digest(value) { return crypto.createHash("sha256").update(JSON.stringif
 function now(options) { const value = options.now ?? new Date().toISOString(); if (!Number.isFinite(Date.parse(value))) throw new Error("execution timestamp is invalid"); return new Date(value).toISOString(); }
 function safe(value, label) { if (!/^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/.test(value ?? "")) throw new Error(`${label} must be a safe identifier`); return value; }
 function integer(value, label) { if (!Number.isInteger(value) || value < 0) throw new Error(`${label} must be a non-negative integer`); return value; }
+
+function worktreeResultEvidence(workspace, parentCommit) {
+  const status = spawnSync("git", ["status", "--porcelain=v1", "--untracked-files=all"], { cwd: workspace, encoding: "utf8", timeout: 30_000, maxBuffer: 4 * 1024 * 1024 });
+  if (status.status !== 0) throw new Error(status.stderr.trim() || "failed to inspect assignment worktree status");
+  if (status.stdout.split(/\r?\n/).some((line) => line.startsWith("?? "))) throw new Error("untracked assignment output must be staged before its completion receipt can be frozen");
+  const result = spawnSync("git", ["diff", "--binary", "--full-index", parentCommit], { cwd: workspace, encoding: "utf8", timeout: 30_000, maxBuffer: 16 * 1024 * 1024 });
+  if (result.status !== 0) throw new Error(result.stderr.trim() || "failed to bind the assignment result to its actual worktree diff");
+  const inspected = inspectTeamWorkspace({ target: workspace });
+  return { outputCommit: inspected.commit, diffHash: digest(result.stdout) };
+}
 
 function transactionPath(root, taskId, key) {
   const relative = `.ai-agent-kit/runtime/team-transactions/${safe(taskId, "task id")}-${safe(key, "transaction id")}.json`;
@@ -172,35 +186,66 @@ export function dispatchTeamAssignment(options, deps = {}) {
   const context = inspectTeamContext({ target: root, id: options.id });
   const claimed = claimTeamWork({ target: root, id: options.id, assignment: assignment.id, agent, expectedRevision: context.revision, leaseSeconds: options.leaseSeconds, now: timestamp });
   const instruction = instructionFor(team, assignment.id);
+  let repositoryClaim = null; let workspaceBinding = null; let hostAttestation = null;
+  if (team.control_plane?.enabled) {
+    if (!options.identity) {
+      cancelTeamClaim({ target: root, id: options.id, claim: claimed.claim.claim_id, agent, reason: "repository identity missing", now: timestamp });
+      throw new Error("repository control-plane dispatch requires an authenticated identity");
+    }
+    try {
+      const workspaceTarget = path.resolve(options.workspacePath ?? root);
+      if (assignment.write_access && workspaceTarget === root) throw new Error("write assignment requires an isolated worktree path");
+      const workspace = inspectTeamWorkspace({ target: workspaceTarget, now: timestamp });
+      const coordinator = inspectTeamWorkspace({ target: root, now: timestamp });
+      if (!sameFilesystemPath(workspace.common_git_dir, coordinator.common_git_dir)) throw new Error("assignment worktree does not share the repository Git common directory");
+      const parent = evaluateParentSnapshot({ target: workspaceTarget, parentCommit: team.control_plane.parent_commit, allowDirty: false });
+      if (parent.status !== "ADMITTED") throw new Error(`assignment workspace failed parent gate: ${parent.blockers.join(", ")}`);
+      workspaceBinding = { root: workspace.root, branch: workspace.branch, commit: workspace.commit, snapshot_hash: parent.snapshot_hash };
+      repositoryClaim = acquireRepositoryClaim({ target: root, taskId: team.task_id, assignmentId: assignment.id, identity: options.identity, identitySecret: options.identitySecret, resolveIdentityKey: options.resolveIdentityKey, surfaces: assignment.allowed_paths.map((name) => ({ kind: "PATH", name, mode: assignment.write_access ? "WRITE" : "READ" })), workspace: workspaceBinding, leaseSeconds: options.leaseSeconds, now: timestamp }).claim;
+      if (team.adapter_capabilities?.native_spawn) {
+        if (!options.hostAttestation) throw new Error("native control-plane dispatch requires a host attestation");
+        hostAttestation = verifyHostAttestation(options.hostAttestation, { now: timestamp, resolveKey: deps.resolveHostKey, seenNonces: deps.seenHostNonces });
+        if (hostAttestation.status !== "VERIFIED" || !hostAttestation.capabilities.includes("native-spawn") || !hostAttestation.capabilities.includes("structured-result")) throw new Error("native host bridge attestation is not verified for required capabilities");
+        consumeHostAttestation({ target: root, attestationHash: hostAttestation.attestation_hash, nonceKey: `${options.hostAttestation.key_id}:${options.hostAttestation.nonce}`, expiresAt: hostAttestation.expires_at, identity: options.identity, identitySecret: options.identitySecret, resolveIdentityKey: options.resolveIdentityKey, now: timestamp });
+      }
+    } catch (error) {
+      if (repositoryClaim) try { releaseRepositoryClaim({ target: root, claimId: repositoryClaim.claim_id, fencingToken: repositoryClaim.fencing_token, identity: options.identity, identitySecret: options.identitySecret, resolveIdentityKey: options.resolveIdentityKey, status: "CANCELLED", now: timestamp }); } catch { /* preserve admission error */ }
+      try { cancelTeamClaim({ target: root, id: options.id, claim: claimed.claim.claim_id, agent, reason: "repository control-plane admission failed", now: timestamp }); } catch { /* preserve admission error */ }
+      throw error;
+    }
+  }
   let externalRunId = options.externalRunId ? safe(options.externalRunId, "external run id") : null;
   let hostExecution = team.adapter_capabilities?.native_spawn ? "ATTESTED_EXTERNAL" : "SERIAL_PERSONA";
   if (team.adapter_capabilities?.native_spawn && deps.hostBridge?.spawn) {
     let response;
     try {
-      response = deps.hostBridge.spawn({ task_id: team.task_id, run_id: team.run.run_id, assignment_id: assignment.id, agent_id: agent, instruction, claim_id: claimed.claim.claim_id });
+      response = deps.hostBridge.spawn({ task_id: team.task_id, run_id: team.run.run_id, assignment_id: assignment.id, agent_id: agent, instruction, claim_id: claimed.claim.claim_id, repository_claim_id: repositoryClaim?.claim_id ?? null, fencing_token: repositoryClaim?.fencing_token ?? null, workspace: workspaceBinding });
       if (response && typeof response.then === "function") throw new Error("asynchronous host bridges are not supported by the synchronous dispatcher");
       externalRunId = safe(response?.external_run_id, "host external run id");
       hostExecution = "EXECUTED_BY_BRIDGE";
     } catch (error) {
+      if (repositoryClaim) try { releaseRepositoryClaim({ target: root, claimId: repositoryClaim.claim_id, fencingToken: repositoryClaim.fencing_token, identity: options.identity, identitySecret: options.identitySecret, resolveIdentityKey: options.resolveIdentityKey, status: "CANCELLED", now: timestamp }); } catch { /* preserve host error */ }
       try { cancelTeamClaim({ target: root, id: options.id, claim: claimed.claim.claim_id, agent, reason: "host spawn failed", now: timestamp }); } catch { /* preserve host error */ }
       throw error;
     }
   } else if (team.adapter_capabilities?.native_spawn && !externalRunId) {
+    if (repositoryClaim) try { releaseRepositoryClaim({ target: root, claimId: repositoryClaim.claim_id, fencingToken: repositoryClaim.fencing_token, identity: options.identity, identitySecret: options.identitySecret, resolveIdentityKey: options.resolveIdentityKey, status: "CANCELLED", now: timestamp }); } catch { /* preserve validation error */ }
     try { cancelTeamClaim({ target: root, id: options.id, claim: claimed.claim.claim_id, agent, reason: "host execution evidence missing", now: timestamp }); } catch { /* preserve validation error */ }
     throw new Error("native dispatch requires a host bridge or --external-run-id evidence");
   }
   const spawnId = `spawn-${crypto.randomUUID()}`;
   delete assignment.blocker;
   assignment.status = "RUNNING"; assignment.attempts += 1;
-  assignment.execution = { state: "RUNNING", spawn_id: spawnId, external_run_id: externalRunId, host_execution: hostExecution, claim_id: claimed.claim.claim_id, agent_id: agent, started_at: timestamp, last_heartbeat_at: timestamp, previous_spawns: assignment.execution?.spawn_id ? [...(assignment.execution.previous_spawns ?? []), assignment.execution.spawn_id] : [] };
+  assignment.execution = { state: "RUNNING", spawn_id: spawnId, external_run_id: externalRunId, host_execution: hostAttestation ? "VERIFIED_HOST_BRIDGE" : hostExecution, host_attestation_hash: hostAttestation?.attestation_hash ?? null, claim_id: claimed.claim.claim_id, repository_claim_id: repositoryClaim?.claim_id ?? null, fencing_token: repositoryClaim?.fencing_token ?? null, workspace: workspaceBinding, agent_id: agent, principal_id: repositoryClaim?.principal?.principal_id ?? null, started_at: timestamp, last_heartbeat_at: timestamp, previous_spawns: assignment.execution?.spawn_id ? [...(assignment.execution.previous_spawns ?? []), assignment.execution.spawn_id] : [] };
   team.state = "IN_PROGRESS"; team.run.state = "RUNNING"; team.run.dispatch_state = "HOST_DISPATCH_ACTIVE"; team.run.active_assignments = team.assignments.filter((item) => item.status === "RUNNING").length; team.run.updated_at = timestamp; team.updated_at = timestamp;
   try {
     writeTeamContract({ target: root, team, expectedTeamHash });
   } catch (error) {
+    if (repositoryClaim) try { releaseRepositoryClaim({ target: root, claimId: repositoryClaim.claim_id, fencingToken: repositoryClaim.fencing_token, identity: options.identity, identitySecret: options.identitySecret, resolveIdentityKey: options.resolveIdentityKey, status: "CANCELLED", now: timestamp }); } catch { /* preserve original write failure */ }
     try { cancelTeamClaim({ target: root, id: options.id, claim: claimed.claim.claim_id, agent, reason: "dispatch state write failed", now: timestamp }); } catch { /* preserve the original atomic-write failure */ }
     throw error;
   }
-  const journalResult = journal({ target: root, id: team.task_id, type: "ASSIGNMENT_DISPATCHED", now: timestamp, data: { team_hash: team.team_hash, context_hash: claimed.context_hash, run_id: team.run.run_id, assignment_id: assignment.id, spawn_id: spawnId, external_run_id: assignment.execution.external_run_id, agent_id: agent, claim_id: claimed.claim.claim_id, status: "RUNNING" } });
+  const journalResult = journal({ target: root, id: team.task_id, type: "ASSIGNMENT_DISPATCHED", now: timestamp, data: { team_hash: team.team_hash, context_hash: claimed.context_hash, run_id: team.run.run_id, assignment_id: assignment.id, spawn_id: spawnId, external_run_id: assignment.execution.external_run_id, agent_id: agent, claim_id: claimed.claim.claim_id, principal_id: assignment.execution.principal_id, repository_claim_id: assignment.execution.repository_claim_id, fencing_token: assignment.execution.fencing_token, workspace_hash: assignment.execution.workspace?.snapshot_hash ?? null, host_attestation_hash: assignment.execution.host_attestation_hash, status: "RUNNING" } });
   return {
     schema_version: 1,
     task_id: team.task_id,
@@ -211,8 +256,11 @@ export function dispatchTeamAssignment(options, deps = {}) {
     assignment_id: assignment.id,
     context_revision: claimed.revision,
     input_trust: { instructions: "TRUSTED_CONTROL", repository_context: "UNTRUSTED_DATA" },
-    instruction,
-    host_execution: hostExecution,
+    instruction: repositoryClaim ? { ...instruction, repository_claim_id: repositoryClaim.claim_id, fencing_token: repositoryClaim.fencing_token, workspace: workspaceBinding, host_attestation_hash: hostAttestation?.attestation_hash ?? null } : instruction,
+    repository_claim_id: repositoryClaim?.claim_id ?? null,
+    fencing_token: repositoryClaim?.fencing_token ?? null,
+    workspace: workspaceBinding,
+    host_execution: assignment.execution.host_execution,
     journal_status: journalResult.status
   };
 }
@@ -223,9 +271,14 @@ export function heartbeatTeamAssignment(options) {
   if (assignment.status !== "RUNNING" || !assignment.execution?.claim_id || !assignment.execution.agent_id) throw new Error("assignment is not running");
   const timestamp = now(options); const context = inspectTeamContext({ target: root, id: options.id });
   const renewed = renewTeamClaim({ target: root, id: options.id, claim: assignment.execution.claim_id, agent: assignment.execution.agent_id, expectedRevision: context.revision, leaseSeconds: options.leaseSeconds, now: timestamp });
+  let repositoryRenewed = null;
+  if (team.control_plane?.enabled) {
+    if (!options.identity) throw new Error("repository control-plane heartbeat requires an authenticated identity");
+    repositoryRenewed = heartbeatRepositoryClaim({ target: root, claimId: assignment.execution.repository_claim_id, fencingToken: assignment.execution.fencing_token, identity: options.identity, identitySecret: options.identitySecret, resolveIdentityKey: options.resolveIdentityKey, leaseSeconds: options.leaseSeconds, now: timestamp });
+  }
   assignment.execution.last_heartbeat_at = timestamp; team.run.updated_at = timestamp; team.updated_at = timestamp; writeTeamContract({ target: root, team, expectedTeamHash });
   const journalResult = journal({ target: root, id: team.task_id, type: "ASSIGNMENT_HEARTBEAT", now: timestamp, data: { team_hash: team.team_hash, context_hash: renewed.context_hash, run_id: team.run.run_id, assignment_id: assignment.id, spawn_id: assignment.execution.spawn_id, status: "RUNNING" } });
-  return { assignment_id: assignment.id, spawn_id: assignment.execution.spawn_id, expires_at: renewed.expires_at, context_revision: renewed.revision, journal_status: journalResult.status };
+  return { assignment_id: assignment.id, spawn_id: assignment.execution.spawn_id, expires_at: renewed.expires_at, context_revision: renewed.revision, repository_expires_at: repositoryRenewed?.expires_at ?? null, fencing_token: repositoryRenewed?.fencing_token ?? null, journal_status: journalResult.status };
 }
 
 export function validateTeamResult(result, expectedAssignment = null) {
@@ -285,6 +338,11 @@ export function ingestTeamResult(options, deps = {}) {
   }
   runReady(team);
   if (assignment.status !== "RUNNING") throw new Error("assignment is not running");
+  if (team.control_plane?.enabled) {
+    const fence = validateRepositoryFence({ target: root, claimId: assignment.execution?.repository_claim_id, fencingToken: assignment.execution?.fencing_token, principalId: assignment.execution?.principal_id, now: options.now });
+    if (fence.status !== "VALID") throw new Error("stale or invalid repository fencing token rejects assignment result");
+    if (!options.identity) throw new Error("repository control-plane result ingest requires an authenticated identity");
+  }
   preflightResultBudget(team, assignment, result); const timestamp = now(options); let handoffHash = transaction?.handoff_hash ?? null;
   if (!transaction) transaction = writeTransaction(root, { schema_version: 1, transaction_id: idempotencyKey, task_id: team.task_id, assignment_id: assignment.id, spawn_id: assignment.execution?.spawn_id ?? null, claim_id: assignment.execution?.claim_id ?? null, state: "PREPARED", result_hash: resultHash, prepared_at: timestamp });
   if (!result.handoff && assignment.execution?.claim_id && assignment.execution.agent_id) cancelTeamClaim({ target: root, id: options.id, claim: assignment.execution.claim_id, agent: assignment.execution.agent_id, reason: `assignment ended with ${result.status}`, now: timestamp });
@@ -308,7 +366,16 @@ export function ingestTeamResult(options, deps = {}) {
   try { analyticsStatus = appendRoleEvent(root, updated, updated.assignments.find((item) => item.id === assignment.id), result, timestamp, idempotencyKey); } catch { analyticsStatus = "UNAVAILABLE"; }
   const journalResult = journal({ target: root, id: updated.task_id, type: "RESULT_INGESTED", now: timestamp, data: { team_hash: updated.team_hash, context_hash: updated.context_hash, run_id: updated.run?.run_id ?? null, assignment_id: assignment.id, spawn_id: assignment.execution?.spawn_id ?? null, status: updated.state, result_status: result.status, idempotency_key: idempotencyKey, handoff_hash: handoffHash, evidence_hash: evidenceHash, usage: result.usage, duplicate: false } });
   writeTransaction(root, { ...transaction, state: "COMMITTED", analytics_status: analyticsStatus, journal_status: journalResult.status, committed_at: timestamp });
-  return { team: updated, handoff_hash: handoffHash, evidence_hash: evidenceHash, analytics_status: analyticsStatus, journal_status: journalResult.status, duplicate: false, idempotency_key: idempotencyKey };
+  let repositoryTransition = null;
+  if (team.control_plane?.enabled) {
+    if (result.status === "COMPLETED") {
+      const worktreeEvidence = worktreeResultEvidence(assignment.execution.workspace.root, team.control_plane.parent_commit);
+      repositoryTransition = markRepositoryResultReady({ target: root, claimId: assignment.execution.repository_claim_id, fencingToken: assignment.execution.fencing_token, identity: options.identity, identitySecret: options.identitySecret, resolveIdentityKey: options.resolveIdentityKey, outputCommit: worktreeEvidence.outputCommit, diffHash: worktreeEvidence.diffHash, evidenceHashes: [evidenceHash ?? resultHash, handoffHash ?? resultHash], now: timestamp });
+    } else {
+      repositoryTransition = releaseRepositoryClaim({ target: root, claimId: assignment.execution.repository_claim_id, fencingToken: assignment.execution.fencing_token, identity: options.identity, identitySecret: options.identitySecret, resolveIdentityKey: options.resolveIdentityKey, status: "CANCELLED", now: timestamp });
+    }
+  }
+  return { team: updated, handoff_hash: handoffHash, evidence_hash: evidenceHash, analytics_status: analyticsStatus, journal_status: journalResult.status, repository_transition: repositoryTransition, repository_release: result.status === "COMPLETED" ? null : repositoryTransition, duplicate: false, idempotency_key: idempotencyKey };
 }
 
 export function cancelTeamRun(options, deps = {}) {
@@ -328,6 +395,10 @@ export function cancelTeamRun(options, deps = {}) {
     }
   }
   for (const assignment of team.assignments) {
+    if (team.control_plane?.enabled && assignment.status === "RUNNING" && assignment.execution?.repository_claim_id) {
+      if (!options.identity) throw new Error("repository control-plane cancellation requires an authenticated identity");
+      releaseRepositoryClaim({ target: root, claimId: assignment.execution.repository_claim_id, fencingToken: assignment.execution.fencing_token, identity: options.identity, identitySecret: options.identitySecret, resolveIdentityKey: options.resolveIdentityKey, status: "CANCELLED", now: timestamp });
+    }
     if (assignment.status === "RUNNING" && assignment.execution?.claim_id && assignment.execution.agent_id) cancelTeamClaim({ target: root, id: team.task_id, claim: assignment.execution.claim_id, agent: assignment.execution.agent_id, reason, now: timestamp });
     if (["PENDING", "RUNNING"].includes(assignment.status)) { assignment.status = "CANCELLED"; assignment.completed_at = timestamp; if (assignment.execution) assignment.execution.state = "CANCELLED"; }
   }
@@ -340,6 +411,7 @@ export function cancelTeamRun(options, deps = {}) {
 export function resumeTeamRun(options) {
   const root = path.resolve(options.target ?? process.cwd()); const team = readTeamContract({ target: root, id: options.id }); const expectedTeamHash = team.team_hash;
   if (!team.run || ["COMPLETED", "CANCELLED"].includes(team.run.state)) throw new Error("team run cannot be resumed");
+  if (team.control_plane?.enabled && !options.identity) throw new Error("repository control-plane recovery requires an authenticated identity");
   const timestamp = now(options); const stale = []; const context = inspectTeamContext({ target: root, id: options.id });
   if (options.reviewedOrphanedWriter) {
     const reviewed = assignmentFor(team, safe(options.reviewedOrphanedWriter, "reviewed orphaned writer"));
@@ -355,6 +427,10 @@ export function resumeTeamRun(options) {
     const leaseExpired = !claim || claim.status !== "ACTIVE" || Date.parse(claim.expires_at) <= Date.parse(timestamp);
     if (!leaseExpired && ageSeconds <= team.budgets.timeout_seconds) continue;
     stale.push(assignment.id);
+    if (team.control_plane?.enabled && assignment.execution?.repository_claim_id) {
+      const fence = validateRepositoryFence({ target: root, claimId: assignment.execution.repository_claim_id, fencingToken: assignment.execution.fencing_token, principalId: assignment.execution.principal_id, now: timestamp });
+      if (fence.status === "VALID") releaseRepositoryClaim({ target: root, claimId: assignment.execution.repository_claim_id, fencingToken: assignment.execution.fencing_token, identity: options.identity, identitySecret: options.identitySecret, resolveIdentityKey: options.resolveIdentityKey, status: "CANCELLED", now: timestamp });
+    }
     if (assignment.execution?.claim_id && assignment.execution.agent_id) cancelTeamClaim({ target: root, id: team.task_id, claim: assignment.execution.claim_id, agent: assignment.execution.agent_id, reason: "stale execution lease", now: timestamp });
     assignment.execution.state = "ORPHANED";
     if (assignment.write_access || assignment.attempts >= assignment.max_attempts) { assignment.status = "ORPHANED"; assignment.blocker = assignment.write_access ? "WRITE_AGENT_ORPHANED_REVIEW_REQUIRED" : "RETRY_BUDGET_EXHAUSTED"; }

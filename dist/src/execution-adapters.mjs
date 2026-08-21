@@ -7,6 +7,10 @@ const HOST_CAPABLE_UNVERIFIED = Object.freeze({
   parallel_dispatch: false,
   cancellation: false,
   structured_result: true,
+  authenticated_host_bridge: false,
+  repository_registry: true,
+  workspace_isolation: true,
+  fencing_tokens: true,
   read_only_enforcement: "hard",
   write_scope_enforcement: "advisory",
   max_concurrency: 1,
@@ -19,6 +23,10 @@ const SERIAL = Object.freeze({
   parallel_dispatch: false,
   cancellation: false,
   structured_result: true,
+  authenticated_host_bridge: false,
+  repository_registry: true,
+  workspace_isolation: false,
+  fencing_tokens: true,
   read_only_enforcement: "advisory",
   write_scope_enforcement: "advisory",
   max_concurrency: 1,
@@ -74,6 +82,10 @@ export function resolveExecutionAdapter(adapterId, provided = null) {
     parallel_dispatch: boolean(provided.parallel_dispatch, base.parallel_dispatch),
     cancellation: boolean(provided.cancellation, base.cancellation),
     structured_result: boolean(provided.structured_result, base.structured_result),
+    authenticated_host_bridge: boolean(provided.authenticated_host_bridge, base.authenticated_host_bridge),
+    repository_registry: boolean(provided.repository_registry, base.repository_registry),
+    workspace_isolation: boolean(provided.workspace_isolation, base.workspace_isolation),
+    fencing_tokens: boolean(provided.fencing_tokens, base.fencing_tokens),
     read_only_enforcement: enforcement(provided.read_only_enforcement, "read-only enforcement", base.read_only_enforcement),
     write_scope_enforcement: enforcement(provided.write_scope_enforcement, "write-scope enforcement", base.write_scope_enforcement),
     max_concurrency: positiveInteger(provided.max_concurrency, "adapter max concurrency", base.max_concurrency),
@@ -83,6 +95,7 @@ export function resolveExecutionAdapter(adapterId, provided = null) {
   if (!capabilities.native_spawn || capabilities.bridge_kind === "SERIAL_PERSONAS") { capabilities.parallel_dispatch = false; capabilities.cancellation = false; capabilities.max_concurrency = 1; }
   else if (!capabilities.parallel_dispatch) capabilities.max_concurrency = 1;
   if (!capabilities.structured_result) throw new Error("team execution requires structured result support");
+  if (capabilities.authenticated_host_bridge && !capabilities.native_spawn) throw new Error("authenticated host bridge requires native spawn");
   return capabilities;
 }
 
