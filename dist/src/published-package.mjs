@@ -24,8 +24,16 @@ export async function verifyPublishedPackage(options, deps = {}) {
   if (!/^(@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*$/.test(packageName ?? "") || !/^\d+\.\d+\.\d+(?:-[A-Za-z0-9.-]+)?$/.test(version ?? "")) throw new Error("Sanity must target an exact package name and version.");
   if (!Buffer.isBuffer(expectedBytes) || expectedBytes.length < 1 || expectedBytes.length > 64 * 1024 * 1024) throw new Error("Frozen candidate bytes are required.");
   const request = deps.fetch ?? fetch;
-  const response = await request(`https://registry.npmjs.org/${encodeURIComponent(packageName)}/${encodeURIComponent(version)}`, { redirect: "error", signal: AbortSignal.timeout(30000) });
-  if (!response.ok) throw new Error("Published package metadata is unavailable; release remains unverified.");
+  let response;
+  const sleep = deps.sleep ?? (ms => new Promise(resolve => setTimeout(resolve, ms)));
+  for (let attempt = 0; attempt < 21; attempt += 1) {
+    response = await request(`https://registry.npmjs.org/${encodeURIComponent(packageName)}/${encodeURIComponent(version)}`, { redirect: "error", signal: AbortSignal.timeout(30000) });
+    if (response.ok) break;
+    if (![404, 429, 500, 502, 503, 504].includes(response.status) || attempt === 20) throw new Error("Published package metadata is unavailable; release remains unverified.");
+    await response.body?.cancel?.();
+    await sleep(30000);
+  }
+  if (!response?.ok) throw new Error("Published package metadata is unavailable; release remains unverified.");
   const text = (await boundedBody(response, 2 * 1024 * 1024, "Registry metadata")).toString("utf8");
   const metadata = JSON.parse(text);
   const expectedIntegrity = `sha512-${sha(expectedBytes, "sha512")}`;
@@ -50,6 +58,7 @@ export async function verifyPublishedPackage(options, deps = {}) {
     const install = path.join(temporary, "install"); const fixture = path.join(temporary, "fixture"); fs.mkdirSync(install); fs.mkdirSync(fixture);
     fs.writeFileSync(path.join(install, "package.json"), JSON.stringify({ private: true, name: "published-package-sanity" }));
     const npm = process.platform === "win32" ? "npm.cmd" : "npm";
+    run("install-repository-init", "git", ["init", "--quiet"], install);
     run("clean-install", npm, ["install", "--no-audit", "--no-fund", archive], install);
     const cli = path.join(install, "node_modules", ...packageName.split("/"), "dist/bin/ai-agent-kit.mjs");
     const observed = run("version-readback", process.execPath, [cli, "--version"], fixture).trim();

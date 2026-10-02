@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.7.1 - 2026-10-02
+
+- Initialize the clean-install Git repository before package postinstall.
+- Retry temporary registry metadata unavailability within a bounded ten-minute wait; permanent errors and integrity mismatches still fail closed.
+- Add regression coverage for command ordering, delayed visibility, retry exhaustion and permanent failures.
+
 ## 1.7.0 - 2026-10-02
 
 - Add candidate-bound delivery contracts, signed independent review and release/sanity evidence.
