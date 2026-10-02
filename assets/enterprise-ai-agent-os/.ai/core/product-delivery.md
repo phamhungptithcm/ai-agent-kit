@@ -1,7 +1,7 @@
 # Product Delivery Contract
 
 For end-to-end product requests, follow `.ai/workflows/develop-product.md`.
-Start or resume the actual CLI product flow and show `product view` when the
+Start or resume the actual CLI product flow and show `delivery view` when the
 host can open it. The active coding agent performs each step; the CLI validates
 state and evidence. See `.ai/docs/product-flow-guide.md` for contract, command,
 review identity and release formats. Explain what, why, actual output path,

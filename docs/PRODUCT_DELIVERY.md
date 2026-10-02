@@ -1,6 +1,8 @@
+> Release integration: this maintained record includes local historical evidence. Current1.7.0 release gates and remote CI are recorded separately; earlier candidate receipts are not reused for the release.
+
 # AI Agent Kit Delivery and Presentation Record
 
-Document ID: AAK-DELIVERY-001. Revision: 3. Date: 2026-10-02. Product baseline: [AAK-PRODUCT-001 revision 3](PRODUCT_CONTRACT.md). Source baseline: `2f513e2` plus this local change set; package metadata currently declares `1.5.0`. A version string is not the identity of a future release artifact. Record its digest when frozen.
+Document ID: AAK-DELIVERY-001. Revision: 3. Date: 2026-10-02. Product baseline: [AAK-PRODUCT-001 revision 3](PRODUCT_CONTRACT.md). Source baseline: `2f513e2` plus this local change set; package metadata currently declares `1.7.0`. A version string is not the identity of a future release artifact. Record its digest when frozen.
 
 This is the delivery index for the user-approved product-flow and assurance change. The historical rows below describe the preceding documentation-only candidate, not the current runtime candidate. The [Product Delivery Contract](../assets/enterprise-ai-agent-os/.ai/core/product-delivery.md) governs future product work. Business rules/specs are in the [product contract](PRODUCT_CONTRACT.md), architecture in [High-Level Design](HIGH_LEVEL_DESIGN.md), and release prerequisites in [Public Launch Checklist](PUBLIC_LAUNCH_CHECKLIST.md). Detailed runtime/control-plane references remain linked from the README rather than copied here.
 

@@ -70,7 +70,7 @@ test("beginner entry point shows why/output/location/next without inventing comp
   fs.writeFileSync(path.join(root, "README.md"), "fixture"); execFileSync("git", ["add", "."], { cwd: root }); execFileSync("git", ["commit", "-qm", "fixture"], { cwd: root });
   const logs = []; assert.equal(await main(["start", "Build an ownership checker", "--id", "BEGINNER", "--target", root], { log: (s) => logs.push(s) }), 0);
   assert.match(logs.join("\n"), /Why:.*\nOutput:.*\nWhere:/); assert.match(logs.join("\n"), /NOT_TESTED/); assert.match(logs.join("\n"), /expected; not created yet/);
-  const next = []; await main(["product", "next", "--id", "BEGINNER", "--target", root, "--format", "json"], { log: (s) => next.push(s) });
+  const next = []; await main(["delivery", "next", "--id", "BEGINNER", "--target", root, "--format", "json"], { log: (s) => next.push(s) });
   assert.equal(JSON.parse(next[0]).agent_handoff.trust, "TRUSTED_CONTROL");
   assert.equal(fs.existsSync(path.join(root, "docs/product/BEGINNER/discovery.md")), false);
 });
@@ -302,7 +302,7 @@ test("product inventory is read-only, explicit and rejects corrupt or linked flo
     startProductFlow({target:root,id:"SHOP",goal:"Build shop inventory"});
     const active = fs.readFileSync(path.join(root,".ai-agent-kit/product/active.json"),"utf8");
     const logs = [];
-    assert.equal(await main(["product","list","--target",root,"--format","json"], {log:s=>logs.push(s)}),0);
+    assert.equal(await main(["delivery","list","--target",root,"--format","json"], {log:s=>logs.push(s)}),0);
     assert.deepEqual(JSON.parse(logs[0]).products.map(p=>p.task_id),["PRODUCT-1","SALON","SHOP"]);
     assert.equal(fs.readFileSync(path.join(root,".ai-agent-kit/product/active.json"),"utf8"),active);
     const file = path.join(root,".ai-agent-kit/product/SALON/flow.json");
@@ -313,4 +313,16 @@ test("product inventory is read-only, explicit and rejects corrupt or linked flo
     fs.symlinkSync(path.join(root,".ai-agent-kit/product/SHOP"),path.join(root,".ai-agent-kit/product/LINK"),"dir");
     assert.throws(()=>listProductFlows({target:root}),/unsupported/);
   } finally { fs.rmSync(root,{recursive:true,force:true}); }
+});
+
+
+test("delivery view commands keep the execution namespace distinct from Genesis", () => {
+  const root = fixture();
+  try {
+    const view = writeProductView({target:root,id});
+    const html = fs.readFileSync(view.path,"utf8");
+    assert.match(html,/ai-agent-kit delivery next/);
+    assert.match(html,/ai-agent-kit delivery view/);
+    assert.doesNotMatch(html,/ai-agent-kit product (next|view)/);
+  } finally {fs.rmSync(root,{recursive:true,force:true});}
 });

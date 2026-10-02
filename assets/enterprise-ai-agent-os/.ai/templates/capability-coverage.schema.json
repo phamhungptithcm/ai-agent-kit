@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hunpeolabs.com/schemas/capability-coverage-v1.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "target_version", "external_source_lock", "routing_config", "skill_catalog", "capabilities"],
+  "properties": {
+    "schema_version": {"const": 1}, "id": {"type": "string"}, "target_version": {"type": "string"}, "external_source_lock": {"type": "string"}, "routing_config": {"type": "string"},
+    "skill_catalog": {"type": "object", "additionalProperties": {"type": "object", "additionalProperties": false, "required": ["introduced_in", "dispatch_mode", "capability"], "properties": {"introduced_in": {"type": "string"}, "dispatch_mode": {"enum": ["ROUTED", "COMPOSED", "EXPLICIT_ONLY", "INTERNAL"]}, "capability": {"type": "string"}, "source_ids": {"type": "array", "items": {"type": "string"}}}}},
+    "capabilities": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["id", "stage", "skills", "required_artifacts"], "properties": {"id": {"type": "string"}, "stage": {"type": "string"}, "skills": {"type": "array", "minItems": 1, "items": {"type": "string"}}, "required_artifacts": {"type": "array", "minItems": 1, "items": {"type": "string"}}}}}
+  }
+}

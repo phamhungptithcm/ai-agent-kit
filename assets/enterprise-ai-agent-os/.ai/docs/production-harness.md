@@ -2,7 +2,7 @@
 
 Policy: **AAK-PRODUCTION-1**, revision 1. This is the kit's acceptance policy,
 not an external certification. The runtime rule catalog is
-`src/production-harness.mjs`; `product status --format json` and `product view`
+`src/production-harness.mjs`; `delivery status --format json` and `delivery view`
 show each rule, bound document, source evidence, missing checks and limitations.
 The coding agent authors and maintains the contract; novices state outcomes and
 approve material decisions rather than filling engineering forms.
@@ -96,5 +96,5 @@ context/unit mismatch or exceeded bounds prevent harness acceptance even when
 the process exits zero. This validates observed bounds, not the honesty or
 adequacy of a measuring program; independent review still inspects it. Task
 reports and direct runtime RELEASED transitions enforce the same harness,
-preventing an alternate production-readiness route around product release.
+preventing an alternate production-readiness route around delivery release.
 Timeline dates are UTC ISO timestamps and invalid calendar dates are rejected.

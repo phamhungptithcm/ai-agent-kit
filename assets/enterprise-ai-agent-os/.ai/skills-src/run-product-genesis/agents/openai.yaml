@@ -1,0 +1,6 @@
+interface:
+  display_name: "Product Genesis"
+  short_description: "Turn a rough idea into an approved product"
+  default_prompt: "Use $run-product-genesis to turn my rough idea into approved requirements, design, delivery, and production evidence."
+policy:
+  allow_implicit_invocation: true

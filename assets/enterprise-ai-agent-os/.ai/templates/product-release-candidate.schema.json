@@ -1,0 +1,5 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "https://hunpeolabs.com/schemas/product-release-candidate-v1.json", "title": "Product Release Candidate Dossier", "type": "object",
+  "required": ["schema_version", "id", "product_id", "release_class", "created_at", "repository", "environment", "baseline_hashes", "approval_hashes", "production_readiness_hash", "convergence_hash", "evidence", "production_claim_authorized", "candidate_hash"],
+  "properties": {"schema_version": {"const": 1}, "id": {"type": "string"}, "product_id": {"type": "string"}, "release_class": {"enum": ["LIMITED_RELEASE", "PRODUCTION"]}, "created_at": {"type": "string", "format": "date-time"}, "repository": {"type": "object"}, "environment": {"type": "object"}, "baseline_hashes": {"type": "object"}, "approval_hashes": {"type": "object"}, "production_readiness_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"}, "convergence_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"}, "evidence": {"type": "array"}, "limitations": {"type": "array"}, "production_claim_authorized": {"type": "boolean"}, "candidate_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}
+}

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hunpeolabs.com/schemas/product-analysis-v1.json",
+  "title": "Product Cross-Artifact Analysis",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "product_id", "gate", "state_revision", "analyzed_at", "status", "profile", "baseline_hashes", "findings", "summary", "trace_coverage", "next_action", "analysis_hash"],
+  "properties": {
+    "schema_version": {"const": 1}, "product_id": {"type": "string"}, "gate": {"enum": ["DISCOVERY_DECISION", "ALPHA_DECISION", "INVESTMENT_DECISION", "BUSINESS_REQUIREMENTS", "SOLUTION_BASELINE", "DELIVERY_BASELINE", "PRODUCTION_READINESS", "RELEASE_DECISION", "RETIREMENT_DECISION"]}, "state_revision": {"type": "integer"}, "analyzed_at": {"type": "string", "format": "date-time"}, "status": {"enum": ["BLOCKED", "READY_FOR_APPROVAL"]}, "profile": {"enum": ["LEAN", "STANDARD", "HIGH_ASSURANCE"]},
+    "baseline_hashes": {"type": "object", "additionalProperties": {"type": "string", "pattern": "^[a-f0-9]{64}$"}},
+    "findings": {"type": "array", "items": {"type": "object", "additionalProperties": false, "required": ["severity", "code", "message"], "properties": {"severity": {"enum": ["BLOCKER", "WARNING", "INFO"]}, "code": {"type": "string"}, "message": {"type": "string"}, "refs": {"type": "array", "items": {"type": "string"}}}}},
+    "summary": {"type": "object"}, "trace_coverage": {"type": "object"}, "next_action": {"type": "object"}, "analysis_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  }
+}

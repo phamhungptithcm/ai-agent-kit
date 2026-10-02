@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hunpeolabs.com/schemas/product-change-v1.json",
+  "title": "Product Baseline Change",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "requested_at", "requested_by", "reason", "baseline", "classification", "impact", "decision", "successor_versions"],
+  "properties": {
+    "schema_version": {"const": 1}, "id": {"type": "string", "pattern": "^CHANGE-[A-Z0-9-]+$"}, "requested_at": {"type": "string", "format": "date-time"}, "requested_by": {"type": "string"}, "reason": {"type": "string"}, "baseline": {"type": "object"}, "classification": {"enum": ["CLARIFICATION", "NON_MATERIAL_CORRECTION", "MATERIAL_CHANGE"]},
+    "impact": {"type": "object", "required": ["requirements", "architecture", "data", "security", "delivery", "cost", "schedule", "operations"], "properties": {"requirements": {"type": "array"}, "architecture": {"type": "array"}, "data": {"type": "array"}, "security": {"type": "array"}, "delivery": {"type": "array"}, "cost": {"type": "array"}, "schedule": {"type": "array"}, "operations": {"type": "array"}}, "additionalProperties": false},
+    "decision": {"enum": ["ACCEPTED", "CHANGES_REQUESTED", "REJECTED", "NEEDS_DECISION"]}, "successor_versions": {"type": "array", "items": {"type": "string"}}, "reapproval_required": {"type": "boolean"}
+  }
+}

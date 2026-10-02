@@ -1,0 +1,5 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "https://hunpeolabs.com/schemas/product-production-readiness-v1.json", "title": "Product Production Readiness", "type": "object",
+  "required": ["schema_version", "id", "version", "status", "environment_attestation_id", "release_scope", "decision", "checks"],
+  "properties": {"schema_version": {"const": 1}, "id": {"type": "string"}, "version": {"type": "integer", "minimum": 1}, "status": {"type": "string"}, "environment_attestation_id": {"type": "string"}, "release_scope": {"type": "string"}, "decision": {"type": "string"}, "checks": {"type": "object", "required": ["ci_cd", "acceptance", "infrastructure", "security", "accessibility", "privacy_legal", "observability", "incident_readiness", "migration", "capacity", "backup_restore", "rollback"]}}
+}

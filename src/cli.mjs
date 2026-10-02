@@ -18,6 +18,7 @@ import {
 } from "./inspection.mjs";
 import { renderNamedPrompt, renderPromptCatalog, renderPromptList } from "./prompt-catalog.mjs";
 import { evaluateSkillRouting, loadSkillRoutingConfig, loadSkillRoutingFixture, routeSkill, verifySkillRouting } from "./skill-routing.mjs";
+import { detectProductEntry, discoverProductWorkspaces, evaluateProductIntent, loadProductIntentConfig, loadProductIntentFixture } from "./product-intent.mjs";
 import { applyToolPlan, inspectToolPlan, renderToolInstall, renderToolPlan } from "./tool-lifecycle.mjs";
 import { getPackageVersion } from "./version.mjs";
 import { applyUpdate, planUpdate, renderUpdatePlan } from "./update.mjs";
@@ -155,6 +156,28 @@ import {
   writePulseResult
 } from "./pulse.mjs";
 import { pulseExitCode } from "./pulse-policy.mjs";
+import {
+  addProductQuestion,
+  analyzeProduct,
+  answerProductQuestion,
+  approveProductBaseline,
+  convergeProduct,
+  createProductWorkspace,
+  exportProductDossier,
+  inspectProduct,
+  inspectProductDossier,
+  nextProductAction,
+  planProductGithubIssues,
+  prepareProductReleaseCandidate,
+  putProductArtifact,
+  recordProductContext,
+  recordProductEnvironment,
+  recordProductEvidence,
+  resumeProduct,
+  syncProductGithubIssues,
+  validateProductArtifact,
+  verifyProductEvidence
+} from "./product-genesis.mjs";
 
 const FORBIDDEN_BOOTSTRAP_OPTIONS = new Set(["--commit", "--push", "--create-mr", "--git-mode"]);
 const SUPPORTED_PRESETS = new Set(["governed", "full"]);
@@ -181,13 +204,13 @@ Usage:
   ai-agent-kit activate
   ai-agent-kit bootstrap [options]
   ai-agent-kit start "<product goal>" [--id <task-id>] [--target <path>]
-  ai-agent-kit product list [--format text|json]
-  ai-agent-kit product next|status|view [--id <task-id>] [--format text|json]
-  ai-agent-kit product document --id <task-id> --kind <kind> --file <path> --owner <owner> --summary <purpose>
-  ai-agent-kit product bind --id <task-id> --file <contract.json>
-  ai-agent-kit product approve --id <task-id> --approved-by <decision-maker>
-  ai-agent-kit product check --id <task-id> --check <check-id> -- <executable> [arguments]
-  ai-agent-kit product release|sanity --id <task-id> --file <signed-record.json>
+  ai-agent-kit delivery list [--format text|json]
+  ai-agent-kit delivery next|status|view [--id <task-id>] [--format text|json]
+  ai-agent-kit delivery document --id <task-id> --kind <kind> --file <path> --owner <owner> --summary <purpose>
+  ai-agent-kit delivery bind --id <task-id> --file <contract.json>
+  ai-agent-kit delivery approve --id <task-id> --approved-by <decision-maker>
+  ai-agent-kit delivery check --id <task-id> --check <check-id> -- <executable> [arguments]
+  ai-agent-kit delivery release|sanity --id <task-id> --file <signed-record.json>
   ai-agent-kit status [--target <path>]
   ai-agent-kit doctor [--target <path>]
   ai-agent-kit diff [--target <path>]
@@ -202,6 +225,8 @@ Usage:
   ai-agent-kit adapter inspect --adapter <id>
   ai-agent-kit adapter conformance --adapter <id> [--target <path>]
   ai-agent-kit standards verify [--target <path>]
+  ai-agent-kit intent detect (--hint <request> | --stdin) [--target <path>] [--config <file>]
+  ai-agent-kit intent eval --fixture <file> [--config <file>]
   ai-agent-kit skills route --config <file> --hint <task>
   ai-agent-kit skills verify --config <file> --skills-root <directory> [--fixture <file>]
   ai-agent-kit skills eval --config <file> --skills-root <directory> --fixture <file>
@@ -248,6 +273,14 @@ Usage:
   ai-agent-kit pulse trend record --file <pulse-result-or-comparison.json> [--history <history.jsonl>]
   ai-agent-kit pulse trend show [--history <history.jsonl>]
   ai-agent-kit pulse explain --file <pulse-result-or-comparison.json>
+  ai-agent-kit product discover|start|status|resume|next [options]
+  ai-agent-kit product question-add|answer|context-add [options]
+  ai-agent-kit product artifact-put|artifact-validate|analyze|approve [options]
+  ai-agent-kit product github-plan|github-sync|converge [options]
+  ai-agent-kit product evidence-put|evidence-verify|environment-put [options]
+  ai-agent-kit product release-candidate|dossier-status|dossier-export [options]
+    github-sync --apply requires --approval-hash, --identity-file, and --action-file
+    github-sync ambiguous retries require --confirm-absent <delivery-item-id>
   ai-agent-kit team plan --id <task-id> [--shape <type>] [--path <scope>]
   ai-agent-kit team start --id <task-id> --adapter <id> [--capabilities-file <json>]
   ai-agent-kit team next --id <task-id>
@@ -375,6 +408,40 @@ export function parseRunArgs(argv) {
   return parseGovernedFeatureArgs(argv, ["record", "inspect", "recovery", "resume", "export", "verify", "otel"], ["--target", "--run-id", "--event-id", "--phase", "--task-id", "--actor", "--goal", "--approval-ref", "--decision-id", "--context-hash", "--plugin-receipt-hash", "--check-ref", "--finding-ref", "--blocker", "--next-action", "--failed-attempt", "--not-tried", "--timestamp", "--output", "--profile", "--file"], ["--apply"]);
 }
 
+export function parseProductArgs(argv) {
+  const actions = ["discover", "start", "status", "resume", "next", "question-add", "answer", "context-add", "artifact-put", "artifact-validate", "analyze", "approve", "github-plan", "github-sync", "converge", "evidence-put", "evidence-verify", "environment-put", "release-candidate", "dossier-status", "dossier-export"];
+  const action = argv[0];
+  if (!actions.includes(action)) throw new Error(`product requires one of: ${actions.join(", ")}`);
+  const valueFlags = new Set([
+    "--target", "--id", "--name", "--idea", "--profile", "--actor", "--created-by", "--timestamp",
+    "--question-id", "--question", "--rationale", "--decision-id", "--priority", "--stage", "--answer",
+    "--answer-status", "--source", "--category", "--context-id", "--statement", "--supersedes", "--type",
+    "--file", "--gate", "--decision", "--approver", "--approver-type", "--authority", "--scope",
+    "--constraint", "--accepted-risk", "--repository", "--repo", "--approval-hash", "--confirm-absent",
+    "--evidence-id", "--minimum-trust", "--release-class", "--limitation", "--output",
+    "--identity-file", "--action-file"
+  ]);
+  const keyMap = {
+    "created-by": "createdBy", "question-id": "questionId", "decision-id": "decisionId",
+    "answer-status": "answerStatus", "context-id": "contextId", "approver-type": "approverType",
+    "approval-hash": "approvalHash", "confirm-absent": "confirmAbsent", constraint: "constraints", "accepted-risk": "acceptedRisks",
+    "evidence-id": "evidenceId", "minimum-trust": "minimumTrust", "release-class": "releaseClass", limitation: "limitations",
+    "identity-file": "identityFile", "action-file": "actionFile"
+  };
+  const options = { target: process.cwd() };
+  for (let index = 1; index < argv.length; index += 1) {
+    const flag = argv[index];
+    if (["--apply", "--write"].includes(flag)) { options[flag.slice(2)] = true; continue; }
+    if (!valueFlags.has(flag)) throw new Error(`Unknown product ${action} option: ${flag}`);
+    const value = argv[++index];
+    if (!value) throw new Error(`${flag} requires a value`);
+    const raw = flag.slice(2); const key = keyMap[raw] ?? raw;
+    if (["scope", "constraints", "acceptedRisks", "confirmAbsent", "limitations"].includes(key)) (options[key] ??= []).push(value);
+    else options[key] = value;
+  }
+  return { action, options };
+}
+
 export function parsePluginArgs(argv) {
   return parseGovernedFeatureArgs(argv, ["init", "inspect", "plan", "apply", "authorize", "trust"], ["--target", "--file", "--state", "--adapter", "--approval-ref", "--timestamp", "--plugin-id", "--task-id", "--run-id", "--capability-token", "--requested", "--output"], ["--apply"]);
 }
@@ -448,6 +515,23 @@ export function parseSkillRoutingArgs(argv) {
   if (action === "route" && !options.hint) throw new Error("route requires --hint");
   if (["verify", "eval"].includes(action) && !options.skillsRoot) throw new Error(`${action} requires --skills-root`);
   if (action === "eval" && !options.fixture) throw new Error("eval requires --fixture");
+  return { action, options };
+}
+
+export function parseIntentArgs(argv) {
+  const action = argv[0];
+  if (!["detect", "eval"].includes(action)) throw new Error("intent requires detect or eval");
+  const options = { target: process.cwd(), stdin: false };
+  for (let index = 1; index < argv.length; index += 1) {
+    const flag = argv[index];
+    if (flag === "--stdin") { options.stdin = true; continue; }
+    if (!["--target", "--hint", "--config", "--fixture"].includes(flag)) throw new Error(`Unknown intent option: ${flag}`);
+    const value = argv[++index];
+    if (!value) throw new Error(`${flag} requires a value`);
+    options[flag.slice(2)] = value;
+  }
+  if (action === "detect" && Boolean(options.hint) === options.stdin) throw new Error("intent detect requires exactly one of --hint or --stdin");
+  if (action === "eval" && (!options.fixture || options.hint || options.stdin)) throw new Error("intent eval requires --fixture and does not accept a hint");
   return { action, options };
 }
 
@@ -1071,7 +1155,7 @@ export function parseBootstrapArgs(argv) {
 
 export async function main(argv = process.argv.slice(2), io = console, deps = {}) {
   const command = argv[0];
-  if (command === "start" || command === "product") {
+  if (command === "start" || command === "delivery") {
     const action = command === "start" ? "start" : argv[1];
     const args = argv.slice(command === "start" ? 1 : 2);
     const options = { target: process.cwd(), format: "text", deps };
@@ -1084,7 +1168,7 @@ export async function main(argv = process.argv.slice(2), io = console, deps = {}
       options[flag.slice(2).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase())] = args[++index];
     }
     if (!["text", "json"].includes(options.format)) throw new Error("Product format must be text or json.");
-    if (!["list", "start", "document", "bind", "approve", "check", "status", "next", "view", "release", "sanity"].includes(action)) throw new Error("Use product list, start, document, bind, approve, check, status, next, view, release or sanity.");
+    if (!["list", "start", "document", "bind", "approve", "check", "status", "next", "view", "release", "sanity"].includes(action)) throw new Error("Use delivery list, start, document, bind, approve, check, status, next, view, release or sanity.");
     if (action === "list") {
       const inventory = listProductFlows(options);
       io.log(options.format === "json" ? JSON.stringify(inventory, null, 2) : inventory.products.map(item => item.task_id + ": " + item.goal).join("\n") || "No products recorded yet.");
@@ -1168,6 +1252,17 @@ export async function main(argv = process.argv.slice(2), io = console, deps = {}
     const result = evaluateStandardsConformance(options.root ? { root: options.root } : {});
     io.log(JSON.stringify(result, null, 2));
     return result.status === "FAILED" ? 1 : 0;
+  }
+  if (command === "intent") {
+    const { action, options } = parseIntentArgs(argv.slice(1));
+    const hint = options.stdin ? String(deps.readStdin ? await deps.readStdin() : fs.readFileSync(0, "utf8")) : options.hint;
+    const localIntentConfig = path.join(path.resolve(options.target), ".ai", "config", "product-intent.json");
+    const intentConfig = options.config ? loadProductIntentConfig(options.config) : fs.existsSync(localIntentConfig) ? loadProductIntentConfig(localIntentConfig) : loadProductIntentConfig();
+    const result = action === "detect"
+      ? detectProductEntry({ ...options, hint })
+      : evaluateProductIntent({ config: intentConfig, fixture: loadProductIntentFixture(options.fixture) });
+    io.log(JSON.stringify(result, null, 2));
+    return result.status === "DETECTED" || result.status === "PASSED" ? 0 : result.status === "BLOCKED" ? 2 : 1;
   }
   if (command === "skills") {
     const { action, options } = parseSkillRoutingArgs(argv.slice(1));
@@ -1406,6 +1501,37 @@ export async function main(argv = process.argv.slice(2), io = console, deps = {}
     const artifact = options.output || options.taskId ? writePulseDocument(result, { ...options, output: options.output ?? `.ai-agent-kit/pulse/tasks/${options.taskId}.json` }, ".ai-agent-kit/pulse/results/comparison.json") : null;
     io.log(options.format === "text" ? `${renderPulseSummary(result)}${artifact ? `\nArtifact: ${artifact}` : ""}` : JSON.stringify(artifact ? { ...result, artifact } : result, null, 2));
     return pulseExitCode(result);
+  }
+  if (command === "product") {
+    const { action, options } = parseProductArgs(argv.slice(1));
+    let result;
+    if (action === "discover") result = discoverProductWorkspaces(options);
+    else if (action === "start") result = createProductWorkspace(options);
+    else if (action === "status") result = inspectProduct(options);
+    else if (action === "resume") result = resumeProduct(options);
+    else if (action === "next") result = nextProductAction(options);
+    else if (action === "question-add") result = addProductQuestion(options);
+    else if (action === "answer") result = answerProductQuestion(options);
+    else if (action === "context-add") result = recordProductContext(options);
+    else if (action === "artifact-put") result = putProductArtifact(options);
+    else if (action === "artifact-validate") result = validateProductArtifact(options.type, readSystemDesignJson(options.target, options.file, "product artifact"));
+    else if (action === "analyze") result = analyzeProduct(options);
+    else if (action === "approve") result = approveProductBaseline(options);
+    else if (action === "github-plan") result = planProductGithubIssues(options);
+    else if (action === "github-sync") result = syncProductGithubIssues({
+      ...options,
+      identity: options.identityFile ? readSystemDesignJson(options.target, options.identityFile, "product GitHub sync identity") : null,
+      actionEnvelope: options.actionFile ? readSystemDesignJson(options.target, options.actionFile, "product GitHub sync action") : null
+    }, deps);
+    else if (action === "converge") result = convergeProduct(options);
+    else if (action === "evidence-put") result = recordProductEvidence(options, deps);
+    else if (action === "evidence-verify") result = verifyProductEvidence(options);
+    else if (action === "environment-put") result = recordProductEnvironment(options, deps);
+    else if (action === "release-candidate") result = prepareProductReleaseCandidate(options);
+    else if (action === "dossier-status") result = inspectProductDossier(options);
+    else result = exportProductDossier(options);
+    io.log(JSON.stringify(result, null, 2));
+    return ["INVALID", "BLOCKED", "PARTIAL", "RECONCILIATION_REQUIRED", "STALE", "GAPS_FOUND", "CHANGES_REQUESTED", "REJECTED", "NOT_READY"].includes(result.status) ? 1 : 0;
   }
   if (command === "team") {
     const { action, options } = parseTeamArgs(argv.slice(1));

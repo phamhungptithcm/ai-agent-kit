@@ -1,6 +1,15 @@
 # Required Workflow
 
 For product work, apply `.ai/core/product-delivery.md` throughout this workflow. Identify existing canonical business rules, specs, system design, acceptance records, release runbook and demo record at intake. Maintain their revision-bound traceability in one delivery index; do not create unused parallel documents.
+## Phase 0 - Detect Conversation Mode
+
+Run `.ai/core/conversation-entry-gate.md` before Repository Intelligence. A raw
+product idea or an active Product Workspace enters `run-product-genesis`
+automatically; the user does not need to name v1.6, Product Genesis, or a skill.
+Run Repository Intelligence first only for work on an existing repository, or
+when an approved Product Genesis delivery reaches implementation. Ambiguous
+intent or multiple active products requires one short confirmation instead of
+silent routing.
 
 ## Phase 1 - Analyze The Existing System; Do Not Edit Code
 

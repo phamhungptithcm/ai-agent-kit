@@ -1,0 +1,17 @@
+---
+name: approve-product-baseline
+description: Prepare and verify a human approval gate for Product Genesis artifacts. Check completeness, traceability, contradictions, unresolved critical decisions, reviewer authority, scope, and artifact hashes before recording an approved BRD, specification, or delivery baseline; never self-approve.
+---
+
+# Approve Product Baseline
+
+Follow `.ai/rules/product-approval-integrity.md` and `.ai/workflows/establish-product-baseline.md`.
+
+1. Run `ai-agent-kit product analyze --id <id> --gate <gate> --write`; do not present approval while status is `BLOCKED`.
+2. Identify the exact artifact versions, bundle members, hashes, and analysis hash under review.
+3. Validate required fields, requirement quality, trace coverage, risks, contradictions, and unresolved decisions.
+4. Classify unresolved items as blocking or accepted residual risk.
+5. Present a concise decision package: scope, non-goals, trade-offs, cost/time range, evidence limits, and downstream impact.
+6. Require a named human approver, authority basis, timestamp, decision, constraints, and rationale. Record it with `product approve`.
+
+An agent recommendation is not approval. Approval of one hash does not approve later changes; the runtime marks affected approvals stale. Never translate a casual "looks good" into a broader scope than the exact decision package.

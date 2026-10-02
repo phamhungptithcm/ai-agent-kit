@@ -1,0 +1,5 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "https://hunpeolabs.com/schemas/product-retirement-v1.json", "title": "Product Retirement and Data Deletion", "type": "object",
+  "required": ["schema_version", "id", "version", "status", "trigger", "owner", "customer_communication", "data_deletion", "dependency_shutdown", "rollback", "decision", "evidence_receipt_ids"],
+  "properties": {"schema_version": {"const": 1}, "id": {"type": "string"}, "version": {"type": "integer", "minimum": 1}, "status": {"type": "string"}, "trigger": {"type": "string"}, "owner": {"type": "string"}, "customer_communication": {"type": "string"}, "data_deletion": {"type": "array"}, "dependency_shutdown": {"type": "string"}, "rollback": {"type": "string"}, "decision": {"enum": ["PLAN", "RETIRE", "HOLD"]}, "evidence_receipt_ids": {"type": "array", "items": {"type": "string"}}}
+}

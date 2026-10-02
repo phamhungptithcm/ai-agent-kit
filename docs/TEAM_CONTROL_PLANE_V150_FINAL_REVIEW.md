@@ -15,9 +15,10 @@ Implementation review status: `PASSED_WITH_RELEASE_GATES`
 Release status: `BLOCKED`
 
 No unresolved P0 or P1 finding remains in the reviewed Team Control Plane
-implementation. This does not classify the branch as releasable: generation,
-packed-package smoke, branch-history realignment, CI matrix evidence, and an
-actual runtime benchmark remain outstanding.
+implementation. Canonical generation, packed-package smoke, official v1.4.1
+lineage, and supported Node/OS non-publishing CI are complete on the release
+candidate. Publication remains blocked by release-owner authorization and the
+absence of the real-task comparative benchmark required for outcome claims.
 
 ## Reviewed dimensions
 
@@ -59,20 +60,18 @@ actual runtime benchmark remain outstanding.
 - Eval, system-design, team, memory, adapter-conformance, supply-chain, schema
   parse, approval validation, diff check, and high-severity npm audit passed
   during this implementation cycle.
+- Final clean release-candidate revalidation passed lint across 121 files,
+  typecheck across 114 files, `253/253` tests, canonical evidence checks, build,
+  packed-install smoke, Node 20/24, macOS, and Windows transactional recovery.
 
 ## Remaining release gates
 
-- Separate or complete concurrent product-content WIP, then safely regenerate
-  canonical adapters and distribution output without overwriting it.
-- Run `npm run check`, including build and packed-install smoke, on the clean
-  integrated release candidate.
-- Safely realign this branch with official `origin/main`/v1.4.0 history and rerun
-  all evidence on the resulting commit.
-- Pass the supported Node and OS CI matrix and merge-queue checks.
 - Run at least 30 comparable real task cases across all four modes before making
   a productivity, quality, latency, or cost improvement claim.
-- Obtain separate authorization for commit, push, PR, merge, tag, GitHub
-  Release, npm publish/provenance, or deployment.
+- Release owner reviews limitations, package contents, CI evidence, and merge
+  order with the stacked v1.6.0 candidate.
+- Obtain separate authorization for merge, tag, GitHub Release, npm
+  publish/provenance, or deployment.
 
 ## Known boundary
 

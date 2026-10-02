@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "https://hunpeolabs.com/schemas/product-evidence-receipt-v1.json", "title": "Product Evidence Receipt", "type": "object", "additionalProperties": false,
+  "required": ["schema_version", "id", "kind", "status", "trust_level", "producer", "collected_at", "expires_at", "repository", "summary"],
+  "properties": {
+    "schema_version": {"const": 1}, "id": {"type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{1,127}$"},
+    "kind": {"enum": ["FILE", "GIT_COMMIT", "CI_RUN", "TEST_REPORT", "SECURITY_SCAN", "ACCESSIBILITY_REVIEW", "PRIVACY_LEGAL_REVIEW", "THREAT_MODEL", "DEPLOYMENT", "ENVIRONMENT", "MIGRATION", "RETAINED_DATA", "LOAD_TEST", "BACKUP_RESTORE", "ROLLBACK_DRILL", "OBSERVABILITY", "INCIDENT_DRILL", "ANALYTICS", "CUSTOMER_RESEARCH", "USABILITY_TEST", "SUPPORT", "DATA_DELETION", "OTHER"]},
+    "status": {"enum": ["PASSED", "FAILED", "PARTIAL", "OBSERVED", "NOT_APPLICABLE"]}, "trust_level": {"enum": ["SELF_DECLARED", "LOCAL_VERIFIED", "REPOSITORY_BOUND", "PROVIDER_VERIFIED", "SIGNED_ATTESTATION"]},
+    "producer": {"type": "string"}, "collected_at": {"type": "string", "format": "date-time"}, "expires_at": {"type": "string", "format": "date-time"},
+    "repository": {"type": "object", "required": ["commit"], "properties": {"commit": {"type": "string", "pattern": "^[a-f0-9]{40,64}$"}, "remote": {"type": "string"}}},
+    "subject": {"type": ["object", "null"], "properties": {"path": {"type": "string"}, "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}, "size": {"type": "integer", "minimum": 0}}},
+    "environment_attestation_id": {"type": ["string", "null"]}, "provider": {"type": ["object", "null"]}, "summary": {"type": "string"}, "rationale": {"type": ["string", "null"]}, "limitations": {"type": "array", "items": {"type": "string"}}, "receipt_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  }
+}

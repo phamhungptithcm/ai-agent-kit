@@ -1,0 +1,6 @@
+interface:
+  display_name: "Validate product discovery"
+  short_description: "Test product assumptions before committing"
+  default_prompt: "Use $validate-product-discovery to test my product assumptions and prepare an evidence-backed Alpha decision."
+policy:
+  allow_implicit_invocation: true

@@ -2,6 +2,6 @@
 
 # JetBrains Junie Repository Instructions
 
-Use `.ai/` as the durable source of truth. Follow `.ai/core/required-workflow.md` and the Repository Intelligence Gate before analysis or implementation.
+Use `.ai/` as the durable source of truth. Follow `.ai/core/conversation-entry-gate.md` first; raw ideas and active Product Workspaces automatically enter `run-product-genesis` without a skill or version prefix. Existing-system work then follows `.ai/core/required-workflow.md` and the Repository Intelligence Gate.
 
 For existing-system changes, stop after the impact plan until valid approval evidence exists. Use `.ai/PROMPTS.md`, apply the matching quality profiles, run `.ai/core/quality-gates.md`, and render `.ai/core/task-completion-report.md` with actual progress, remaining work, production readiness, token usage, cost status, and evidence. Do not commit, push, create a pull request, update a ticket, deploy, access production, or perform destructive work without explicit user authorization.

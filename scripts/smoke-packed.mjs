@@ -310,7 +310,21 @@ try {
     ".ai/templates/architecture-pulse-config.schema.json",
     ".ai/templates/architecture-pulse-result.schema.json",
     ".ai/templates/architecture-pulse-baseline.schema.json",
-    ".ai/templates/architecture-pulse-comparison.schema.json"
+    ".ai/templates/architecture-pulse-comparison.schema.json",
+    ".ai/core/product-genesis.md",
+    ".ai/core/conversation-entry-gate.md",
+    ".ai/config/capability-coverage.json",
+    ".ai/config/product-intent.json",
+    ".ai/config/external-skill-sources.lock.json",
+    ".ai/guards/product-genesis-stage-gate.yaml",
+    ".ai/templates/business-requirements.schema.json",
+    ".ai/templates/product-specification.schema.json",
+    ".ai/evals/e2e/product-intent-cases.json",
+    ".agents/skills/start-product/SKILL.md",
+    ".agents/skills/write-business-requirements/SKILL.md",
+    ".agents/skills/write-product-specification/SKILL.md",
+    ".agents/skills/approve-product-baseline/SKILL.md",
+    ".agents/skills/plan-product-delivery/SKILL.md"
   ]) {
     assert.ok(fs.existsSync(path.join(installFixture, relPath)), `packed system-design capability missing ${relPath}`);
   }
@@ -327,11 +341,11 @@ try {
   }
   const productStart = execute(process.execPath, [installedCli, "start", "Build a useful ownership product", "--id", "PACKED-PRODUCT"], installFixture);
   assert.match(productStart.stdout, /NOT_TESTED/); assert.match(productStart.stdout, /Why:/);
-  const productNext = JSON.parse(execute(process.execPath, [installedCli, "product", "next", "--format", "json"], installFixture).stdout);
+  const productNext = JSON.parse(execute(process.execPath, [installedCli, "delivery", "next", "--format", "json"], installFixture).stdout);
   assert.equal(productNext.next_step.id, "discovery"); assert.equal(productNext.agent_handoff.context.trust, "UNTRUSTED_DATA");
-  const productView = JSON.parse(execute(process.execPath, [installedCli, "product", "view"], installFixture).stdout);
+  const productView = JSON.parse(execute(process.execPath, [installedCli, "delivery", "view"], installFixture).stdout);
   const productHtml = fs.readFileSync(productView.path, "utf8");
-  const productInventory = execute(process.execPath, [installedCli, "product", "list", "--format", "json"], installFixture);
+  const productInventory = execute(process.execPath, [installedCli, "delivery", "list", "--format", "json"], installFixture);
   assert.ok(JSON.parse(productInventory.stdout).products.some(item => item.task_id === "PACKED-PRODUCT"));
   assert.match(productHtml, /Product progress/);
   assert.match(productHtml, /aria-label="Delivery steps"/);

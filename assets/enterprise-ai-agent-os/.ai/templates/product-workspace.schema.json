@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hunpeolabs.com/schemas/product-workspace-v1.json",
+  "title": "Product Genesis Workspace State",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "id", "name", "stage", "profile", "revision", "created_at", "updated_at", "created_by", "artifact_heads", "approvals", "context", "github_plan", "convergence", "evidence_receipts", "environment_attestations", "iterations", "release_candidate", "state_hash"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{1,63}$"},
+    "name": {"type": "string", "minLength": 1},
+    "stage": {"enum": ["IDEA", "DISCOVERY", "RESEARCHED", "EXPERIMENTING", "ALPHA_REVIEW", "ALPHA_APPROVED", "INVESTMENT_REVIEW", "INVESTMENT_APPROVED", "BRD_DRAFT", "BRD_APPROVED", "SPEC_DRAFT", "DESIGN_DRAFT", "SPEC_APPROVED", "DELIVERY_PLANNED", "ITERATING", "IMPLEMENTING", "VERIFIED", "RELEASE_CANDIDATE", "PRODUCTION_REVIEW", "RELEASE_DECISION", "OPERATING", "MONITORING", "RETIREMENT_REVIEW", "NEEDS_DECISION", "CHANGES_REQUESTED", "PAUSED", "REJECTED", "RETIRED"]},
+    "profile": {"enum": ["LEAN", "STANDARD", "HIGH_ASSURANCE"]},
+    "revision": {"type": "integer", "minimum": 1},
+    "created_at": {"type": "string", "format": "date-time"},
+    "updated_at": {"type": "string", "format": "date-time"},
+    "created_by": {"type": "string", "minLength": 1},
+    "artifact_heads": {"type": "object", "additionalProperties": {"$ref": "#/$defs/artifactRef"}},
+    "approvals": {"type": "object", "additionalProperties": {"$ref": "#/$defs/approvalRef"}},
+    "context": {"type": "object", "additionalProperties": false, "required": ["confirmed", "assumptions", "unknowns", "changed"], "properties": {"confirmed": {"type": "array", "items": {"type": "object"}}, "assumptions": {"type": "array", "items": {"type": "object"}}, "unknowns": {"type": "array", "items": {"type": "object"}}, "changed": {"type": "array", "items": {"type": "object"}}}},
+    "github_plan": {"anyOf": [{"type": "null"}, {"type": "object"}]},
+    "convergence": {"anyOf": [{"type": "null"}, {"type": "object"}]},
+    "evidence_receipts": {"type": "object", "additionalProperties": {"type": "object"}},
+    "environment_attestations": {"type": "object", "additionalProperties": {"type": "object"}},
+    "iterations": {"type": "object", "additionalProperties": {"type": "object"}},
+    "release_candidate": {"anyOf": [{"type": "null"}, {"type": "object"}]},
+    "state_hash": {"$ref": "#/$defs/hash"}
+  },
+  "$defs": {
+    "hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "artifactRef": {"type": "object", "additionalProperties": false, "required": ["type", "id", "version", "hash", "status", "path"], "properties": {"type": {"type": "string"}, "id": {"type": "string"}, "version": {"type": "integer", "minimum": 1}, "hash": {"$ref": "#/$defs/hash"}, "status": {"type": ["string", "null"]}, "path": {"type": "string"}}},
+    "approvalRef": {"type": "object", "additionalProperties": false, "required": ["id", "decision", "artifact_hash", "approval_hash", "approver", "decided_at", "path", "status"], "properties": {"id": {"type": "string"}, "decision": {"enum": ["APPROVED", "CHANGES_REQUESTED", "REJECTED"]}, "artifact_hash": {"$ref": "#/$defs/hash"}, "approval_hash": {"$ref": "#/$defs/hash"}, "approver": {"type": "string"}, "decided_at": {"type": "string", "format": "date-time"}, "path": {"type": "string"}, "status": {"enum": ["CURRENT", "STALE", "CHANGES_REQUESTED", "REJECTED"]}}}
+  }
+}

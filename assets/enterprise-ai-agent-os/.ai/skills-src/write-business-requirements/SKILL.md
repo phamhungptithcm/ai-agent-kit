@@ -1,0 +1,24 @@
+---
+name: write-business-requirements
+description: Convert approved discovery evidence into a versioned Business Requirements Document for a new product. Define business outcomes, stakeholders, scope, policies, capabilities, measurable requirements, risks, assumptions, dependencies, and approval criteria without leaking implementation design into business requirements.
+---
+
+# Write Business Requirements
+
+Require a current discovery approval. Use `.ai/templates/business-requirements.schema.json`, `.ai/templates/business-rules.schema.json`, and `.ai/rules/requirements-integrity.md`.
+
+Build the BRD from cited idea and research versions. Assign stable `BR-*` identifiers. Include:
+
+- executive context and business problem
+- stakeholders, users, operators, owners, and decision rights
+- goals, KPIs, baselines, targets, and measurement windows
+- in-scope capabilities and explicit non-goals
+- business rules, policy, data, privacy, legal, and operational needs
+- dependencies, constraints, assumptions, risks, and unresolved decisions
+- acceptance and approval criteria
+
+For `STANDARD` and `HIGH_ASSURANCE`, create a separate rule catalog with stable `RULE-*` IDs, explicit conditions, outcomes, owners, examples, exceptions, and source requirements. Keep policies out of prose-only sections.
+
+Mark each requirement `DRAFT`, `PROPOSED`, `APPROVED`, `CHANGED`, or `RETIRED`. A missing fact remains `TBD(owner, due date)`; never invent it.
+
+Validate and record `brd` and `business-rules` artifacts, then run `product analyze --gate BUSINESS_REQUIREMENTS`. Resolve blockers and stop at `BRD_READY_FOR_APPROVAL`. Only a named human approver bound to the exact BRD hash may establish the baseline.

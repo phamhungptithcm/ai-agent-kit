@@ -1,0 +1,5 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "https://hunpeolabs.com/schemas/product-iteration-review-v1.json", "title": "Product Iteration Review", "type": "object",
+  "required": ["schema_version", "id", "version", "status", "iteration_id", "goal_status", "progress", "acceptance", "review", "retrospective", "changes", "evidence_receipt_ids", "completed_at"],
+  "properties": {"schema_version": {"const": 1}, "id": {"type": "string"}, "version": {"type": "integer", "minimum": 1}, "status": {"type": "string"}, "iteration_id": {"type": "string"}, "goal_status": {"type": "string"}, "progress": {"type": "array"}, "acceptance": {"type": "array"}, "review": {"type": "string"}, "retrospective": {"type": "string"}, "changes": {"type": "array"}, "evidence_receipt_ids": {"type": "array", "items": {"type": "string"}}, "completed_at": {"type": "string", "format": "date-time"}}
+}

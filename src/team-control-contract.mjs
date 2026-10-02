@@ -9,7 +9,7 @@ export const TEAM_CAPABILITIES = new Set([
   "workspace.plan", "workspace.provision", "workspace.cleanup", "result.publish",
   "review.submit", "integration.enqueue", "integration.admit", "integration.reject",
   "claim.takeover", "registry.migrate", "registry.recover", "trust.admin", "metrics.read",
-  "release.record", "release.sanity"
+  "release.record", "release.sanity", "product.github.write"
 ]);
 export const SURFACE_KINDS = new Set(["PATH", "SYMBOL", "API", "SCHEMA", "MIGRATION", "DEPENDENCY", "GENERATED"]);
 export const CLAIM_MODES = new Set(["READ", "WRITE"]);

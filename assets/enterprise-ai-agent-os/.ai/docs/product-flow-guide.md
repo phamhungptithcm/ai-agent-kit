@@ -12,9 +12,9 @@ commit identity.
 
 ```sh
 ai-agent-kit start "Build a product for my users"
-ai-agent-kit product next
-ai-agent-kit product view
-ai-agent-kit product status --format json
+ai-agent-kit delivery next
+ai-agent-kit delivery view
+ai-agent-kit delivery status --format json
 ```
 
 `start` records the goal and active ID. `next` explains what, why, expected
@@ -29,10 +29,10 @@ Register completed canonical files, bind the JSON contract, record existing
 authorization and execute declared checks:
 
 ```sh
-ai-agent-kit product document --kind discovery --file docs/product/brief.md --owner product-owner --summary "Users, outcome and sourced decisions"
-ai-agent-kit product bind --file docs/product/contract.json
-ai-agent-kit product approve --approved-by decision-maker
-ai-agent-kit product check --check acceptance -- node test/acceptance.mjs
+ai-agent-kit delivery document --kind discovery --file docs/product/brief.md --owner product-owner --summary "Users, outcome and sourced decisions"
+ai-agent-kit delivery bind --file docs/product/contract.json
+ai-agent-kit delivery approve --approved-by decision-maker
+ai-agent-kit delivery check --check acceptance -- node test/acceptance.mjs
 ```
 
 The installed `product-contract.schema.json` describes schema 1 and the production v2 extension: matching
@@ -80,13 +80,13 @@ against an actor controlling the repository and trust store.
 
 ## Release and sanity formats
 
-`product release --file <record.json>` needs current authenticated review and
+`delivery release --file <record.json>` needs current authenticated review and
 all checks. Schema 1 has matching task_id/input_hash; release_reference; environment;
 environment_kind (PRODUCTION, STAGING, LOCAL or FIXTURE); artifact with relative
 path and sha256; rollback_reference and observation_plan descriptions; identity;
 and signed release.record action. This records evidence, not a deployment.
 
-`product sanity --file <record.json>` binds task/input/artifact_sha256/
+`delivery sanity --file <record.json>` binds task/input/artifact_sha256/
 environment/environment_kind; concrete readback_reference; observation_started_at, observation_finished_at and required_observation_ms; nonempty evidence entries with path,
 sha256 and status PASSED; identity and signed release.sanity action.
 Observation must fulfill the required duration. Files must be bounded/redacted.

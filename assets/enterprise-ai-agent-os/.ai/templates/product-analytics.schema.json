@@ -1,0 +1,5 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "https://hunpeolabs.com/schemas/product-analytics-v1.json", "title": "Product Analytics", "type": "object",
+  "required": ["schema_version", "id", "version", "status", "environment_attestation_id", "measurement_window", "instrumentation", "metrics", "evidence_receipt_ids"],
+  "properties": {"schema_version": {"const": 1}, "id": {"type": "string"}, "version": {"type": "integer", "minimum": 1}, "status": {"type": "string"}, "environment_attestation_id": {"type": "string"}, "measurement_window": {"type": "string"}, "instrumentation": {"type": "array", "minItems": 1}, "metrics": {"type": "array", "minItems": 1}, "evidence_receipt_ids": {"type": "array", "items": {"type": "string"}}}
+}

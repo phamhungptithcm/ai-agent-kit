@@ -1,4 +1,4 @@
-# AI Agent Kit — Recoverable decisions. Traceable runs.
+# AI Agent Kit — From product idea to governed, traceable delivery.
 
 [![npm version](https://img.shields.io/npm/v/@hunpeolabs/ai-agent-kit?color=cb3837)](https://www.npmjs.com/package/@hunpeolabs/ai-agent-kit)
 [![npm downloads](https://img.shields.io/npm/dm/@hunpeolabs/ai-agent-kit?label=downloads%2Fmonth&color=2563eb)](https://www.npmjs.com/package/@hunpeolabs/ai-agent-kit)
@@ -7,7 +7,12 @@
 [![MIT license](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Node.js 20+](https://img.shields.io/badge/node-%3E%3D20-43853d)](package.json)
 
-Your coding agent can write code. AI Agent Kit preserves why that code exists,
+Your agent can now begin before code exists, without a special prompt prefix.
+The Conversation Entry Gate recognizes a natural raw idea, enters Product
+Genesis, and resumes the durable workspace in later sessions. Product Genesis discusses and
+improves a rough idea, researches its practical opportunity, writes versioned
+business requirements and product specifications, waits for named human
+approval, and only then plans professional delivery. AI Agent Kit preserves why that code exists,
 which run produced it, what failed, what was fixed, and what evidence actually
 passed. It combines repository context, governed plugins, specialist workcells,
 security boundaries, review loops, memory, recovery, and proof in one local
@@ -21,7 +26,7 @@ complete integration today; every other adapter publishes its limitations
 instead of implying feature parity.
 
 ```text
-Understand → Decide → Approve → Build → Review ↻ Fix → Verify → Recover → Prove
+Idea → Discuss → Research → Approve → BRD + Rules → Approve → Spec + Design → Approve → Delivery → Build → Converge → Operate
 ```
 
 > **Every decision should be recoverable. Every run should be traceable.**
@@ -51,18 +56,17 @@ can inspect or resume its recorded progress:
 
 ```sh
 ai-agent-kit start "My product goal"
-ai-agent-kit product list --format json
-ai-agent-kit product next
-ai-agent-kit product view
+ai-agent-kit delivery list --format json
+ai-agent-kit delivery next
+ai-agent-kit delivery view
 ```
 
 The saved view shows eight steps, their purpose, actual files, blockers, review
 cycles and evidence levels. Local checks, authenticated review and operator
 attestations stay distinct. The CLI needs an active coding-agent host; it does
 not start a model or background worker. Publishing/deploying requires explicit
-authorization. This feature is unreleased until a new package is published;
-build this checkout with `npm run build` and use `node bin/ai-agent-kit.mjs` to
-try it. [Product flow guide](assets/enterprise-ai-agent-os/.ai/docs/product-flow-guide.md).
+authorization. Available in v1.7.0. For a source checkout, build with `npm run build` and use
+`node bin/ai-agent-kit.mjs`. [Product flow guide](assets/enterprise-ai-agent-os/.ai/docs/product-flow-guide.md).
 
 [Why it is different](#a-system-not-another-prompt) · [Context model](#keep-the-context-focused) · [What ships](#what-ships-today) · [Install](#install-for-the-agents-you-use) · [Supported agents](#supported-agents) · [Documentation](#documentation) · [npm](https://www.npmjs.com/package/@hunpeolabs/ai-agent-kit)
 
@@ -116,6 +120,27 @@ and safety do not depend on one long conversation.
 The kit does not replace human judgment or decide what a team should approve.
 It makes the workflow reproducible and the evidence reviewable.
 
+### Product Genesis: durable idea-to-product execution
+
+Product Genesis stores current artifact heads, immutable predecessors, open decisions, evidence receipts, environment attestations, iterations, release candidates, and exact human approvals under `.ai/products/<product-id>/`. This lets an agent resume from evidence instead of asking the user to repeat the conversation.
+
+Describe the idea naturally—`Mình muốn làm một ứng dụng giúp các salon giảm
+khách bỏ hẹn` is enough. The agent runs the Conversation Entry Gate and selects
+`run-product-genesis`; users do not need to mention v1.6 or a skill. Ambiguous
+intent and multiple active products require one short confirmation.
+
+```bash
+printf '%s' 'Mình muốn làm một ứng dụng giúp salon giảm khách bỏ hẹn' | ai-agent-kit intent detect --stdin
+ai-agent-kit delivery discover
+ai-agent-kit delivery start --id salon-pilot --idea "Reduce salon no-shows" --profile standard
+ai-agent-kit delivery resume --id salon-pilot
+ai-agent-kit delivery next --id salon-pilot
+ai-agent-kit delivery analyze --id salon-pilot --gate ALPHA_DECISION --write
+ai-agent-kit delivery dossier-status --id salon-pilot
+```
+
+Discussion is limited to the three highest-impact current questions. `LEAN`, `STANDARD`, and `HIGH_ASSURANCE` profiles vary discovery and assurance depth without removing traceability or approval gates. Hypothesis experiments and business/trust/data decisions precede the BRD. Capacity-bounded iterations prevent stage gates from becoming document-only waterfall. GitHub issue creation remains preview-first; apply requires an exact plan approval plus a repository-trusted, one-use Ed25519 `MEMBER` action with `product.github.write`. `product converge` binds the approved chain to a clean full Git commit, existing code/test file hashes, and evidence receipts. Production readiness requires provider-verified CI/CD, security, accessibility, privacy/legal, deployment/operations, migration, capacity, restore/rollback, analytics, support, and environment evidence.
+
 ## Keep the context focused
 
 Rules, skills, workcells, hooks, memory, and evidence solve different problems.
@@ -146,6 +171,11 @@ blocks implementation; missing optional indexes produce an explicit
 | Quality intelligence | **26** stack/risk profiles plus **23** durable engineering rules |
 | Enforcement | **19** guards for approval, trace completeness, safe resume, plugin activation, capability, repository intelligence, memory, data, dependencies, orchestration, repository coordination, and protected actions |
 | Reusable artifacts | **84** templates and schemas for business rules, behavioral specs, plans, decisions, runs, plugins, benchmarks, reviews, evidence, system design, teams, memory, product content, marketing, SEO/GEO, production release, and rehearsed demos |
+| Canonical skills | **58** skill sources, including the Product Genesis orchestrator and sixteen stage skills, installed only where the selected adapter supports skill surfaces |
+| Engineering workflows | **36** workflows for product discovery, experiments, requirements, iterations, production, implementation, review, incidents, architecture, policy, memory, recovery, and proof |
+| Quality intelligence | **31** stack/risk/product profiles plus **29** durable engineering rules |
+| Enforcement | **22** guards for product approval/evidence, trace completeness, safe resume, plugin activation, capability, repository intelligence, memory, data, dependencies, orchestration, and protected actions |
+| Reusable artifacts | **113** templates and schemas for ideas, experiments, viability, trust/data, requirements, design, iterations, evidence, environments, production, support, retirement, decisions, runs, plugins, teams, memory, and release assurance |
 | Agent ecosystem | **12** versioned adapters with machine-readable `native`, `generated`, `bridged`, `advisory`, `preview`, or `unsupported` capability states |
 | Coordination | Four workcell modes, dependency-ready waves, leases, heartbeats, cancellation, bounded retries, recovery, and independent review |
 | Verification | Behavioral evals, adapter/standards conformance, tests, Failure Lab, Agent Proof Replay, Change Passports, and fail-closed readiness |
@@ -746,11 +776,18 @@ See [Agent Adapter Strategy](docs/AGENT_ADAPTER_STRATEGY.md) for details.
 | `1.4.0` | Native Architecture Pulse with bounded polyglot scanning, dependency graphs, explainable structural metrics, trusted baselines, explicit regression policy, CLI workflows, and governed evidence binding. |
 | `1.4.1` | Change-aware Pulse with stable finding identity, truthful coverage, tiered precision, base/head impact, governed waivers, SARIF, trends, bounded evidence packs, and a polyglot effectiveness benchmark. |
 | `1.5.0` | Repository Team Control Plane with authenticated identities, cross-task claims, isolated worktrees, fencing tokens, integration packages, independent review, privacy-safe SLOs, and four-mode release benchmarks. |
+| `1.6.0` | Product Genesis from a rough idea through discovery, research, human-approved BRD/spec baselines, Agile delivery planning, change control, and outcome review. |
+| `1.7.0` | Evidence-bound delivery, 21 production controls, candidate-bound signed review/release and eight-step progress view. |
+| `1.6.1` | Product Genesis Auto Entry with natural-language intent detection, safe workspace discovery/resume, cross-adapter entry instructions, and no required skill/version prefix. |
 
 ## Documentation
 
 - [Adoption Guide](docs/ADOPTION_GUIDE.md)
 - [High-Level Design](docs/HIGH_LEVEL_DESIGN.md)
+- [Product Genesis: Idea to Production](docs/PRODUCT_GENESIS.md)
+- [v1.7.0 Evidence-Bound Product Delivery release notes](docs/releases/v1.7.0-evidence-bound-delivery.md)
+- [v1.6.1 Product Genesis Auto Entry release notes](docs/releases/v1.6.1-product-genesis-auto-entry-draft.md)
+- [v1.6.0 Product Genesis release notes (draft)](docs/releases/v1.6.0-product-genesis-draft.md)
 - [Agent Department Proof Loop](docs/AGENT_DEPARTMENT_PROOF_LOOP.md)
 - [Traceable Plugin Runtime](docs/TRACEABLE_PLUGIN_RUNTIME.md)
 - [Agent Reliability Benchmark](docs/AGENT_RELIABILITY_BENCHMARK.md)

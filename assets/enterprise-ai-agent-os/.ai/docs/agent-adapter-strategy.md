@@ -25,12 +25,20 @@ Devin, Aider, and Continue without forking the shared policy in `.ai/`.
 
 Every adapter must:
 
-1. Route the agent to `.ai/` as the durable source of truth.
+1. Route the agent to `.ai/` as the durable source of truth and run
+   `.ai/core/conversation-entry-gate.md` before Repository Intelligence.
 2. Point users to `.ai/PROMPTS.md`.
 3. Reuse `.ai/skills-src/` when the target supports `SKILL.md` skills.
 4. Preserve repository intelligence, approval, quality-gate, output-contract, and memory-governance requirements.
 5. Keep bootstrap local-only: no automatic branch, commit, push, PR/MR, Jira update, deploy, or application source edit.
 6. Participate in ownership, drift, selection, and validation checks.
+
+The deterministic detector is enforced when AI Agent Kit owns task creation or
+a supported host entry hook. Hosts that only load repository instructions must
+treat auto-entry as advisory: they are required to call the same detector, but
+the kit cannot claim prompt interception that the host does not expose. Native
+skill hosts invoke `run-product-genesis`; other hosts follow the canonical
+workflow and stage documents under `.ai/`.
 
 Use `bootstrap --agents all` for every adapter or `bootstrap --agents codex,copilot,cursor` for a reviewed subset.
 

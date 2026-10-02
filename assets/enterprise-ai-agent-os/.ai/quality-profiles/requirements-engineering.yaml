@@ -1,0 +1,11 @@
+version: 1
+id: requirements-engineering
+name: Product Specification Profile
+description: Translate approved business requirements into complete, measurable, traceable product and system behavior.
+required_review:
+  journeys: [happy_failure_empty_loading_denied_and_recovery_paths_exist, permissions_are_explicit]
+  quality: [performance_reliability_security_privacy_accessibility_and_operability_are_measurable]
+  contracts: [data_lifecycle_integrations_and_compatibility_are_defined, migrations_and_rollback_are_addressed]
+  verification: [acceptance_criteria_are_testable, every_spec_item_traces_to_business_need_and_verification]
+required_output: [product_specification, acceptance_scenarios, traceability_matrix, unresolved_decisions]
+allowed_statuses: [SPEC_READY_FOR_APPROVAL, BLOCKED_BY_BRD_GATE, NEEDS_DECISION, CONSTRAINTS_CONFLICT]

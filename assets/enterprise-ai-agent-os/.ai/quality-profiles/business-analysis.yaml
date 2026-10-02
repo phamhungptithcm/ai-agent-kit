@@ -1,0 +1,11 @@
+version: 1
+id: business-analysis
+name: Business Analysis Profile
+description: Convert product evidence into measurable business outcomes, policies, scope, capabilities, and decision-ready requirements.
+required_review:
+  outcome: [goals_have_baseline_target_window_and_owner, kpis_are_not_vanity_only]
+  stakeholders: [decision_rights_are_named, operators_and_support_are_included]
+  requirements: [stable_ids_and_sources_exist, business_need_is_separate_from_solution, conflicts_are_resolved_or_blocking]
+  viability: [cost_revenue_risk_legal_privacy_and_operations_are_addressed]
+required_output: [business_requirements_document, requirement_register, decision_log, approval_package]
+allowed_statuses: [BRD_READY_FOR_APPROVAL, NEEDS_DECISION, INSUFFICIENT_EVIDENCE, CONSTRAINTS_CONFLICT]

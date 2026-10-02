@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hunpeolabs.com/schemas/product-convergence-v1.json",
+  "title": "Product Intent-to-Implementation Convergence",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "product_id", "status", "analyzed_at", "repository", "implementation_commit", "baseline_hashes", "stale_hashes", "requirements_total", "requirements_verified", "gaps", "evidence_items", "resolved_files", "convergence_hash"],
+  "properties": {
+    "schema_version": {"const": 1}, "product_id": {"type": "string"}, "status": {"enum": ["STALE", "GAPS_FOUND", "CONVERGED"]}, "analyzed_at": {"type": "string", "format": "date-time"}, "repository": {"type": "object"}, "implementation_commit": {"type": "string", "pattern": "^[a-f0-9]{40,64}$"},
+    "baseline_hashes": {"type": "array", "items": {"$ref": "#/$defs/hash"}}, "stale_hashes": {"type": "array", "items": {"$ref": "#/$defs/hash"}}, "requirements_total": {"type": "integer", "minimum": 0}, "requirements_verified": {"type": "integer", "minimum": 0},
+    "gaps": {"type": "array", "items": {"type": "object"}}, "evidence_items": {"type": "array", "items": {"$ref": "#/$defs/evidence"}}, "resolved_files": {"type": "array", "items": {"type": "object"}}, "convergence_hash": {"$ref": "#/$defs/hash"}
+  },
+  "$defs": {"hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"}, "evidence": {"type": "object", "additionalProperties": false, "required": ["requirement_id", "status", "task_ids", "code_refs", "test_refs", "evidence_refs"], "properties": {"requirement_id": {"type": "string"}, "status": {"enum": ["VERIFIED", "FAILED", "NOT_RUN", "NOT_APPLICABLE"]}, "task_ids": {"type": "array", "items": {"type": "string"}}, "code_refs": {"type": "array", "items": {"type": "string"}}, "test_refs": {"type": "array", "items": {"type": "string"}}, "evidence_refs": {"type": "array", "items": {"type": "string"}}, "rationale": {"type": "string"}}}}
+}

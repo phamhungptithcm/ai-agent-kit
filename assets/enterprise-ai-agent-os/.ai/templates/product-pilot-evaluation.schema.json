@@ -1,0 +1,5 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "https://hunpeolabs.com/schemas/product-pilot-evaluation-v1.json", "title": "Product Pilot Evaluation", "type": "object",
+  "required": ["schema_version", "id", "version", "status", "pilot_id", "cohort", "window", "tasks", "metrics", "evidence_receipt_ids", "recommendation", "rationale", "limitations"],
+  "properties": {"schema_version": {"const": 1}, "id": {"type": "string"}, "version": {"type": "integer", "minimum": 1}, "status": {"type": "string"}, "pilot_id": {"type": "string"}, "cohort": {"type": "string"}, "window": {"type": "string"}, "tasks": {"type": "array"}, "metrics": {"type": "array"}, "evidence_receipt_ids": {"type": "array", "items": {"type": "string"}}, "recommendation": {"enum": ["CONTINUE", "PIVOT", "STOP", "INCONCLUSIVE"]}, "rationale": {"type": "string"}, "limitations": {"type": "array"}}
+}

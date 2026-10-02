@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hunpeolabs.com/schemas/product-question-ledger-v1.json",
+  "title": "Product Genesis Question Ledger",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "product_id", "revision", "created_at", "updated_at", "items", "questions_hash"],
+  "properties": {
+    "schema_version": {"const": 1}, "product_id": {"type": "string"}, "revision": {"type": "integer", "minimum": 1},
+    "created_at": {"type": "string", "format": "date-time"}, "updated_at": {"type": "string", "format": "date-time"},
+    "items": {"type": "array", "maxItems": 1000, "items": {"type": "object", "additionalProperties": false, "required": ["id", "text", "rationale", "decision_id", "priority", "stage", "status", "created_at", "created_by", "answer"], "properties": {"id": {"type": "string"}, "text": {"type": "string", "minLength": 1}, "rationale": {"type": "string", "minLength": 1}, "decision_id": {"type": "string"}, "priority": {"type": "integer", "minimum": 0, "maximum": 100}, "stage": {"type": "string"}, "status": {"enum": ["OPEN", "ACTIVE", "ANSWERED", "DEFERRED"]}, "created_at": {"type": "string", "format": "date-time"}, "created_by": {"type": "string"}, "answer": {"anyOf": [{"type": "null"}, {"type": "object", "additionalProperties": false, "required": ["text", "actor", "source", "answered_at"], "properties": {"text": {"type": "string"}, "actor": {"type": "string"}, "source": {"type": "string"}, "answered_at": {"type": "string", "format": "date-time"}}}]}}}},
+    "questions_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  }
+}

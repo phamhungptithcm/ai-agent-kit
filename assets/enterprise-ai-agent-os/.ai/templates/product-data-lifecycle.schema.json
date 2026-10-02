@@ -1,0 +1,5 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "https://hunpeolabs.com/schemas/product-data-lifecycle-v1.json", "title": "Product Data Lifecycle", "type": "object",
+  "required": ["schema_version", "id", "version", "status", "source_versions", "data_classes", "retention_rules", "migrations", "retained_data_validations", "deletion_workflows"],
+  "properties": {"schema_version": {"const": 1}, "id": {"type": "string"}, "version": {"type": "integer", "minimum": 1}, "status": {"type": "string"}, "source_versions": {"type": "array", "items": {"type": "string"}}, "data_classes": {"type": "array", "minItems": 1}, "retention_rules": {"type": "array", "minItems": 1}, "migrations": {"type": "array"}, "retained_data_validations": {"type": "array"}, "deletion_workflows": {"type": "array"}}
+}

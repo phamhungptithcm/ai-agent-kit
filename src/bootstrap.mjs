@@ -227,12 +227,20 @@ Follow .ai/workflows/develop-product.md, show each step and its output paths,
 and continue approved work. Show the review loop, evidence limits and next action.
 The CLI records progress; your coding agent performs the work.
 
-Inspect progress: ai-agent-kit product next
-Open a saved progress view: ai-agent-kit product view
+Inspect progress: ai-agent-kit delivery next
+Open a saved progress view: ai-agent-kit delivery view
 
 For a bounded engineering task:
+No skill or version prefix is required. Describe the request naturally. The
+Conversation Entry Gate routes a raw product idea to Product Genesis, resumes a
+single active Product Workspace, or starts the existing-system workflow.
 
-Use start-task for this request:
+Example raw idea:
+
+Mình muốn làm một ứng dụng giúp các salon giảm khách bỏ hẹn.
+
+Example existing-system task:
+
 [paste your ticket or requirement]`;
 }
 

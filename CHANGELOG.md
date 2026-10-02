@@ -2,6 +2,78 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.7.0 - 2026-10-02
+
+- Add candidate-bound delivery contracts, signed independent review and release/sanity evidence.
+- Add 21 production harness controls for documentation, planning, stack, code/API, performance/memory, security and operations.
+- Add eight-step progress view and safe read-only flow inventory.
+- Preserve Product Genesis under `product`; introduce execution evidence under `delivery`.
+- Harden release archive/readback integrity and document truthful host and production evidence limits.
+- See [full release notes](docs/releases/v1.7.0-evidence-bound-delivery.md).
+
+## v1.6.1 — 2026-08-21 — Product Genesis Auto Entry
+
+- Added a Conversation Entry Gate before Repository Intelligence so users can
+  describe a raw product idea naturally without naming Product Genesis, v1.6,
+  or a stage skill.
+- Added local deterministic `intent detect` and `intent eval` CLI surfaces with
+  Vietnamese/English semantic signal groups, explainable reason codes,
+  explicit ambiguity, and privacy-minimized routing output that neither repeats
+  the raw request nor adds it to routing evidence. Existing task and Product
+  Workspace records keep their separately governed goal or idea fields.
+- Added bounded `product discover` workspace inspection. A single active
+  product can resume through `product resume` and `product next`; multiple,
+  conflicting, missing, or corrupt workspaces fail closed instead of being
+  selected silently.
+- Integrated Product Genesis auto-entry into governed task creation while
+  preserving existing-system routing, named-human exact-hash approvals, and
+  separate authority for code, GitHub writes, commits, deployment, and release.
+- Added 50 multilingual product-intent cases, expanded canonical skill routing
+  to 53 cases, adapter instruction conformance, workspace-integrity tests, and a
+  local warm in-process routing benchmark.
+- Auto-entry is deterministic only where the kit owns the runtime or a supported
+  host entry hook. Instruction-only hosts remain advisory and are described as
+  such rather than being presented as enforced.
+
+## Unreleased — v1.6.0 Product Genesis
+
+- Added a governed idea-to-production Product Genesis workflow for users who
+  begin without a codebase, BRD, product specification, or architecture.
+- Added a Product Genesis orchestrator plus sixteen routed stage skills, including hypothesis/experiment validation,
+  business viability, product trust/data assurance, capacity-bounded iterations,
+  production readiness, live operation, and retirement/data deletion.
+- Added a sealed local Product Workspace runtime and CLI with immutable artifact
+  heads, bounded decision questions, classified context, hash-chained events,
+  stale-approval detection, cross-artifact analysis, and resume/next actions.
+- Added append-only idea, research, BRD, business-rule, specification, design,
+  approval, traceability, backlog, GitHub-plan, convergence, and change schemas
+  with named-human exact-hash approval gates.
+- Added `LEAN`, `STANDARD`, and `HIGH_ASSURANCE` design depth, preview-first
+  duplicate-protected GitHub issue synchronization with repository-trusted
+  Ed25519 member authorization, one-use nonces, reconciliation-gated retries, and requirement-to-code/test/evidence
+  convergence checks before release review.
+- Added Product Genesis rules and quality profiles for evidence, privacy,
+  business analysis, requirements engineering, delivery, and release truth.
+- Added immutable evidence receipts bound to repository identity, full Git commit,
+  forge hostname and path, regular-file SHA-256, authorized provider verification, expiry, trust level,
+  environment attestation, and fail-closed drift detection.
+- Added Alpha and investment gates; business case, unit economics, pricing/GTM,
+  accessibility, market privacy/legal, threat/security, migrations and retained
+  data; Sprint-style execution; CI/CD, infrastructure, observability, incident,
+  load, restore/rollback, analytics, support, and retirement dossiers.
+- Added immutable limited/production release candidates, portable Markdown
+  dossier export, adversarial evidence tests, and dossier latency benchmarking.
+- Added an exact-commit external-skill provenance lock. Mixed-license catalogs
+  remain reference-only; adapted sources require an allowed license, source
+  hash, manual review, and quarantine without executing upstream code.
+- Added fail-closed capability coverage validation across all canonical skills,
+  dispatch modes, routes, source provenance, manifest entries, and required
+  Product Genesis artifacts.
+- The clean release candidate is stacked on v1.5.0 and preserves v1.4.1 Pulse,
+  Team Control Plane, and released Product Language capabilities. Merge, tag,
+  GitHub Release, npm publication, deployment, and production activation remain
+  separately authorized and unperformed.
+
 ## Unreleased — v1.5.0 Repository Team Control Plane
 
 - Added authenticated member, agent, host, and service identities with bounded
@@ -27,12 +99,9 @@ All notable changes to this project will be documented in this file.
   runtime receipts across at least 30 comparable task cases.
 - Added v1.5 CLI surfaces, canonical schemas, guard/workflow/operator guidance,
   migration documentation, adversarial tests, and regenerated distribution
-  artifacts.
+  artifacts on the v1.4.1-based release candidate.
 - The local registry does not claim cross-host distributed consensus; synthetic
   tests do not prove real-world productivity or world-class quality.
-- This section records the local release candidate. Push, PR, merge to `main`,
-  tag, GitHub Release, npm publication, deployment, and production activation
-  remain unperformed.
 
 ## 1.4.1 - 2026-08-20
 
@@ -66,7 +135,6 @@ All notable changes to this project will be documented in this file.
   final-review integration.
 
 ## 1.4.0 - 2026-08-19
-
 - Added a clean-room, first-party Architecture Pulse contract with canonical
   hashing, stable reason codes, explicit evidence states, metric/extractor
   versioning, and mandatory coverage and confidence.
@@ -102,6 +170,36 @@ All notable changes to this project will be documented in this file.
 - Added signed repository-bound interchange, verified remote adapter
   boundaries, migration and recovery controls, adversarial coverage, and
   release-assurance documentation.
+
+## 1.2.0 - 2026-08-14
+
+- Added a local-first Plugin Trust Center with versioned manifests, previewable
+  lifecycle changes, provenance and compatibility checks, least-privilege
+  invocation, tamper quarantine, and hash-chained receipts.
+- Added privacy-safe run traces shaped for OpenTelemetry GenAI conventions and
+  a reproducible Agent Reliability Benchmark with explicit denominators,
+  failures, unknown costs, limitations, and bounded claims.
+- Added reproducible traceability cases and release-proof contracts suitable
+  for product demos without presenting synthetic evidence as production proof.
+- Added six auto-routed workflows for decision/run tracing, safe recovery,
+  governed plugin authoring and trust review, reliability benchmarking, and
+  agent-runtime investigation, with English and Vietnamese routing fixtures.
+- Added dedicated runtime, plugin-development, and agent-evaluation quality
+  profiles plus fail-closed trace-completeness, plugin-activation, and
+  resume-safety gates.
+- Added preview-first `plugin init` scaffolding, explicit trace/plugin adapter
+  capability states, and CI verification for canonical release evidence.
+- Hardened plugin trust so self-signed keys require repository enrollment,
+  invocation authority requires signed single-use capabilities, untracked
+  worktree drift blocks resume, and unverified plugins make Trust Center health
+  fail closed.
+- Added an append-only, hash-chained Decision Chronicle with explicit approval,
+  rejection, supersession, revocation, invalidation, and repository provenance.
+- Added portable Run Envelopes, stale-state detection, non-destructive recovery
+  previews, redacted `.aakrun` exports, local trace output, and `ai-agent-kit
+  why` intent lookup.
+- Added TraceLab scenarios for failure paths, parent drift, plugin escape,
+  incomplete evidence, interrupted agents, and conflicting findings.
 
 ## 1.2.0 - 2026-08-14
 

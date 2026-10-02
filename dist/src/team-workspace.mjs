@@ -3,6 +3,7 @@ import path from "node:path";
 import { spawnSync } from "node:child_process";
 
 import { requireTeamCapability, safeTeamId, teamControlDigest, verifyTeamIdentityAuthentication } from "./team-control-contract.mjs";
+import { sameFilesystemPath } from "./paths.mjs";
 
 function git(root, args) {
   const result = spawnSync("git", args, { cwd: root, encoding: "utf8", timeout: 120_000 });
@@ -29,7 +30,7 @@ export function verifyTeamWorkspacePlan(plan) {
   if (!/^[A-Za-z0-9][A-Za-z0-9._/-]{0,240}$/.test(plan.branch ?? "") || plan.branch.includes("..")) throw new Error("workspace plan branch is invalid");
   if (!/^[a-f0-9]{40,64}$/.test(plan.parent_commit ?? "")) throw new Error("workspace plan parent commit is invalid");
   const repositoryRoot = fs.realpathSync(path.resolve(plan.repository_root)); const inspected = inspectTeamWorkspace({ target: repositoryRoot });
-  if (fs.realpathSync(path.resolve(plan.common_git_dir)) !== inspected.common_git_dir) throw new Error("workspace plan Git common directory mismatch");
+  if (!sameFilesystemPath(fs.realpathSync(path.resolve(plan.common_git_dir)), inspected.common_git_dir)) throw new Error("workspace plan Git common directory mismatch");
   const approvedRoot = path.resolve(plan.approved_root); const worktreePath = path.resolve(plan.worktree_path); const relative = path.relative(approvedRoot, worktreePath);
   if (relative.startsWith("..") || path.isAbsolute(relative) || worktreePath === approvedRoot) throw new Error("workspace plan path escapes its approved root");
   assertNoSymlinkComponents(approvedRoot, "approved worktree root"); assertNoSymlinkComponents(path.dirname(worktreePath), "worktree parent path");
@@ -109,7 +110,7 @@ export function cleanupTeamWorkspace(options = {}) {
   const ownership = JSON.parse(fs.readFileSync(marker, "utf8"));
   if (ownership.plan_hash !== plan.plan_hash || ownership.task_id !== plan.task_id || ownership.assignment_id !== plan.assignment_id) throw new Error("worktree ownership marker does not match the plan");
   const listed = requireGit(plan.repository_root, ["worktree", "list", "--porcelain"]); const realWorktree = fs.realpathSync(plan.worktree_path);
-  if (!listed.split(/\r?\n/).some((line) => line === `worktree ${realWorktree}`)) throw new Error("owned path is not a registered Git worktree");
+  if (!listed.split(/\r?\n/).filter((line) => line.startsWith("worktree ")).map((line) => line.slice("worktree ".length)).some((candidate) => sameFilesystemPath(candidate, realWorktree))) throw new Error("owned path is not a registered Git worktree");
   const result = git(plan.repository_root, ["worktree", "remove", plan.worktree_path]);
   if (result.code !== 0) throw new Error(result.stderr || "Git worktree cleanup failed");
   fs.unlinkSync(marker);

@@ -1,0 +1,15 @@
+version: 1
+default: fail-closed
+allowed_decisions: [APPROVED, CHANGES_REQUESTED, REJECTED]
+required: [artifact_id, artifact_type, artifact_version, artifact_hash, bundle_members, decision, approver, approver_type, approver_authority, decided_at, scope, constraints, rationale, approval_hash]
+reject_if:
+  - agent_is_approver
+  - artifact_hash_missing_or_mismatched
+  - critical_decision_unresolved
+  - traceability_below_required_threshold
+  - approval_targets_future_or_unknown_version
+  - approval_target_is_stale
+  - approver_type_is_not_human
+not_sufficient: [chat_sentiment, issue_status, agent_recommendation, unsigned_free_form_note]
+approval_types: [DISCOVERY_DECISION, ALPHA_DECISION, INVESTMENT_DECISION, BUSINESS_REQUIREMENTS, SOLUTION_BASELINE, DELIVERY_BASELINE, GITHUB_ISSUE_PLAN, PRODUCTION_READINESS, RELEASE_DECISION, RETIREMENT_DECISION]
+evidence_bound_approvals: [ALPHA_DECISION, INVESTMENT_DECISION, PRODUCTION_READINESS, RELEASE_DECISION, RETIREMENT_DECISION]
