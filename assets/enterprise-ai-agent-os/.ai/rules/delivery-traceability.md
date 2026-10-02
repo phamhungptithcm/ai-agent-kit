@@ -1,6 +1,9 @@
 # Delivery & Traceability Rules
 
 required_review:
+  - "Apply .ai/core/product-delivery.md; link BR, SPEC, AC, design revisions, tasks, implementation, executed evidence, release and demo claims in the existing canonical delivery index."
+  - "Invalidate affected downstream approvals and evidence when their rule/spec/design baseline or candidate changes."
+  - "Record demo readiness, release readiness and target-environment live verification separately; never infer post-release sanity from a pre-release build or test."
   - "Keep implementation, specifications, documentation, architecture diagrams, tests, validation artifacts, and work items synchronized."
   - "Every completed work item should produce a copy-ready Jira completion package unless no work item exists."
   - "Only update Jira through an approved, authenticated, authorized integration."

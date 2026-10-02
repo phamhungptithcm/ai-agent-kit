@@ -16,6 +16,10 @@ import { recordCriterionStatus, recordQualityCheck } from "../src/task-report.mj
 import { briefHash, inspectTeamContext } from "../src/team-context.mjs";
 import { cancelTeamRun, dispatchTeamAssignment, ingestTeamResult } from "../src/team-executor.mjs";
 import { inspectTeam, startTeam } from "../src/team-orchestrator.mjs";
+import { deliveryDigest, deliveryInput, runDeliveryCheck } from "../src/delivery-evidence.mjs";
+import { createEd25519TeamIdentity, createSignedTeamAction, generateTeamSigningKeyPair } from "../src/team-control-contract.mjs";
+import { withTeamControlStore } from "../src/team-control-store.mjs";
+import { resolveRepositoryIdentity } from "../src/memory-contract.mjs";
 
 const HOST_CAPABILITIES = { bridge_kind: "HOST_NATIVE", native_spawn: true, parallel_dispatch: true, cancellation: true, structured_result: true, max_concurrency: 3 };
 const CORE_FILES = ["instruction-precedence.md", "mission.md", "engineering-principles.md", "required-workflow.md", "risk-model.md", "quality-gates.md", "output-contract.md", "memory-policy.md"];
@@ -31,10 +35,25 @@ function repository(name) {
   return root;
 }
 
-function writeReview(root, id) {
+function writeReview(root, id, authenticated = false) {
   const dimensions = Object.fromEntries(["requirement_match", "security", "code_quality", "failure_paths", "error_handling", "production_readiness", "trade_offs"].map((name) => [name, { status: "PASSED", summary: `${name} reviewed`, evidence_refs: [`fixture://${name}`] }]));
   const file = path.join(root, "review-input.json");
-  fs.writeFileSync(file, JSON.stringify({ schema_version: 1, task_id: id, status: "PASSED", dimensions, findings: [], residual_risks: [], limitations: [] }));
+  const input = { schema_version: 1, task_id: id, status: "PASSED", dimensions, findings: [], residual_risks: [], limitations: [] };
+  if (authenticated) {
+    const receipt = runDeliveryCheck({ target: root, id, check: "fixture-content", command: process.execPath, args: ["-e", "require('node:assert/strict').match(require('node:fs').readFileSync('README.md','utf8'), /coupling fixture/)"], authorized: true });
+    const signer = (principal, roles, capabilities) => {
+      const key = generateTeamSigningKeyPair({ keyId: principal });
+      const issued = new Date(Date.now() - 1000).toISOString();
+      withTeamControlStore({ target: root }, (store) => store.putTrustedKey({ key_id: key.key_id, issuer: "fixture", principal_id: principal, public_key_pem: key.public_key_pem, roles, capabilities, max_ttl_seconds: 7200, valid_from: issued }, { administeredBy: "fixture-owner", authorizationEvidenceHash: deliveryDigest({ fixture: principal }) }));
+      const identity = createEd25519TeamIdentity({ schema_version: 1, principal_id: principal, type: "MEMBER", issuer: "fixture", subject: principal, roles, capabilities, issued_at: issued, expires_at: new Date(Date.now() + 3600000).toISOString(), evidence_digest: receipt.receipt_hash, authentication: { key_id: key.key_id, nonce: `identity-${principal}` } }, key.private_key_pem);
+      return { key, identity };
+    };
+    const author = signer("author", ["implementer"], ["result.publish"]); const reviewer = signer("reviewer", ["reviewer"], ["review.submit"]);
+    Object.assign(input, { schema_version: 2, input_hash: deliveryInput(root, id), author_identity: author.identity, reviewer_identity: reviewer.identity, limitations: ["Independent identities and local command are a deterministic fixture, not live-host certification"] });
+    for (const dimension of Object.values(dimensions)) dimension.evidence_refs = [`execution:${receipt.receipt_hash}`];
+    input.reviewer_action = createSignedTeamAction({ privateKeyPem: reviewer.key.private_key_pem, keyId: reviewer.key.key_id, principalId: reviewer.identity.principal_id, repositoryId: resolveRepositoryIdentity({ target: root }).repository_id, taskId: id, operation: "review.submit", payloadHash: deliveryDigest(input) });
+  }
+  fs.writeFileSync(file, JSON.stringify(input));
   recordFinalReview({ target: root, id, file });
 }
 
@@ -96,7 +115,7 @@ test("real READY proof can issue and verify a change passport", () => {
   advance(root, task.id, approval, task.capability_hash);
   recordCriterionStatus({ target: root, id: task.id, criterion: 1, status: "VERIFIED", source: "fixture://criterion" });
   for (const gate of ["lint", "typecheck", "tests", "build", "security"]) recordQualityCheck({ target: root, id: task.id, gate, status: "PASSED", source: `fixture://${gate}`, exitCode: 0 });
-  writeReview(root, task.id); transitionTask({ target: root, id: task.id, to: "REVIEW_READY", evidence: { tests: "passed", independent_verifier: "passed", final_review: "passed" } });
+  writeReview(root, task.id, true); transitionTask({ target: root, id: task.id, to: "REVIEW_READY", evidence: { tests: "passed", independent_verifier: "passed", final_review: "passed" } });
   const proof = buildProofReplay({ target: root, id: task.id }); assert.equal(proof.readiness.status, "READY");
   const issued = issueChangePassport({ target: root, id: task.id, keyId: "maintainer", privateKey: key.private_key, apply: true });
   assert.equal(verifyChangePassport({ target: root, file: issued.file }).status, "VERIFIED");

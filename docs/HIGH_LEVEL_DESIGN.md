@@ -12,6 +12,28 @@ AI Agent Kit installs a repository-scoped operating model for AI-assisted engine
 - Stop existing-system changes at a change-impact plan until human approval exists.
 - Make output useful for PR/MR review, Jira handoff, QA validation, security review, and future memory governance.
 
+## Product contract and acceptance boundaries
+
+The [Product Contract](PRODUCT_CONTRACT.md) defines current business rules and observable acceptance. The [Delivery Record](PRODUCT_DELIVERY.md) binds verification, presentation and release decisions to a candidate. `.ai/core/product-delivery.md` is the bundled canonical documentation policy and a mandatory context-compiler input. Business rules/specs, architecture, task assignments, code and executed acceptance evidence must use a consistent revision baseline.
+
+```mermaid
+flowchart LR
+  Rules[Business rules and decisions] --> Specs[Behavioral specs and acceptance]
+  Specs --> Design[Design and contracts]
+  Design --> Tasks[Bounded task assignments]
+  Tasks --> Code[Implementation]
+  Code --> Verify[Executed verification]
+  Verify --> Review[Independent review]
+  Review -->|Findings| Tasks
+  Review --> Release[Authorized release]
+  Release --> Sanity[Artifact readback and live sanity]
+  Verify --> Demo[Rehearsed evidence-bound demo]
+```
+
+The diagram describes the required delivery flow. Current local runtime mechanisms implement task orchestration, handoffs, review cycles and candidate freshness. Documentation semantic acceptance and target-environment release/sanity require reviewer/operator evidence; the new policy does not introduce an automatic deployment engine. The compiler installs the contract into task context, while workflows and skills consume it. Existing canonical project docs remain authoritative; templates are used only for missing content.
+
+Updating a business/spec/design baseline invalidates affected downstream acceptance under the policy. Candidate freshness is already checked by runtime review mechanisms; semantic propagation across all document IDs remains a review responsibility. A synthetic timeline can support a local-control-plane presentation without establishing live-host or production readiness.
+
 ## System Overview
 
 ```mermaid
@@ -23,7 +45,7 @@ flowchart LR
   TargetRepo --> AI[.ai shared policy]
   TargetRepo --> Claude[Claude adapter]
   TargetRepo --> Codex[Codex adapter]
-  TargetRepo --> Other[Next-release adapters]
+  TargetRepo --> Other[Additional capability-declared adapters]
   TargetRepo --> LocalState[.ai-agent-kit local state]
   LocalState --> Ownership[Ownership checksums]
 
@@ -66,8 +88,8 @@ but never a `READY` pack.
 ```mermaid
 flowchart LR
   Source[.ai source of truth] --> Contract[Adapter contract]
-  Contract --> Published[Published adapters]
-  Contract --> Next[Next-release adapters]
+  Contract --> Published[Claude and Codex adapters]
+  Contract --> Next[Additional adapters with declared capability levels]
 
   Published --> Claude[Claude Code]
   Published --> Codex[OpenAI Codex]
@@ -584,3 +606,39 @@ result history until fresh verification and a new clean review complete.
 Optional specialists can degrade a report but cannot vanish silently. Agent
 Proof Replay binds the resulting team hash,
 execution mode, assignment status, review independence, and evidence summary.
+
+
+## Visible product delivery and evidence boundaries
+
+The product-flow CLI stores one task-local flow with revisioned document hashes,
+AC-to-rule/spec/design/task/check links, concrete scope and approval snapshot.
+The host follows the installed develop-product workflow; the CLI neither starts
+a model nor fabricates completed artifacts. HTML is escaped, offline and a saved
+snapshot. Semantic design/document correctness still needs engineering review.
+
+Local commands produce bounded execution receipts tied to code, task capability
+and requirements. Latest check failure governs acceptance. V2 final review uses
+repository-trusted distinct Ed25519 author/reviewer identities and a signed exact
+review action. It resolves real file/receipt references and preserves findings
+through fixes. Changed code/docs/capabilities or revoked authority invalidate
+acceptance. Legacy v1 history cannot establish production readiness. Hashes are
+not a defense against an actor controlling both repository and trust store.
+
+Operator-signed release/sanity binds exact artifact and environment with an
+observation interval and hashed evidence. Its terminal status explicitly names
+attestation; it does not imply independent live observation. Npm CI freezes one
+archive, publishes that archive, then requires registry byte/integrity readback
+and clean installed journeys. Failure after publish remains unverified and needs
+operator recovery; CI does not silently undo an already published package.
+
+## Production harness and implementation stack
+
+The actual kit uses JavaScript ES modules (`src/*.mjs`), Node >=20 declared in package.json, built-in node:test/fs/crypto/child_process, better-sqlite3 12.11.1 pinned in package.json/lockfile, and Python for canonical asset synchronization. It has no web application framework; the progress page is escaped static HTML/CSS and the CLI is the interface. This stack is sourced from actual manifests and imports, not a recommended stack imposed on downstream products.
+
+Production contract v2 invokes `production-harness.mjs` within normal binding/current-contract validation. Policy and rules are code-owned; documents provide source-backed declarations. Contract hashes include quality/stack/budget/schedule changes, so existing candidate-bound receipts and review signatures become stale. Schema v1 remains compatible for local historical flows but cannot pass a PRODUCTION release record. Structure, declaration, execution, signed review and operator observation remain separate evidence levels.
+
+Dependencies point from CLI/flow orchestration to policy and evidence services; the policy validator performs no command execution, deployment or external access. Use explicit standard-library modules, bounded synchronous input reads, early validation, deterministic rule reports and repository patterns rather than introducing framework layers. Lint/typecheck/regression tests cover mechanics; reviewers assess semantics, threat boundaries, test adequacy and stack choices. Named convention/complexity exceptions require rationale, never blanket clean-code certificates.
+
+CLI/API design includes canonical paths, bounded data, argument validation, stable status meaning, stale/retry behavior and safe errors. Security boundaries include untrusted document text, filesystem traversal/symlinks/hardlinks, bounded parsing/output, Ed25519 identity/signature validation, replay rejection, scoped capabilities and no shell execution from document fields. Persistence requires locking, atomic file replacement and transactional nonce recovery; artifact/hash/environment/readback checks remain intact.
+
+Performance/memory rules require numeric budgets and named workload/environment checks. The kit's existing 2 MiB document, 100-control and 1000-history bounds mitigate unbounded growth, but do not prove production throughput or absence of leaks. Target benchmark/soak evidence is not yet certified for this change. Agents must record actual latency percentiles/resource measurements, repeated create/dispose/cancel behavior and justified thresholds for each downstream stack. Budget forecasting and milestone capacity validation are declarations, not real spend tracking or project deadline guarantees.

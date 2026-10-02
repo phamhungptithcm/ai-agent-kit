@@ -220,7 +220,17 @@ function promptNextSteps() {
 - Or list prompts: npx --yes @hunpeolabs/ai-agent-kit@latest prompts
 - Or print one prompt: npx --yes @hunpeolabs/ai-agent-kit@latest prompt start-task
 
-Recommended first prompt:
+For a product goal, ask your active coding agent:
+
+Develop this product from my goal: [describe the users and useful outcome].
+Follow .ai/workflows/develop-product.md, show each step and its output paths,
+and continue approved work. Show the review loop, evidence limits and next action.
+The CLI records progress; your coding agent performs the work.
+
+Inspect progress: ai-agent-kit product next
+Open a saved progress view: ai-agent-kit product view
+
+For a bounded engineering task:
 
 Use start-task for this request:
 [paste your ticket or requirement]`;

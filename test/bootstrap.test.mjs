@@ -132,6 +132,12 @@ test("bootstrap creates local AI-agent files without staging, branch, commit, pu
   assert.ok(fs.existsSync(path.join(root, ".ai", "PROMPTS.md")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "manifest.yaml")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "core", "quality-gates.md")));
+  assert.ok(fs.existsSync(path.join(root, ".ai", "core", "product-delivery.md")));
+  for (const template of ["business-rules.md", "behavioral-specification.md", "production-release.md", "product-demo.md", "product-contract.schema.json"]) {
+    assert.ok(fs.existsSync(path.join(root, ".ai", "templates", template)));
+  }
+  assert.ok(fs.existsSync(path.join(root, ".ai", "workflows", "develop-product.md")));
+  assert.ok(fs.existsSync(path.join(root, ".ai", "docs", "product-flow-guide.md")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "core", "code-quality-intelligence.md")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "core", "memory-policy.md")));
   assert.ok(fs.existsSync(path.join(root, ".ai", "guards", "code-quality-profile-gate.yaml")));
@@ -1237,6 +1243,9 @@ test("task-aware context compiler is deterministic, provenance-rich, and never R
   assert.equal(second.pack.contentHash, first.pack.contentHash);
   assert.ok(first.pack.items.every((item) => item.provenance && item.selectionReason && item.contentSha256));
   assert.ok(first.pack.items.some((item) => item.path === ".ai/core/required-workflow.md"));
+  const deliveryContract = first.pack.items.find((item) => item.path === ".ai/core/product-delivery.md");
+  assert.ok(deliveryContract, "product delivery contract must reach the task execution context");
+  assert.equal(deliveryContract.selectionReason, "mandatory governed context");
   assert.ok(first.pack.exclusions.length > 0);
   assert.ok(fs.existsSync(first.jsonPath));
   assert.ok(fs.existsSync(first.markdownPath));
@@ -1248,6 +1257,11 @@ test("task-aware context compiler is deterministic, provenance-rich, and never R
   const stale = compileContext(options, { runner: createMockRunner() });
   assert.equal(stale.pack.status, "DEGRADED");
   assert.notEqual(stale.pack.status, "READY");
+
+  fs.unlinkSync(path.join(root, ".ai/core/product-delivery.md"));
+  const missingDeliveryContract = compileContext(options, { runner: createMockRunner() });
+  assert.equal(missingDeliveryContract.pack.status, "BLOCKED");
+  assert.ok(missingDeliveryContract.pack.exclusions.some((item) => item.path === ".ai/core/product-delivery.md" && item.reason === "required context missing or over budget"));
 });
 
 function createImplementingGatewayTask(root, id, adapter, extra = {}) {

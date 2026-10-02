@@ -37,6 +37,33 @@ npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap --agents claude
 Bootstrap is local. It does not edit application code, commit, push, open a
 pull request, update a ticket, or deploy.
 
+## Develop a product from one goal
+
+After installing this working-tree version, describe your goal to your active coding agent in ordinary language. For example:
+
+> Develop this product from my goal: [users and useful outcome]. Follow the
+> installed product workflow, explain each step and continue approved work.
+> Show output paths, review findings, evidence limits and the next action.
+
+The agent performs discovery, rules/specs, design, approved coding, actual
+checks, independent review/fix loops and authorized release/sanity work. You
+can inspect or resume its recorded progress:
+
+```sh
+ai-agent-kit start "My product goal"
+ai-agent-kit product list --format json
+ai-agent-kit product next
+ai-agent-kit product view
+```
+
+The saved view shows eight steps, their purpose, actual files, blockers, review
+cycles and evidence levels. Local checks, authenticated review and operator
+attestations stay distinct. The CLI needs an active coding-agent host; it does
+not start a model or background worker. Publishing/deploying requires explicit
+authorization. This feature is unreleased until a new package is published;
+build this checkout with `npm run build` and use `node bin/ai-agent-kit.mjs` to
+try it. [Product flow guide](assets/enterprise-ai-agent-os/.ai/docs/product-flow-guide.md).
+
 [Why it is different](#a-system-not-another-prompt) · [Context model](#keep-the-context-focused) · [What ships](#what-ships-today) · [Install](#install-for-the-agents-you-use) · [Supported agents](#supported-agents) · [Documentation](#documentation) · [npm](https://www.npmjs.com/package/@hunpeolabs/ai-agent-kit)
 
 ![AI Agent Kit bootstrap flow](https://raw.githubusercontent.com/phamhungptithcm/ai-agent-kit/main/docs/assets/bootstrap-demo.gif)
@@ -118,7 +145,7 @@ blocks implementation; missing optional indexes produce an explicit
 | Engineering workflows | **27** workflows for research, planning, implementation, review, incidents, architecture, delivery, policy, memory, traceability, recovery, coordination, and proof |
 | Quality intelligence | **26** stack/risk profiles plus **23** durable engineering rules |
 | Enforcement | **19** guards for approval, trace completeness, safe resume, plugin activation, capability, repository intelligence, memory, data, dependencies, orchestration, repository coordination, and protected actions |
-| Reusable artifacts | **79** templates and schemas for plans, decisions, runs, plugins, benchmarks, reviews, evidence, system design, teams, memory, product content, marketing, SEO/GEO, and release assurance |
+| Reusable artifacts | **84** templates and schemas for business rules, behavioral specs, plans, decisions, runs, plugins, benchmarks, reviews, evidence, system design, teams, memory, product content, marketing, SEO/GEO, production release, and rehearsed demos |
 | Agent ecosystem | **12** versioned adapters with machine-readable `native`, `generated`, `bridged`, `advisory`, `preview`, or `unsupported` capability states |
 | Coordination | Four workcell modes, dependency-ready waves, leases, heartbeats, cancellation, bounded retries, recovery, and independent review |
 | Verification | Behavioral evals, adapter/standards conformance, tests, Failure Lab, Agent Proof Replay, Change Passports, and fail-closed readiness |
@@ -143,6 +170,8 @@ assuming feature parity.
 | **Plugin ecosystem** | Keyless-by-default scaffolding, manifest validation, previewable lifecycle, per-invocation least privilege, receipts, quarantine, and a local Trust Center | No hosted marketplace is required, and publisher popularity is not treated as trust |
 
 ## See the system work
+
+For production product work, the mandatory [Product Delivery Contract](assets/enterprise-ai-agent-os/.ai/core/product-delivery.md) connects business rules, specs, design revisions, tasks, executed acceptance, release and demo claims. Reuse canonical project documents; templates are authoring aids and do not establish completion. See the kit's [product rules/specs](docs/PRODUCT_CONTRACT.md), [system design](docs/HIGH_LEVEL_DESIGN.md), and [delivery/presentation record](docs/PRODUCT_DELIVERY.md) for a concrete application and current verification limits.
 
 ### Agent Department: plan, coordinate, verify, review
 
@@ -756,3 +785,5 @@ while keeping important decisions and risky actions in human hands.
 ## License
 
 [MIT](LICENSE)
+
+Production work uses revisioned contract v2 and [AAK-PRODUCTION-1 checks](assets/enterprise-ai-agent-os/.ai/docs/production-harness.md). Progress shows document/source declarations, stack/budget/schedule constraints, missing execution evidence and limitations. Legacy local contracts cannot authorize production release.

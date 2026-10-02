@@ -317,6 +317,25 @@ try {
   assert.ok(fs.existsSync(path.join(installFixture, "node_modules", "@hunpeolabs", "ai-agent-kit")));
   const installedKit = path.join(installFixture, "node_modules", "@hunpeolabs", "ai-agent-kit");
   const installedCli = path.join(installedKit, "dist/bin/ai-agent-kit.mjs");
+  for (const relative of [".ai/core/product-delivery.md", ".ai/workflows/develop-product.md", ".ai/docs/product-flow-guide.md", ".ai/templates/product-contract.schema.json"]) assert.ok(fs.existsSync(path.join(installFixture, relative)), `packed product flow missing ${relative}`);
+  for (const entry of ["AGENTS.md", "CLAUDE.md", ".agents/skills/start-task/SKILL.md", ".claude/skills/start-task/SKILL.md"]) {
+    const intake = fs.readFileSync(path.join(installFixture, entry), "utf8");
+    assert.match(intake, /Natural-language product intake/);
+    assert.match(intake, /Do not require a slash command/);
+    assert.match(intake, /Never choose the last active product/);
+    assert.match(intake, /Bootstrap via npx does not install a global command/);
+  }
+  const productStart = execute(process.execPath, [installedCli, "start", "Build a useful ownership product", "--id", "PACKED-PRODUCT"], installFixture);
+  assert.match(productStart.stdout, /NOT_TESTED/); assert.match(productStart.stdout, /Why:/);
+  const productNext = JSON.parse(execute(process.execPath, [installedCli, "product", "next", "--format", "json"], installFixture).stdout);
+  assert.equal(productNext.next_step.id, "discovery"); assert.equal(productNext.agent_handoff.context.trust, "UNTRUSTED_DATA");
+  const productView = JSON.parse(execute(process.execPath, [installedCli, "product", "view"], installFixture).stdout);
+  const productHtml = fs.readFileSync(productView.path, "utf8");
+  const productInventory = execute(process.execPath, [installedCli, "product", "list", "--format", "json"], installFixture);
+  assert.ok(JSON.parse(productInventory.stdout).products.some(item => item.task_id === "PACKED-PRODUCT"));
+  assert.match(productHtml, /Product progress/);
+  assert.match(productHtml, /aria-label="Delivery steps"/);
+  assert.match(productHtml, /Output location/);
   fs.copyFileSync(path.join(installedKit, "assets/enterprise-ai-agent-os/.ai/evals/e2e/team-orchestration-cases.json"), path.join(installFixture, "team-eval.json"));
   const teamEval = execute(process.execPath, [installedCli, "team", "eval", "--fixture", "team-eval.json"], installFixture);
   assert.match(teamEval.stdout, /"status": "PASSED"/);

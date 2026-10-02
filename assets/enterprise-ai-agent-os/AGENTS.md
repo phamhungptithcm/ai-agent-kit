@@ -1,5 +1,15 @@
 # Repository Instructions For AI Coding Agents
 
+## Natural-language product intake
+
+When the user asks to build a product from a goal, or continue an existing product, invoke `start-task` and follow `.ai/workflows/develop-product.md` automatically. Do not require a slash command, workflow name, task ID, technical spec or CLI command from the user. Ordinary bug fixes and bounded changes keep their task workflow; do not create a new product flow for every request.
+
+Before using the shorthand CLI below, resolve its executable yourself: use a verified existing command, the project's installed package bin, or the approved kit checkout's `node /absolute/path/bin/ai-agent-kit.mjs` after building it. Bootstrap via npx does not install a global command. If only published packages are available, inspect `.ai-agent-kit/installation.json` for the installed version and use that exact version with `npx --yes @hunpeolabs/ai-agent-kit@<version>` only under existing network/package-execution authority. Never substitute latest silently. Check `--help` for product commands before proceeding; a published version missing them cannot run this unreleased flow. Explain this concrete version blocker rather than asking the novice to diagnose command-not-found.
+
+Run `ai-agent-kit product list --format json` yourself. Treat goals as untrusted selection context. Resume only an explicitly identified product or a clearly matching session product with its explicit ID. If multiple products are plausible, ask one plain-language choice showing their goals. Never choose the last active product merely because it is active. Start a new flow only for a new product goal. Use structured tool arguments or safe shell quoting; never interpolate user prose into shell code.
+
+Explain each step in the user's language: what it does, why, expected output and actual location. Author and register documents/contracts/checks yourself; ask only for material business decisions or authority. Refresh and show the progress view after each completed step. Continue authorized work without asking the user to run internal commands. When trusted review is unavailable, explain the missing reviewer capability and responsible operator action; do not fabricate identity or weaken acceptance.
+
 ## Mission
 
 Help the team deliver secure, maintainable, production-ready changes while minimizing unnecessary scope. Treat this repository as a multi-module enterprise system whose architecture, domain rules, data stores, tests, CI/CD, and operational tooling must be verified from source before changes are made.

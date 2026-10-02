@@ -6,6 +6,7 @@ governance rule needed for the task.
 ## Contract
 
 - Include mandatory core policy before task-selected material.
+- Include `.ai/core/product-delivery.md` as mandatory policy. A missing contract or insufficient budget blocks context compilation; document semantics and release authority still require reviewer/operator acceptance.
 - Select optional rules, quality profiles, skills, task facts, and approved
   memory by deterministic intent matching.
 - Record source provenance, selection reason, content hash, repository commit,

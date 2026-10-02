@@ -15,6 +15,8 @@ Design documents describe **why** a solution was chosen—not just **what** will
 
 Never invent architecture, business rules, ownership, production topology, or runtime behavior.
 
+Apply `.ai/core/product-delivery.md`. Reuse the canonical design and bind its revision to business rules, behavioral specs and acceptance IDs. Use `.ai/templates/system-design-report.md` for missing content only. Define implementable contracts, failure/recovery sequences, operational ownership and measurable validation; unresolved critical decisions block implementation. Design approval alone does not establish go-live readiness.
+
 ---
 
 # Repository Intelligence Gate (Required)

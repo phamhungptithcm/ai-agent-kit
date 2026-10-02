@@ -58,6 +58,12 @@ test("execution adapter capabilities are explicit and validated", () => {
   assert.equal(declaredSerial.parallel_dispatch, false); assert.equal(declaredSerial.max_concurrency, 1);
   assert.throws(() => resolveExecutionAdapter("unknown"), /unsupported/);
 });
+test("invalid host run identity is rejected before acquiring a claim", () => {
+  const root = setup("TEAM-INVALID-HOST"); startTeam({ target: root, id: "TEAM-INVALID-HOST", adapter: "codex", capabilities: HOST_CAPABILITIES });
+  assert.throws(() => dispatchTeamAssignment({ target: root, id: "TEAM-INVALID-HOST", assignment: "domain-analyst", agent: "reader", externalRunId: "/invalid/run" }), /safe identifier/);
+  assert.equal(inspectTeamContext({ target: root, id: "TEAM-INVALID-HOST" }).claims.length, 0);
+  assert.equal(inspectTeam({ target: root, id: "TEAM-INVALID-HOST" }).assignments.find((item) => item.id === "domain-analyst").attempts, 0);
+});
 
 test("planner reconciles repository context immediately before dispatch", () => {
   const root = setup("TEAM-REPLAN", { goal: "Investigate an unexpected behavior", approved: false });

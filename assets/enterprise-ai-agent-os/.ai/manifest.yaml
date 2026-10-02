@@ -31,6 +31,7 @@ core:
   - ".ai/core/instruction-precedence.md"
   - ".ai/core/engineering-principles.md"
   - ".ai/core/required-workflow.md"
+  - ".ai/core/product-delivery.md"
   - ".ai/core/quality-gates.md"
   - ".ai/core/code-quality-intelligence.md"
   - ".ai/core/memory-policy.md"
@@ -86,6 +87,7 @@ rules:
   - ".ai/rules/portable-evidence-privacy.md"
   - ".ai/rules/benchmark-claim-integrity.md"
 workflows:
+  - ".ai/workflows/develop-product.md"
   - ".ai/workflows/repository-intelligence-workflow.md"
   - ".ai/workflows/start-task.md"
   - ".ai/workflows/plan-existing-system-change.md"
@@ -134,6 +136,11 @@ guards:
   - ".ai/guards/plugin-activation-gate.yaml"
   - ".ai/guards/resume-safety-gate.yaml"
 templates:
+  - ".ai/templates/product-contract.schema.json"
+  - ".ai/templates/business-rules.md"
+  - ".ai/templates/behavioral-specification.md"
+  - ".ai/templates/production-release.md"
+  - ".ai/templates/product-demo.md"
   - ".ai/templates/jira-completion-comment.md"
   - ".ai/templates/repository-intelligence-brief.md"
   - ".ai/templates/change-impact-plan.md"
@@ -214,6 +221,8 @@ templates:
   - ".ai/templates/evidence-bundle.json"
   - ".ai/templates/model-pricing-registry.json"
 docs:
+  - ".ai/docs/product-flow-guide.md"
+  - ".ai/docs/production-harness.md"
   - ".ai/docs/repository-intelligence-guide.md"
   - ".ai/docs/agent-adapter-strategy.md"
   - ".ai/docs/governed-runtime-guide.md"

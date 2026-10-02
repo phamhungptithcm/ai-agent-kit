@@ -266,7 +266,7 @@ test("reviewed local pricing can estimate an otherwise unknown exact model", () 
   assert.equal(summary.cost.pricing_revision, "reviewed-local-v1");
 });
 
-test("verified criteria and current required gates can produce a production-ready report", () => {
+test("legacy declared review cannot produce production readiness even when local criteria and gates pass", () => {
   const root = makeRepo("ready");
   createReportTask(root);
   advanceToReviewReady(root);
@@ -306,10 +306,11 @@ test("verified criteria and current required gates can produce a production-read
   assert.equal(report.evidence.status, "VERIFIED");
   assert.equal(report.code_status.git.status, "CLEAN");
   assert.equal(report.code_status.known_issues, "NONE_FOUND_WITHIN_EXECUTED_CHECKS");
-  assert.equal(report.production_readiness.status, "READY");
+  assert.equal(report.production_readiness.status, "NOT_READY");
+  assert.ok(report.production_readiness.blockers.some((blocker) => blocker.includes("authenticated independence")));
   assert.equal(report.usage.usage.total_tokens, 1_100);
   assert.match(renderFinalTaskReport(report), /Total tokens used: 1,100/);
-  assert.match(renderFinalTaskReport(report), /Production Readiness: READY/);
+  assert.match(renderFinalTaskReport(report), /Production Readiness: NOT_READY/);
 });
 
 test("weighted progress is evidence-derived and dirty code blocks production readiness", () => {
