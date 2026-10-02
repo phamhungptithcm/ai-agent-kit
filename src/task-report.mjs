@@ -1,3 +1,4 @@
+import { inspectProductionHarness } from "./production-harness.mjs";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
@@ -390,6 +391,7 @@ export function evaluateProductionReadiness(task, progress, evidence, git, quali
   }
   if (git.status !== "CLEAN") blockers.push(`Git worktree is ${git.status}.`);
   if (finalReview.status !== "PASSED") blockers.push(`Final implementation review is ${finalReview.status}.`);
+  if (finalReview.assurance?.status !== "VERIFIED") blockers.push("Final review requires authenticated independence and resolved execution evidence for production readiness.");
   if (task.orchestration?.status === "DEGRADED") {
     blockers.push(`Agent orchestration is DEGRADED (${task.orchestration.reason_code ?? "UNKNOWN"}).`);
   }
@@ -461,6 +463,12 @@ export function buildFinalTaskReport(options, deps = {}) {
   let team = null;
   try { const contract = inspectTeam({ target: root, id: task.id }); team = { ...reportTeam({ target: root, id: task.id }), state: contract.state }; } catch (error) { if (!/team contract is missing/.test(error.message)) team = { status: "REJECTED", blocker: error.message }; }
   const readiness = evaluateProductionReadiness(task, progress, evidence, git, quality, finalReview, team, productionTarget);
+  let productionHarness = null;
+  if (productionTarget && task.product_contract) {
+    try { productionHarness = inspectProductionHarness(root, task.id); }
+    catch (error) { productionHarness = { evidence_complete: false, error: error.message }; }
+    if (!productionHarness.evidence_complete) { readiness.status = "NOT_READY"; readiness.blockers.push("Product production harness is missing, stale or incomplete; contract v2 and applicable checks/measurements are required."); readiness.rationale = "Production readiness is fail-closed until every blocker has current evidence."; }
+  }
   let usage;
   try {
     usage = summarizeUsage(options);
@@ -502,6 +510,7 @@ export function buildFinalTaskReport(options, deps = {}) {
         : "Code health is not fully verified."
     },
     production_readiness: readiness,
+    production_harness: productionHarness,
     usage
   };
 }

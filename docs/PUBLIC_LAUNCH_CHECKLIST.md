@@ -2,6 +2,8 @@
 
 Use this before promoting the package on npm, GitHub, LinkedIn, or internal engineering channels.
 
+Use the [Product Contract](PRODUCT_CONTRACT.md) and [Delivery Record](PRODUCT_DELIVERY.md) as the canonical acceptance baseline. Checklist completion alone is not release approval. Bind results to the frozen candidate/spec revision; keep synthetic demo readiness separate from public release and live verification.
+
 ## Required
 
 - Confirm the npm scope `@hunpeolabs` is owned by the publishing account or organization.
@@ -16,6 +18,9 @@ Use this before promoting the package on npm, GitHub, LinkedIn, or internal engi
 - Confirm `governed` and `full` preserve the same core quality contract.
 - Review the packed file list from `npm pack --dry-run`.
 - Confirm Linux validation and macOS/Windows packed-package smoke jobs are green.
+- Record authorized release operator, operational owner, stop criteria, tested recovery and the support observation window.
+- After authorized publication, read back exact version/integrity/provenance, install the published artifact in a clean supported environment and execute the delivery record's sanity checks.
+- Rehearse the presentation on the exact candidate, retain actual captures and label synthetic data/host behavior; block claims exceeding the recorded evidence.
 
 ## Trust Polish
 

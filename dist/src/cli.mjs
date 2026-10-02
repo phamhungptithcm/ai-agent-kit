@@ -23,6 +23,8 @@ import { applyToolPlan, inspectToolPlan, renderToolInstall, renderToolPlan } fro
 import { getPackageVersion } from "./version.mjs";
 import { applyUpdate, planUpdate, renderUpdatePlan } from "./update.mjs";
 import { compileContext, inspectContextPack } from "./context-compiler.mjs";
+import { listProductFlows, startProductFlow, recordProductDocument, bindProductContract, approveProductPlan, checkProduct, inspectProductFlow, renderProductFlow, productAgentHandoff, recordProductRelease, recordProductSanity, writeProductView } from "./product-flow.mjs";
+import { readDeliveryJson, deliveryFile } from "./delivery-evidence.mjs";
 import {
   authorizeMcpRequest,
   authorizeMcpStart,
@@ -201,6 +203,14 @@ function helpText() {
 Usage:
   ai-agent-kit activate
   ai-agent-kit bootstrap [options]
+  ai-agent-kit start "<product goal>" [--id <task-id>] [--target <path>]
+  ai-agent-kit delivery list [--format text|json]
+  ai-agent-kit delivery next|status|view [--id <task-id>] [--format text|json]
+  ai-agent-kit delivery document --id <task-id> --kind <kind> --file <path> --owner <owner> --summary <purpose>
+  ai-agent-kit delivery bind --id <task-id> --file <contract.json>
+  ai-agent-kit delivery approve --id <task-id> --approved-by <decision-maker>
+  ai-agent-kit delivery check --id <task-id> --check <check-id> -- <executable> [arguments]
+  ai-agent-kit delivery release|sanity --id <task-id> --file <signed-record.json>
   ai-agent-kit status [--target <path>]
   ai-agent-kit doctor [--target <path>]
   ai-agent-kit diff [--target <path>]
@@ -1145,6 +1155,42 @@ export function parseBootstrapArgs(argv) {
 
 export async function main(argv = process.argv.slice(2), io = console, deps = {}) {
   const command = argv[0];
+  if (command === "start" || command === "delivery") {
+    const action = command === "start" ? "start" : argv[1];
+    const args = argv.slice(command === "start" ? 1 : 2);
+    const options = { target: process.cwd(), format: "text", deps };
+    const fields = new Set(["--target", "--id", "--goal", "--adapter", "--kind", "--document-id", "--file", "--owner", "--summary", "--approved-by", "--check", "--timeout-ms", "--format"]);
+    for (let index = 0; index < args.length; index += 1) {
+      const flag = args[index];
+      if (flag === "--") { options.command = args[index + 1]; options.args = args.slice(index + 2); options.authorized = true; break; }
+      if (action === "start" && !flag.startsWith("-") && !options.goal) { options.goal = flag; continue; }
+      if (!fields.has(flag) || !args[index + 1] || args[index + 1].startsWith("--")) throw new Error(`Product option ${flag} needs a supported value.`);
+      options[flag.slice(2).replace(/-([a-z])/g, (_, letter) => letter.toUpperCase())] = args[++index];
+    }
+    if (!["text", "json"].includes(options.format)) throw new Error("Product format must be text or json.");
+    if (!["list", "start", "document", "bind", "approve", "check", "status", "next", "view", "release", "sanity"].includes(action)) throw new Error("Use delivery list, start, document, bind, approve, check, status, next, view, release or sanity.");
+    if (action === "list") {
+      const inventory = listProductFlows(options);
+      io.log(options.format === "json" ? JSON.stringify(inventory, null, 2) : inventory.products.map(item => item.task_id + ": " + item.goal).join("\n") || "No products recorded yet.");
+      return 0;
+    }
+    if (action !== "start" && !options.id) {
+      if (!fs.existsSync(deliveryFile(options.target, ".ai-agent-kit/product/active.json"))) throw new Error("No active product. Begin with ai-agent-kit start \"your goal\".");
+      options.id = readDeliveryJson(options.target, ".ai-agent-kit/product/active.json").task_id;
+    }
+    if (action === "view") { io.log(JSON.stringify(writeProductView(options), null, 2)); return 0; }
+    const result = action === "start" ? startProductFlow(options)
+      : action === "document" ? recordProductDocument(options)
+        : action === "bind" ? bindProductContract(options)
+          : action === "approve" ? approveProductPlan(options)
+            : action === "check" ? checkProduct(options)
+              : action === "release" ? recordProductRelease(options)
+                : action === "sanity" ? recordProductSanity(options) : inspectProductFlow(options);
+    if (action === "check") { io.log(JSON.stringify(result, null, 2)); return result.status === "PASSED" ? 0 : 1; }
+    if (options.format === "json") io.log(JSON.stringify(action === "next" ? { ...result, agent_handoff: productAgentHandoff(result) } : result, null, 2));
+    else io.log(renderProductFlow(result));
+    return result.status === "STALE" ? 1 : 0;
+  }
   if (!command || command === "activate") {
     io.log(renderActivationMenu());
     const action = deps.selectActivationAction

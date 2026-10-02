@@ -42,6 +42,32 @@ npx --yes @hunpeolabs/ai-agent-kit@latest bootstrap --agents claude
 Bootstrap is local. It does not edit application code, commit, push, open a
 pull request, update a ticket, or deploy.
 
+## Develop a product from one goal
+
+After installing this working-tree version, describe your goal to your active coding agent in ordinary language. For example:
+
+> Develop this product from my goal: [users and useful outcome]. Follow the
+> installed product workflow, explain each step and continue approved work.
+> Show output paths, review findings, evidence limits and the next action.
+
+The agent performs discovery, rules/specs, design, approved coding, actual
+checks, independent review/fix loops and authorized release/sanity work. You
+can inspect or resume its recorded progress:
+
+```sh
+ai-agent-kit start "My product goal"
+ai-agent-kit delivery list --format json
+ai-agent-kit delivery next
+ai-agent-kit delivery view
+```
+
+The saved view shows eight steps, their purpose, actual files, blockers, review
+cycles and evidence levels. Local checks, authenticated review and operator
+attestations stay distinct. The CLI needs an active coding-agent host; it does
+not start a model or background worker. Publishing/deploying requires explicit
+authorization. Available in v1.7.0. For a source checkout, build with `npm run build` and use
+`node bin/ai-agent-kit.mjs`. [Product flow guide](assets/enterprise-ai-agent-os/.ai/docs/product-flow-guide.md).
+
 [Why it is different](#a-system-not-another-prompt) · [Context model](#keep-the-context-focused) · [What ships](#what-ships-today) · [Install](#install-for-the-agents-you-use) · [Supported agents](#supported-agents) · [Documentation](#documentation) · [npm](https://www.npmjs.com/package/@hunpeolabs/ai-agent-kit)
 
 ![AI Agent Kit bootstrap flow](https://raw.githubusercontent.com/phamhungptithcm/ai-agent-kit/main/docs/assets/bootstrap-demo.gif)
@@ -105,12 +131,12 @@ intent and multiple active products require one short confirmation.
 
 ```bash
 printf '%s' 'Mình muốn làm một ứng dụng giúp salon giảm khách bỏ hẹn' | ai-agent-kit intent detect --stdin
-ai-agent-kit product discover
-ai-agent-kit product start --id salon-pilot --idea "Reduce salon no-shows" --profile standard
-ai-agent-kit product resume --id salon-pilot
-ai-agent-kit product next --id salon-pilot
-ai-agent-kit product analyze --id salon-pilot --gate ALPHA_DECISION --write
-ai-agent-kit product dossier-status --id salon-pilot
+ai-agent-kit delivery discover
+ai-agent-kit delivery start --id salon-pilot --idea "Reduce salon no-shows" --profile standard
+ai-agent-kit delivery resume --id salon-pilot
+ai-agent-kit delivery next --id salon-pilot
+ai-agent-kit delivery analyze --id salon-pilot --gate ALPHA_DECISION --write
+ai-agent-kit delivery dossier-status --id salon-pilot
 ```
 
 Discussion is limited to the three highest-impact current questions. `LEAN`, `STANDARD`, and `HIGH_ASSURANCE` profiles vary discovery and assurance depth without removing traceability or approval gates. Hypothesis experiments and business/trust/data decisions precede the BRD. Capacity-bounded iterations prevent stage gates from becoming document-only waterfall. GitHub issue creation remains preview-first; apply requires an exact plan approval plus a repository-trusted, one-use Ed25519 `MEMBER` action with `product.github.write`. `product converge` binds the approved chain to a clean full Git commit, existing code/test file hashes, and evidence receipts. Production readiness requires provider-verified CI/CD, security, accessibility, privacy/legal, deployment/operations, migration, capacity, restore/rollback, analytics, support, and environment evidence.
@@ -140,6 +166,11 @@ blocks implementation; missing optional indexes produce an explicit
 
 | Capability | Included |
 | --- | --- |
+| Canonical skills | **41** skill sources, installed only where the selected adapter supports skill surfaces |
+| Engineering workflows | **27** workflows for research, planning, implementation, review, incidents, architecture, delivery, policy, memory, traceability, recovery, coordination, and proof |
+| Quality intelligence | **26** stack/risk profiles plus **23** durable engineering rules |
+| Enforcement | **19** guards for approval, trace completeness, safe resume, plugin activation, capability, repository intelligence, memory, data, dependencies, orchestration, repository coordination, and protected actions |
+| Reusable artifacts | **84** templates and schemas for business rules, behavioral specs, plans, decisions, runs, plugins, benchmarks, reviews, evidence, system design, teams, memory, product content, marketing, SEO/GEO, production release, and rehearsed demos |
 | Canonical skills | **58** skill sources, including the Product Genesis orchestrator and sixteen stage skills, installed only where the selected adapter supports skill surfaces |
 | Engineering workflows | **36** workflows for product discovery, experiments, requirements, iterations, production, implementation, review, incidents, architecture, policy, memory, recovery, and proof |
 | Quality intelligence | **31** stack/risk/product profiles plus **29** durable engineering rules |
@@ -169,6 +200,8 @@ assuming feature parity.
 | **Plugin ecosystem** | Keyless-by-default scaffolding, manifest validation, previewable lifecycle, per-invocation least privilege, receipts, quarantine, and a local Trust Center | No hosted marketplace is required, and publisher popularity is not treated as trust |
 
 ## See the system work
+
+For production product work, the mandatory [Product Delivery Contract](assets/enterprise-ai-agent-os/.ai/core/product-delivery.md) connects business rules, specs, design revisions, tasks, executed acceptance, release and demo claims. Reuse canonical project documents; templates are authoring aids and do not establish completion. See the kit's [product rules/specs](docs/PRODUCT_CONTRACT.md), [system design](docs/HIGH_LEVEL_DESIGN.md), and [delivery/presentation record](docs/PRODUCT_DELIVERY.md) for a concrete application and current verification limits.
 
 ### Agent Department: plan, coordinate, verify, review
 
@@ -744,6 +777,7 @@ See [Agent Adapter Strategy](docs/AGENT_ADAPTER_STRATEGY.md) for details.
 | `1.4.1` | Change-aware Pulse with stable finding identity, truthful coverage, tiered precision, base/head impact, governed waivers, SARIF, trends, bounded evidence packs, and a polyglot effectiveness benchmark. |
 | `1.5.0` | Repository Team Control Plane with authenticated identities, cross-task claims, isolated worktrees, fencing tokens, integration packages, independent review, privacy-safe SLOs, and four-mode release benchmarks. |
 | `1.6.0` | Product Genesis from a rough idea through discovery, research, human-approved BRD/spec baselines, Agile delivery planning, change control, and outcome review. |
+| `1.7.0` | Evidence-bound delivery, 21 production controls, candidate-bound signed review/release and eight-step progress view. |
 | `1.6.1` | Product Genesis Auto Entry with natural-language intent detection, safe workspace discovery/resume, cross-adapter entry instructions, and no required skill/version prefix. |
 
 ## Documentation
@@ -751,6 +785,7 @@ See [Agent Adapter Strategy](docs/AGENT_ADAPTER_STRATEGY.md) for details.
 - [Adoption Guide](docs/ADOPTION_GUIDE.md)
 - [High-Level Design](docs/HIGH_LEVEL_DESIGN.md)
 - [Product Genesis: Idea to Production](docs/PRODUCT_GENESIS.md)
+- [v1.7.0 Evidence-Bound Product Delivery release notes](docs/releases/v1.7.0-evidence-bound-delivery.md)
 - [v1.6.1 Product Genesis Auto Entry release notes](docs/releases/v1.6.1-product-genesis-auto-entry-draft.md)
 - [v1.6.0 Product Genesis release notes (draft)](docs/releases/v1.6.0-product-genesis-draft.md)
 - [Agent Department Proof Loop](docs/AGENT_DEPARTMENT_PROOF_LOOP.md)
@@ -787,3 +822,5 @@ while keeping important decisions and risky actions in human hands.
 ## License
 
 [MIT](LICENSE)
+
+Production work uses revisioned contract v2 and [AAK-PRODUCTION-1 checks](assets/enterprise-ai-agent-os/.ai/docs/production-harness.md). Progress shows document/source declarations, stack/budget/schedule constraints, missing execution evidence and limitations. Legacy local contracts cannot authorize production release.

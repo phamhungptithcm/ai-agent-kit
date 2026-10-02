@@ -41,11 +41,11 @@ Act as the final engineering gate, not as a summary writer. Review the actual di
 
 ## Decision rules
 
-- `PASSED`: every dimension is `PASSED` or truthfully `NOT_APPLICABLE`, no critical/high finding remains open, and evidence matches the current commit.
+- For schema v2, `PASSED` requires every dimension to be `PASSED` or truthfully `NOT_APPLICABLE`, zero unresolved findings of any severity, resolved real evidence, a current passing execution, and a signed independent repository-trusted reviewer identity bound to the exact candidate/requirements. V1 remains legacy declared history and cannot establish production readiness.
 - A review containing changed product language or displayed-data semantics cannot be `PASSED` when `.ai/templates/product-content-review.md` is missing, stale, failed, based only on isolated resource strings, missing any required Human Interface principle status, or lacks target-platform evidence.
-- `BLOCKED`: any required dimension failed or was not run, evidence is insufficient, scope drift needs approval, or a critical/high finding remains open.
+- `BLOCKED`: any required dimension failed or was not run, evidence is insufficient, scope drift needs approval, authority is unavailable, or any v2 finding remains unresolved.
 - Never claim production readiness solely because this review passes. The final report must also satisfy acceptance, quality, Git, release, deployment, and environment evidence required by the task.
-- Preserve medium/low residual risks and accepted-risk rationale in the report; do not hide them to obtain a pass.
+- Preserve residual risks and rationale in the report. An `ACCEPTED_RISK` finding is unresolved and blocks v2 PASS; do not move an actionable finding into narrative risks to bypass the gate.
 - Never loop silently on the same unresolved blocker. Continue fixing while safe progress is possible; otherwise return a precise blocked result and request the smallest required decision.
 
 ## Final handoff

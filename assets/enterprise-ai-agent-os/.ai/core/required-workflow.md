@@ -1,5 +1,6 @@
 # Required Workflow
 
+For product work, apply `.ai/core/product-delivery.md` throughout this workflow. Identify existing canonical business rules, specs, system design, acceptance records, release runbook and demo record at intake. Maintain their revision-bound traceability in one delivery index; do not create unused parallel documents.
 ## Phase 0 - Detect Conversation Mode
 
 Run `.ai/core/conversation-entry-gate.md` before Repository Intelligence. A raw
@@ -26,6 +27,7 @@ silent routing.
 10a. When UI, UX, localization, accessibility text, or displayed-data meaning is in scope, inventory every changed user-facing string and applicable state, then apply the mandatory `write-product-content` skill with `.ai/quality-profiles/product-content.yaml`. Map `Purpose`, `Agency`, `Responsibility`, `Familiarity`, `Flexibility`, `Simplicity`, `Craft`, and `Delight`, identify target-platform conventions, and block rather than skip a required principle.
 11. Propose the smallest safe change that addresses only the issue or approved requirement.
 12. Identify tests, validation evidence, documentation, specification, diagram, runbook, ADR, API-contract, Jira, deployment, and rollback impacts.
+12a. Resolve launch-critical business decisions and define independently observable AC IDs before coding. Link BR/SPEC/AC/design revisions to the plan and tasks. Record unresolved decisions as blockers; do not fill them with invented behavior.
 13. Run the Agent Department orchestration decision. Reuse the shared brief and select the smallest safe team; unsupported subagents fall back to serial personas.
 
 ## Phase 2 - Produce A Reviewable Change-Impact And Implementation Plan
@@ -89,6 +91,7 @@ Stop after presenting the plan. Do not implement until explicit approval evidenc
 6. Review performance and concurrency implications.
 7. Check compatibility and migration requirements.
 8. Update authoritative documentation, specifications, and diagrams or provide a specific no-change rationale.
+8a. Reconcile the delivery index with actual behavior and executed evidence. Invalidate affected acceptance, review, release and demo claims when their rule/spec/design baseline or candidate changes.
 9. Query available indexes for changed-symbol impact and refresh CodeGraph/CocoIndex indexes when available. If unavailable, use native evidence and record the limitation.
 10. Re-run the Repository Intelligence Gate and compare actual diff to approved scope; `DEGRADED` is acceptable when evidence remains sufficient.
 10a. For any changed user-facing text or displayed-data semantics, complete `.ai/templates/product-content-review.md`, including all eight mandatory Human Interface principles and target-platform fit; a string-file review, generic Apple-like claim, or missing principle status cannot pass the Product Language Gate.
@@ -101,3 +104,4 @@ Stop after presenting the plan. Do not implement until explicit approval evidenc
 17. Run `final-implementation-review` against the completed diff. Review requirement match, security, code quality, bad paths, error handling, production readiness, and trade-offs; fix approved in-scope findings, re-run affected checks, and review the complete diff again. Repeat until a fresh review passes.
 18. Record every review cycle and preserve findings and fixes. Do not emit a successful final response while the newest review is missing, stale, rejected, or blocked. Stop with a precise blocker only when further progress requires new scope, authority, or external evidence.
 19. Clearly identify anything not executed or not verified.
+20. When release or demo is in scope, use `.ai/templates/production-release.md` or `.ai/templates/product-demo.md` to complete missing content in the existing canonical record. Keep demo readiness, release readiness and live verification separate. Require target-environment readback, post-release sanity and agreed operational observation before claiming live verification.

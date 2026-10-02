@@ -18,6 +18,8 @@ import { planTeam } from "./team-orchestrator.mjs";
 import { loadSkillRoutingConfig, routeSkill, validateSkillRoutingConfig } from "./skill-routing.mjs";
 import { detectProductEntry } from "./product-intent.mjs";
 import { buildFinalTaskReport } from "./task-report.mjs";
+import { hasSymlinkComponent } from "./paths.mjs";
+import { deliveryInput } from "./delivery-evidence.mjs";
 
 const STATES = ["DISCOVER", "ANALYZE", "PLAN_READY", "APPROVED", "IMPLEMENTING", "VERIFYING", "REVIEW_READY", "RELEASED"];
 const NEXT_STATE = new Map(STATES.slice(0, -1).map((state, index) => [state, STATES[index + 1]]));
@@ -352,6 +354,15 @@ export function transitionTask(options) {
   if (missing.length) throw new Error(`transition ${to} missing evidence: ${missing.join(", ")}`);
   if (to === "APPROVED" && evidence.approval_hash !== task.capability.approval_hash) {
     throw new Error("approval evidence does not match capability approval hash");
+  }
+  if (to === "IMPLEMENTING" && evidence.capability_hash !== task.capability_hash) throw new Error("Implementation capability evidence does not match the current task.");
+  if (task.product_contract && ["PLAN_READY", "APPROVED", "IMPLEMENTING", "VERIFYING", "REVIEW_READY", "RELEASED"].includes(to)) {
+    const contractFile = path.resolve(root, task.product_contract.path);
+    if (!contractFile.startsWith(`${root}${path.sep}`) || hasSymlinkComponent(root, task.product_contract.path)) throw new Error("Product contract path is unsafe.");
+    const contract = JSON.parse(fs.readFileSync(contractFile, "utf8"));
+    if (digest(contract) !== task.product_contract.hash) throw new Error("Product contract changed; rebind its revision and approval before advancing.");
+    deliveryInput(root, task.id);
+    if (["APPROVED", "IMPLEMENTING"].includes(to) && contract.open_decisions?.some((item) => item.blocking)) throw new Error("Blocking product decisions remain unresolved.");
   }
   if (to === "REVIEW_READY") assertFinalReviewPassed({ target: root, id: task.id }, options.deps);
   if (to === "RELEASED") {

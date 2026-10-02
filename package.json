@@ -1,6 +1,6 @@
 {
   "name": "@hunpeolabs/ai-agent-kit",
-  "version": "1.6.1",
+  "version": "1.7.0",
   "description": "The governed agent operating system that turns rough product ideas into approved requirements, specifications, delivery, and evidence-backed software.",
   "type": "module",
   "bin": {

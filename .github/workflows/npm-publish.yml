@@ -125,7 +125,13 @@ jobs:
             exit 1
           fi
 
-      - name: Publish package
-        run: npm publish --access public --provenance
+      - name: Freeze the exact release artifact
+        run: node scripts/freeze-release-candidate.mjs
+
+      - name: Publish the frozen package
+        run: npm publish .ai-agent-kit/release-candidate/package.tgz --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Read back the published artifact and run clean-install sanity
+        run: node scripts/verify-published-package.mjs

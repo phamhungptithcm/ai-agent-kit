@@ -2,6 +2,10 @@
 
 Use this workflow when a request is incomplete, broad, ambiguous, high-risk, or requires codebase discovery before edits.
 
+For an end-to-end product goal, use `.ai/workflows/develop-product.md` to start
+or resume the visible product flow. Derive reviewable acceptance criteria for
+the user instead of demanding a technical specification from a novice.
+
 1. Run the Repository Intelligence Gate and stop if it is blocked.
 2. Restate the business outcome.
 3. Identify acceptance criteria and scope.

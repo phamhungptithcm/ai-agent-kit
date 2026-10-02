@@ -12,6 +12,7 @@ const MANDATORY_CORE = [
   ".ai/core/mission.md",
   ".ai/core/engineering-principles.md",
   ".ai/core/required-workflow.md",
+  ".ai/core/product-delivery.md",
   ".ai/core/risk-model.md",
   ".ai/core/quality-gates.md",
   ".ai/core/output-contract.md",

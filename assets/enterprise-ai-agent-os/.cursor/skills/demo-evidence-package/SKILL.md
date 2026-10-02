@@ -22,6 +22,8 @@ The package should enable:
 
 Never fabricate screenshots, validation, or implementation evidence.
 
+Apply `.ai/core/product-delivery.md` and use `.ai/templates/product-demo.md` for missing content in the existing canonical demo record. Rehearse the real advertised user journey on the exact candidate/environment, verify reset, capture actual outcomes and map each presentation claim to executed evidence. Label synthetic data, recordings and unverified integrations. Record demo readiness independently of release readiness; a mockup or unrehearsed script cannot pass as an implemented demo.
+
 ---
 
 # Repository Intelligence Gate (Required)

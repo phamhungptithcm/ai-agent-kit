@@ -22,6 +22,9 @@ Every implementation completion must report each gate with `PASSED`, `FAILED`, `
 | Observability impact reviewed | TODO | TODO |
 | Diff self-reviewed | TODO | TODO |
 | Final implementation review current and passed | TODO | `.ai/templates/final-implementation-review.json` and runtime review receipt |
+| Product BR/SPEC/AC/design/task/code/executed-evidence traceability reconciled | TODO | Canonical delivery index under `.ai/core/product-delivery.md`; applicable baseline revisions and candidate identity |
+| Release acceptance and target-environment post-release sanity completed when release is in scope | TODO | Canonical release record; deployment alone cannot pass live verification |
+| Demo journey rehearsed, reset verified and claims bound to evidence when demo is in scope | TODO | Canonical demo record; demo readiness recorded separately from release readiness |
 | Search metadata, crawler policy, structured data, and claims reviewed where applicable | TODO | TODO |
 | Design direction, responsive composition, UI states, accessibility, motion, and visual evidence reviewed where applicable | TODO | TODO |
 | Product language meaning, tone, brevity, states, accessibility, localization, data semantics, eight Human Interface principles, target-platform fit, and in-context evidence reviewed where applicable | TODO | `.ai/templates/product-content-review.md` |

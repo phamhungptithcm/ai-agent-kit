@@ -3,6 +3,11 @@ import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 import { hasSymlinkComponent } from "./paths.mjs";
+import { deliveryInput, readDeliveryFile, verifyExecutionEvidence, isUntrackedDeliveryDependency } from "./delivery-evidence.mjs";
+import { evaluateIndependentReview } from "./team-review.mjs";
+import { teamControlDigest, verifySignedTeamAction } from "./team-control-contract.mjs";
+import { withTeamControlStore } from "./team-control-store.mjs";
+import { resolveRepositoryIdentity } from "./memory-contract.mjs";
 
 const MAX_REVIEW_BYTES = 2 * 1024 * 1024;
 const REVIEW_STATUSES = new Set(["PASSED", "BLOCKED"]);
@@ -78,9 +83,9 @@ function currentCommit(root, deps = {}) {
 function worktreeSignature(root, deps = {}) {
   const execute = deps.spawnSync ?? spawnSync;
   const diff = execute("git", ["diff", "--binary", "HEAD", "--", ".", ":(exclude).ai-agent-kit"], { cwd: root, encoding: "utf8", timeout: 30000, maxBuffer: 8 * 1024 * 1024 });
-  const untracked = execute("git", ["ls-files", "--others", "--exclude-standard"], { cwd: root, encoding: "utf8", timeout: 30000 });
+  const untracked = execute("git", ["ls-files", "--others", "--exclude-standard", "-z"], { cwd: root, encoding: "utf8", timeout: 30000 });
   if (diff.status !== 0 || untracked.status !== 0) return null;
-  const untrackedFiles = untracked.stdout.split("\n").filter(Boolean).sort().map((relPath) => {
+  const untrackedFiles = untracked.stdout.split("\0").filter((name) => name && !name.startsWith(".ai-agent-kit/") && !isUntrackedDeliveryDependency(name)).sort().map((relPath) => {
     try {
       const file = path.join(root, relPath);
       const stat = fs.lstatSync(file);
@@ -107,8 +112,9 @@ function validateEvidenceRefs(value, name) {
 
 function normalizeReview(input, task, commit) {
   if (!input || typeof input !== "object" || Array.isArray(input)) throw new Error("final review must be a JSON object");
-  if (input.schema_version !== 1) throw new Error("final review schema_version must be 1");
+  if (![1, 2].includes(input.schema_version)) throw new Error("final review schema_version must be 1 or 2");
   const allowedTopLevel = new Set(["schema_version", "task_id", "status", "dimensions", "findings", "residual_risks", "limitations"]);
+  if (input.schema_version === 2) for (const key of ["input_hash", "author_identity", "reviewer_identity", "reviewer_action"]) allowedTopLevel.add(key);
   const unknownTopLevel = Object.keys(input).filter((key) => !allowedTopLevel.has(key));
   if (unknownTopLevel.length) throw new Error(`unknown final review fields: ${unknownTopLevel.join(", ")}`);
   if (input.task_id !== task.id) throw new Error("final review task_id does not match the governed task");
@@ -154,16 +160,17 @@ function normalizeReview(input, task, commit) {
       evidence_refs: evidenceRefs
     };
   });
-  const openBlocking = findings.filter((finding) => finding.status !== "FIXED" && ["CRITICAL", "HIGH"].includes(finding.severity));
+  if (new Set(findings.map((finding) => finding.id)).size !== findings.length) throw new Error("finding IDs must be unique within a review cycle");
+  const openBlocking = findings.filter((finding) => finding.status !== "FIXED" && (input.schema_version === 2 || ["CRITICAL", "HIGH"].includes(finding.severity)));
   const incomplete = Object.entries(dimensions).filter(([, value]) => !["PASSED", "NOT_APPLICABLE"].includes(value.status));
   if (status === "PASSED" && (openBlocking.length || incomplete.length)) {
-    throw new Error("PASSED final review cannot contain unresolved critical/high findings or incomplete dimensions");
+    throw new Error("PASSED final review cannot contain unresolved blocking findings or incomplete dimensions");
   }
   if (status === "BLOCKED" && !openBlocking.length && !incomplete.length) {
     throw new Error("BLOCKED final review requires an open blocking finding or incomplete dimension");
   }
   return {
-    schema_version: 1,
+    schema_version: input.schema_version,
     task_id: task.id,
     status,
     reviewed_commit: commit,
@@ -175,18 +182,69 @@ function normalizeReview(input, task, commit) {
   };
 }
 
+function authenticatedAssurance(root, task, input, deps = {}, consume = false, reviewedAt = null) {
+  const now = reviewedAt ?? deps.now ?? new Date().toISOString();
+  const currentInput = deliveryInput(root, task.id);
+  if (input.input_hash !== currentInput) throw new Error("Authenticated review input is stale for the current candidate or requirements.");
+  const references = Object.values(input.dimensions).flatMap((item) => item.evidence_refs.map((ref) => ({ ref, pass: String(item.status).trim().toUpperCase() === "PASSED" })));
+  for (const finding of input.findings ?? []) for (const ref of finding.evidence_refs ?? []) references.push({ ref, pass: String(finding.status).trim().toUpperCase() === "FIXED" });
+  const evidence = []; let executable = false;
+  for (const { ref, pass } of references) {
+    if (ref.startsWith("execution:")) {
+      const hash = ref.slice(10); const receipt = verifyExecutionEvidence(root, task.id, hash, currentInput, pass);
+      executable ||= pass && receipt.status === "PASSED";
+      evidence.push({ type: "execution", receipt_hash: hash });
+    } else {
+      const match = /^file:(.+)#([a-f0-9]{64})$/.exec(ref);
+      if (!match || readDeliveryFile(root, match[1]).sha256 !== match[2]) throw new Error("Review evidence must resolve to current hashed files or execution receipts.");
+      evidence.push({ type: "file", path: match[1], sha256: match[2] });
+    }
+  }
+  if (String(input.status).trim().toUpperCase() === "PASSED" && !executable) throw new Error("A passing authenticated review requires executed verification.");
+  const resolveIdentityKey = deps.resolveIdentityKey ?? ((key) => withTeamControlStore({ target: root }, (store) => store.getTrustedKey(key)));
+  const authentication = { target: root, now, resolveIdentityKey, author: input.author_identity, reviewer: input.reviewer_identity, evidenceHash: teamControlDigest(evidence), inputHash: currentInput, packageId: task.id, requireReleaseGradeTrust: true };
+  const result = evaluateIndependentReview(authentication);
+  if (result.status !== "ACCEPTED") throw new Error(`Independent review authentication rejected: ${result.blockers.join(", ")}`);
+  const signedPayload = { ...input }; delete signedPayload.reviewer_action;
+  const action = verifySignedTeamAction(input.reviewer_action, { now, resolveIdentityKey, repositoryId: resolveRepositoryIdentity({ target: root }).repository_id, taskId: task.id, operation: "review.submit", payloadHash: teamControlDigest(signedPayload) });
+  if (action.principal_id !== result.reviewer_id || action.key_id !== input.reviewer_identity.authentication.key_id) throw new Error("Review signature does not belong to the authenticated reviewer.");
+  if (consume) withTeamControlStore({ target: root }, (store) => store.consumeNonce({ keyId: action.key_id, nonce: action.nonce, operation: action.operation, taskId: action.task_id, expiresAt: action.expires_at, now }));
+  return { status: "VERIFIED", evidence_level: "AUTHENTICATED_REVIEW", input_hash: currentInput, author_id: result.author_id, reviewer_id: result.reviewer_id, evidence, signed_input: input, reviewed_at: now };
+}
+
+function rejectSensitiveReviewInput(value, depth = 0) {
+  if (depth > 16) throw new Error("Review input nesting exceeds its budget.");
+  if (typeof value === "string" && /-----BEGIN [A-Z ]*PRIVATE KEY-----|\bbearer\s+\S{8,}/i.test(value)) throw new Error("Review input contains secret-like data.");
+  if (value && typeof value === "object") for (const [key, item] of Object.entries(value)) {
+    if (/private[_ -]?key|password|secret|api[_ -]?key|access[_ -]?token|refresh[_ -]?token|authorization/i.test(key)) throw new Error("Review input contains a forbidden secret field.");
+    rejectSensitiveReviewInput(item, depth + 1);
+  }
+}
+
 export function recordFinalReview(options, deps = {}) {
+  const root = rootFor(options.target); const file = reviewPath(root, options.id);
+  const lock = `${file}.lock`;
+  if (hasSymlinkComponent(root, path.relative(root, lock))) throw new Error("Review lock path is unsafe.");
+  fs.mkdirSync(path.dirname(lock), { recursive: true });
+  let descriptor;
+  try { descriptor = fs.openSync(lock, "wx", 0o600); } catch (error) { if (error.code !== "EEXIST") throw error; throw new Error("Final review ledger is being updated; retry after the active writer. Inspect an abandoned lock before recovery."); }
+  try { return recordFinalReviewLocked(options, deps); }
+  finally { fs.closeSync(descriptor); fs.unlinkSync(lock); }
+}
+function recordFinalReviewLocked(options, deps) {
   const root = rootFor(options.target);
   const taskFile = taskPath(root, options.id);
   if (!fs.existsSync(taskFile)) throw new Error(`task not found: ${options.id}`);
   const task = JSON.parse(fs.readFileSync(taskFile, "utf8"));
-  const record = normalizeReview(loadRegularJson(options.file), task, currentCommit(root, deps));
+  const input = loadRegularJson(options.file);
+  if (input.schema_version === 2) rejectSensitiveReviewInput(input);
+  const record = normalizeReview(input, task, currentCommit(root, deps));
   record.reviewed_worktree_signature = worktreeSignature(root, deps);
   if (!record.reviewed_commit || !record.reviewed_worktree_signature) {
     throw new Error("final review requires a readable Git commit and worktree signature");
   }
   const file = reviewPath(root, task.id);
-  const existing = fs.existsSync(file) ? fs.readFileSync(file, "utf8").split("\n").filter(Boolean) : [];
+  const existing = fs.existsSync(file) ? readDeliveryFile(root, path.relative(root, file).split(path.sep).join("/"), 16 * 1024 * 1024).bytes.toString("utf8").split("\n").filter(Boolean) : [];
   const existingRecords = existing.map((line) => JSON.parse(line));
   let previousHash = null;
   for (const candidate of existingRecords) {
@@ -204,13 +262,30 @@ export function recordFinalReview(options, deps = {}) {
       for (const finding of existingRecord.findings ?? []) latestFindingById.set(finding.id, finding);
     }
     for (const finding of record.findings) latestFindingById.set(finding.id, finding);
-    const unresolved = [...latestFindingById.values()].filter((finding) => finding.status !== "FIXED" && ["CRITICAL", "HIGH"].includes(finding.severity));
+    const unresolved = [...latestFindingById.values()].filter((finding) => finding.status !== "FIXED" && (input.schema_version === 2 || ["CRITICAL", "HIGH"].includes(finding.severity)));
     if (unresolved.length) throw new Error(`PASSED final review must resolve prior blocking findings: ${unresolved.map((finding) => finding.id).join(", ")}`);
   }
+  record.assurance = input.schema_version === 2
+    ? authenticatedAssurance(root, task, input, deps, false)
+    : { status: "LEGACY_UNVERIFIED", evidence_level: "DECLARED", limitations: ["Legacy review references and reviewer identity are not authenticated."] };
   record.previous_review_hash = previousHash;
   record.review_hash = digest(record);
   fs.mkdirSync(path.dirname(file), { recursive: true });
-  fs.appendFileSync(file, `${JSON.stringify(record)}\n`, { encoding: "utf8", mode: 0o600 });
+  const persist = () => {
+    const content = [...existing, JSON.stringify(record)].join("\n") + "\n";
+    if (Buffer.byteLength(content) > 16 * 1024 * 1024) throw new Error("Review ledger exceeds its budget; archive evidence before continuing.");
+    const temporary = `${file}.${crypto.randomUUID()}.tmp`;
+    try { fs.writeFileSync(temporary, content, { flag: "wx", mode: 0o600 }); (deps.renameSync ?? fs.renameSync)(temporary, file); }
+    finally { if (fs.existsSync(temporary)) fs.unlinkSync(temporary); }
+  };
+  if (input.schema_version === 2) {
+    const action = input.reviewer_action;
+    if (existingRecords.some((item) => item.assurance?.signed_input?.reviewer_action?.key_id === action.key_id && item.assurance.signed_input.reviewer_action.nonce === action.nonce)) throw new Error("signed action nonce was replayed in the review ledger");
+    withTeamControlStore({ target: root }, (store) => store.database.transaction(() => {
+      store.consumeNonce({ keyId: action.key_id, nonce: action.nonce, operation: action.operation, taskId: action.task_id, expiresAt: action.expires_at, now: record.assurance.reviewed_at });
+      persist();
+    }).immediate());
+  } else persist();
   return record;
 }
 
@@ -218,7 +293,7 @@ export function inspectFinalReview(options, deps = {}) {
   const root = rootFor(options.target);
   const file = reviewPath(root, options.id);
   if (!fs.existsSync(file)) return { status: "NOT_RUN", stale: false, findings: [], dimensions: {}, residual_risks: [], limitations: [] };
-  const records = fs.readFileSync(file, "utf8").split("\n").filter(Boolean).map((line) => JSON.parse(line));
+  const records = readDeliveryFile(root, path.relative(root, file).split(path.sep).join("/"), 16 * 1024 * 1024).bytes.toString("utf8").split("\n").filter(Boolean).map((line) => JSON.parse(line));
   let previous = null;
   for (const candidate of records) {
     const claimed = candidate.review_hash;
@@ -230,6 +305,13 @@ export function inspectFinalReview(options, deps = {}) {
     previous = claimed;
   }
   const record = records.at(-1);
+  let assurance = record.assurance ?? { status: "LEGACY_UNVERIFIED", evidence_level: "DECLARED" };
+  if (record.schema_version === 2) {
+    try {
+      const task = JSON.parse(fs.readFileSync(taskPath(root, options.id), "utf8"));
+      assurance = authenticatedAssurance(root, task, record.assurance.signed_input, deps, false, record.assurance.reviewed_at);
+    } catch (error) { assurance = { status: /stale/.test(error.message) ? "STALE" : "REJECTED", evidence_level: "AUTHENTICATED_REVIEW", reason: error.message }; }
+  }
   const findingHistory = records.flatMap((cycle, cycleIndex) => cycle.findings.map((finding) => ({
     ...finding,
     cycle: cycleIndex + 1,
@@ -248,7 +330,8 @@ export function inspectFinalReview(options, deps = {}) {
   );
   return {
     ...record,
-    status: stale && record.status === "PASSED" ? "STALE" : record.status,
+    status: record.schema_version === 2 && assurance.status !== "VERIFIED" ? assurance.status : stale && record.status === "PASSED" ? "STALE" : record.status,
+    assurance,
     stale,
     cycle_count: records.length,
     finding_history: findingHistory,

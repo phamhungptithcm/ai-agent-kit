@@ -183,6 +183,7 @@ export function dispatchTeamAssignment(options, deps = {}) {
   }
   if (assignment.attempts >= assignment.max_attempts) throw new Error("assignment retry budget is exhausted");
   const agent = safe(options.agent, "agent id"); const timestamp = now(options);
+  let externalRunId = options.externalRunId ? safe(options.externalRunId, "external run id") : null;
   const context = inspectTeamContext({ target: root, id: options.id });
   const claimed = claimTeamWork({ target: root, id: options.id, assignment: assignment.id, agent, expectedRevision: context.revision, leaseSeconds: options.leaseSeconds, now: timestamp });
   const instruction = instructionFor(team, assignment.id);
@@ -214,7 +215,7 @@ export function dispatchTeamAssignment(options, deps = {}) {
       throw error;
     }
   }
-  let externalRunId = options.externalRunId ? safe(options.externalRunId, "external run id") : null;
+
   let hostExecution = team.adapter_capabilities?.native_spawn ? "ATTESTED_EXTERNAL" : "SERIAL_PERSONA";
   if (team.adapter_capabilities?.native_spawn && deps.hostBridge?.spawn) {
     let response;

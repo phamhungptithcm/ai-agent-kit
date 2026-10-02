@@ -15,6 +15,8 @@ Ensure implementation, documentation, testing, architecture, and operational art
 
 Never fabricate implementation evidence.
 
+Apply `.ai/core/product-delivery.md`. Maintain one existing canonical delivery index with revision-bound BR/SPEC/AC/design/task/code/executed-evidence links. Reconcile it against actual behavior, invalidate stale downstream records and complete missing release/operations content using `.ai/templates/production-release.md`. Require target-environment artifact readback, sanity and agreed operational observation before claiming live verification. Template completeness and runtime READY are inputs, not release approval.
+
 ---
 
 # Repository Intelligence Gate (Required)

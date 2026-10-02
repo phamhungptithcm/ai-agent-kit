@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## 1.7.0 - 2026-10-02
+
+- Add candidate-bound delivery contracts, signed independent review and release/sanity evidence.
+- Add 21 production harness controls for documentation, planning, stack, code/API, performance/memory, security and operations.
+- Add eight-step progress view and safe read-only flow inventory.
+- Preserve Product Genesis under `product`; introduce execution evidence under `delivery`.
+- Harden release archive/readback integrity and document truthful host and production evidence limits.
+- See [full release notes](docs/releases/v1.7.0-evidence-bound-delivery.md).
+
 ## v1.6.1 — 2026-08-21 — Product Genesis Auto Entry
 
 - Added a Conversation Entry Gate before Repository Intelligence so users can

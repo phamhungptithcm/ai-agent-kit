@@ -2,6 +2,10 @@
 
 required_review:
 
+* "Apply .ai/core/product-delivery.md for production product documentation; maintain one revision-bound delivery index and reuse existing canonical documents."
+* "Every delivered document must have a consumer and a concrete decision, implementation, test, operation, or presentation use; do not instantiate templates merely to satisfy a document count."
+* "Treat unresolved required fields as blockers; a placeholder, proposal or approved design is not verified product behavior."
+
 * "Update documentation whenever behavior, configuration, commands, workflows, deployment procedures, operational procedures, public contracts, architecture, or risk assumptions change."
 * "Treat documentation changes as part of the implementation, not as optional follow-up work."
 * "Inspect relevant README files, design documents, ADRs, runbooks, API specifications, diagrams, examples, and operator guides for every material change."
