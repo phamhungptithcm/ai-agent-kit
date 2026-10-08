@@ -1,7 +1,0 @@
-.ai/local
-.codegraph
-.cocoindex_code
-__pycache__
-*.pyc
-*.pyo
-*.pyd
